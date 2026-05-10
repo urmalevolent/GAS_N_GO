@@ -1,19 +1,20 @@
 <script setup>
 import Navbar from '../components/Navbar.vue'
-import Footer from '../components/Footer.vue' // <-- 1. Import komponen Footer
+import Footer from '../components/Footer.vue'
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col bg-white">
-    <!-- Navbar Anda -->
+    <!-- Navbar -->
     <Navbar />
 
-    <!-- Konten Utama (Halaman Home/lainnya) -->
-    <main class="grow"> 
-      <slot />
+    <!-- Konten Utama (Halaman Home, Cars, dll akan otomatis masuk ke sini) -->
+    <main class="grow">
+      <!-- PERUBAHAN DI SINI: Mengganti <slot /> menjadi <router-view /> -->
+      <router-view />
     </main>
 
-    <!-- 2. Panggil Footer Anda di sini -->
+    <!-- Footer -->
     <Footer class="mt-auto" />
   </div>
 </template>
