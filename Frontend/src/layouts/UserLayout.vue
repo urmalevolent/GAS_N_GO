@@ -6,7 +6,7 @@ import { RouterView } from "vue-router";
 import Sidebar from "@/components/Sidebar.vue";
 
 // Pastikan letak gambar default avatar Anda benar
-import defaultAvatar from "@/asset/images/user_profile/default-avatar.png";
+import defaultAvatar from "@/assets/images/user_profile/default-avatar.png";
 
 // 1. State untuk data user (dikirim ke Sidebar sebagai Props)
 // Menggunakan data dummy sementara karena belum ada backend

@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 // Avatar default
-import defaultAvatar from '@/asset/images/user_profile/default-avatar.png';
+import defaultAvatar from '@/assets/images/user_profile/default-avatar.png';
 
 const router = useRouter();
 const route = useRoute();
@@ -85,14 +85,6 @@ const handleLogout = () => {
         <span class="bg-[#0050cb] text-white text-[9px] px-2 py-0.5 rounded-full">1</span>
       </RouterLink>
 
-      <RouterLink
-        to="/user/wishlist"
-        class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group font-bold text-sm"
-        :class="route.path.includes('/user/wishlist') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
-      >
-        <span class="material-symbols-outlined text-[20px]" :class="route.path.includes('/user/wishlist') ? 'text-[#0050cb]' : 'text-[#727687]'">history</span>
-        <span>Riwayat Sewa</span>
-      </RouterLink>
 
       <RouterLink
         to="/user/review"

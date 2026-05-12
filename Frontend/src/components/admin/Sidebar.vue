@@ -64,10 +64,10 @@ const closeSidebar = () => {
         <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Pengguna</h3>
 
         <RouterLink
-          to="/admin/accounts"
+          to="/admin/users"
           @click="closeSidebar"
           class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all"
-          :class="route.path.startsWith('/admin/accounts') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
+          :class="route.path.startsWith('/admin/users') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
         >
           <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/accounts') ? 'text-[#0050cb]' : 'text-[#727687]'">manage_accounts</span>
           Users
@@ -79,12 +79,12 @@ const closeSidebar = () => {
         <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Armada & Transaksi</h3>
 
         <RouterLink
-          to="/admin/products"
+          to="/admin/cars"
           @click="closeSidebar"
           class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all"
-          :class="route.path.startsWith('/admin/products') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
+          :class="route.path.startsWith('/admin/cars') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
         >
-          <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/products') ? 'text-[#0050cb]' : 'text-[#727687]'">directions_car</span>
+          <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/cars') ? 'text-[#0050cb]' : 'text-[#727687]'">directions_car</span>
           Cars List
         </RouterLink>
 
@@ -99,12 +99,12 @@ const closeSidebar = () => {
         </RouterLink>
 
         <RouterLink
-          to="/admin/brands"
+          to="/admin/category"
           @click="closeSidebar"
           class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all"
-          :class="route.path.startsWith('/admin/brands') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
+          :class="route.path.startsWith('/admin/category') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
         >
-          <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/brands') ? 'text-[#0050cb]' : 'text-[#727687]'">workspace_premium</span>
+          <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/category') ? 'text-[#0050cb]' : 'text-[#727687]'">workspace_premium</span>
           Category
         </RouterLink>
 
@@ -138,13 +138,13 @@ const closeSidebar = () => {
         <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Tanggapan</h3>
 
         <RouterLink
-          to="/admin/comments"
+          to="/admin/ratings"
           @click="closeSidebar"
           class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all"
-          :class="route.path.startsWith('/admin/comments') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
+          :class="route.path.startsWith('/admin/ratings') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
         >
-          <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/comments') ? 'text-[#0050cb]' : 'text-[#727687]'">reviews</span>
-          Ulasan & Penilaian
+          <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/ratings') ? 'text-[#0050cb]' : 'text-[#727687]'">reviews</span>
+          Ratings & Reviews
         </RouterLink>
       </div>
 
