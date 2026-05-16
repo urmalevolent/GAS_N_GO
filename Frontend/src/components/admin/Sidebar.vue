@@ -89,12 +89,12 @@ const closeSidebar = () => {
         </RouterLink>
 
         <RouterLink
-          to="/admin/categories"
+          to="/admin/rentals"
           @click="closeSidebar"
           class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all"
-          :class="route.path.startsWith('/admin/categories') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
+          :class="route.path.startsWith('/admin/rentals') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
         >
-          <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/categories') ? 'text-[#0050cb]' : 'text-[#727687]'">category</span>
+          <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/rentals') ? 'text-[#0050cb]' : 'text-[#727687]'">category</span>
           Rentals
         </RouterLink>
 
@@ -116,20 +116,6 @@ const closeSidebar = () => {
         >
           <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/transactions') ? 'text-[#0050cb]' : 'text-[#727687]'">receipt_long</span>
           Transactions
-        </RouterLink>
-
-        <RouterLink
-          to="/admin/status"
-          @click="closeSidebar"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all justify-between"
-          :class="route.path.startsWith('/admin/status') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
-        >
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-xl transition-colors" :class="route.path.startsWith('/admin/status') ? 'text-[#0050cb]' : 'text-[#727687]'">local_shipping</span>
-            Pesanan Aktif
-          </div>
-          <!-- Badge Notifikasi Dummy -->
-          <span class="bg-[#0050cb] text-white text-[10px] font-black px-2 py-0.5 rounded-full">3</span>
         </RouterLink>
       </div>
 

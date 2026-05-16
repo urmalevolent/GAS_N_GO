@@ -1,273 +1,336 @@
 <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
 // ASSETS
-// import Allantak from '@/assets/images/allan_tak.png'
 import carhome1 from '@/assets/images/gambar_mobil_home.png'
 import Taycan from '@/assets/images/Taycan_TurboS.png'
+
+const router = useRouter()
+
+// Fungsi format harga
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0
+  }).format(price)
+}
+
+// Data Dummy Armada Populer (Sesuai gaya May 13)
+const popularCars = ref([
+  {
+    id: 1,
+    name: 'Porsche Taycan',
+    brand: 'Porsche',
+    category: 'Elektrik Mewah',
+    year: '2024',
+    price_per_day: 1250,
+    description: 'Tenaga listrik tanpa kompromi berpadu dengan kemewahan artisanal. Mahakarya otomotif masa depan.',
+    image_url: Taycan
+  },
+  {
+    id: 2,
+    name: 'BMW M8 Gran Coupe',
+    brand: 'BMW',
+    category: 'Sedan Eksekutif',
+    year: '2023',
+    price_per_day: 950,
+    description: 'Perpaduan sempurna antara performa sport dan kenyamanan sedan mewah untuk perjalanan bisnis maupun liburan Anda.',
+    image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE'
+  },
+  {
+    id: 3,
+    name: 'Ferrari F8 Tributo',
+    brand: 'Ferrari',
+    category: 'Supercar Eksotis',
+    year: '2024',
+    price_per_day: 2450,
+    description: 'Mesin V8 terkuat dalam sejarah. Rasakan sensasi berkendara mendebarkan tiada tara dengan performa tanpa batas.',
+    image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp'
+  }
+])
 </script>
 
 <template>
-  <!-- Wrapper utama halaman Home dengan background abu-abu sangat muda -->
-  <div class="bg-[#f8fafa] min-h-screen pb-20">
+  <div class="bg-[#f8fafa] min-h-screen pb-20 font-['Manrope']">
 
     <!-- ==========================================
-         1. HERO SECTION (Bagian Paling Atas)
+         1. HERO SECTION (Gaya Cinematic Light Theme)
          ========================================== -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 lg:pt-20 pb-16">
-      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-        <!-- Kiri: Teks & Tombol -->
-        <div class="space-y-8">
-          <!-- Badge -->
-          <div class="inline-block bg-blue-100 text-blue-700 font-bold text-xs px-3 py-1.5 rounded-md uppercase tracking-wider">
-            Tingkatkan Pengalaman Anda
-          </div>
+    <section class="relative pt-24 pb-36 lg:pt-32 lg:pb-48 overflow-hidden bg-[#f8fafa]">
+      <div class="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-blue-300 blur-[128px] opacity-30 pointer-events-none"></div>
+      <div class="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-cyan-200 blur-[128px] opacity-40 pointer-events-none"></div>
 
-          <!-- Headline -->
-          <h1 class="text-[3rem] sm:text-[4rem] lg:text-[5rem] font-black leading-[1.1] text-[#111827] tracking-tight uppercase">
-            Kendarai <br />
-            <span class="text-[#0d6efd]">Kemewahan Sempurna</span>
-          </h1>
-
-          <!-- Deskripsi -->
-          <p class="text-slate-600 text-lg sm:text-xl max-w-lg leading-relaxed">
-            Rasakan puncak mahakarya otomotif melalui koleksi eksklusif supercar kelas dunia dan sedan mewah kami.
-          </p>
-
-          <!-- Tombol -->
-          <div class="flex flex-col sm:flex-row gap-4">
-            <RouterLink
-              to="/cars"
-              class="bg-[#0d6efd] hover:bg-blue-700 text-white font-bold px-8 py-3.5 rounded shadow-lg shadow-blue-500/30 transition-all uppercase tracking-wide text-sm text-center inline-block"
-            >
-              Jelajahi Armada
-            </RouterLink>
-            <RouterLink
-              to="/services"
-              class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold px-8 py-3.5 rounded transition-all uppercase tracking-wide text-sm text-center inline-block"
-            >
-              Lihat Layanan
-            </RouterLink>
-          </div>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <div class="inline-block bg-blue-100 text-blue-700 font-bold text-xs px-4 py-2 rounded-full uppercase tracking-widest mb-6 shadow-sm border border-blue-200/50">
+          Tingkatkan Pengalaman Anda
         </div>
 
-        <!-- Kanan: Gambar Mobil & Floating Card -->
-        <div class="relative mt-10 lg:mt-0">
-          <!-- Background Shape Abu-abu -->
-          <div class="absolute inset-0 bg-slate-200 rounded-[40px] translate-x-4 -translate-y-4 sm:translate-x-8 sm:-translate-y-8 -z-10"></div>
+        <h1 class="text-4xl md:text-6xl lg:text-[5.5rem] font-black text-[#111827] mb-6 tracking-tight leading-[1.1] uppercase">
+          Kendarai <br />
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0d6efd] to-cyan-500">Kemewahan Sempurna</span>
+        </h1>
 
-          <!-- Gambar Mobil Utama -->
-          <img
-            :src="Taycan"
-            alt="Porsche Mewah"
-            class="rounded-[30px] shadow-2xl w-full object-cover h-[300px] sm:h-[400px] lg:h-[500px]"
-          />
-
-          <!-- Floating Card (New Arrival) -->
-          <div class="absolute -bottom-6 -left-2 sm:-left-8 bg-white p-4 rounded-xl shadow-xl flex items-center gap-4 animate-bounce-slow">
-            <div class="bg-blue-600 p-3 rounded-lg text-white">
-              <!-- Icon Mobil Kecil -->
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Unit Baru
-              </p>
-              <p class="text-sm font-black text-slate-800">Taycan Turbo S</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==========================================
-         2. SEARCH BAR (Kotak Pencarian Tersedia)
-         ========================================== -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 relative z-20">
-      <div class="bg-white rounded-xl shadow-xl p-2 sm:p-4 flex flex-col lg:flex-row items-center divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
-
-        <!-- Tanggal Rental -->
-        <div class="w-full lg:w-1/3 p-4 flex flex-col justify-center">
-          <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Tanggal Rental
-          </label>
-          <div class="flex items-center gap-3 text-slate-800 font-medium">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="blue" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-            </svg>
-            <input type="text" placeholder="hh / bb / tttt" class="w-full outline-none bg-transparent placeholder-slate-800" />
-          </div>
-        </div>
-
-        <!-- Tanggal Pengembalian -->
-        <div class="w-full lg:w-1/3 p-4 flex flex-col justify-center">
-          <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-            Tanggal Pengembalian
-          </label>
-          <div class="flex items-center gap-3 text-slate-800 font-medium">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="blue" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-            </svg>
-            <input type="text" placeholder="hh / bb / tttt" class="w-full outline-none bg-transparent placeholder-slate-800" />
-          </div>
-        </div>
-
-        <!-- Tipe Mobil & Tombol -->
-        <div class="w-full lg:w-1/3 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div class="w-full">
-            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-              Tipe Mobil
-            </label>
-            <div class="flex items-center justify-between text-slate-800 font-medium cursor-pointer">
-              <div class="flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="blue" class="w-5 h-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-                </svg>
-                <span>Supercar Eksotis</span>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-slate-400">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full lg:w-1/3 p-4 flex flex-col">
-          <button class="w-full sm:w-auto bg-[#0d6efd] hover:bg-blue-700 text-white font-bold text-center py-3.5 px-6 rounded whitespace-nowrap uppercase text-xs tracking-wider transition-colors">
-            Cari Ketersediaan
-          </button>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ==========================================
-         3. FEATURES HEADER (Judul Fitur)
-         ========================================== -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-32 mb-10">
-      <div class="max-w-2xl">
-        <h2 class="text-3xl md:text-4xl lg:text-[40px] font-black text-[#111827] uppercase leading-none mb-4">
-          Mendefinisikan Ulang Standar Mobilitas Mewah.
-        </h2>
-        <p class="text-slate-600 text-lg leading-relaxed">
-          Kami tidak sekadar menyewakan mobil; kami menghadirkan pengalaman sempurna yang dirancang khusus bagi pengemudi dengan selera tinggi.
-        </p>
-      </div>
-    </section>
-
-    <!-- ==========================================
-         4. BENTO GRID FEATURES (Kotak-kotak Layanan)
-         ========================================== -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- Kotak 1 (Kiri Atas, Lebar) -->
-        <div class="lg:col-span-2 bg-[#f0f2f5] rounded-3xl p-8 lg:p-10 flex flex-col md:flex-row items-center gap-8 group">
-          <div class="flex-1 space-y-4">
-            <div class="bg-white w-12 h-12 rounded-full flex items-center justify-center text-blue-600 shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-            </div>
-            <h3 class="text-2xl font-bold text-slate-900">Layanan Pramutamu Premium</h3>
-            <p class="text-slate-600 leading-relaxed">
-              Tim ahli kami memastikan kendaraan Anda diantar dan dijemput sesuai kenyamanan Anda, di mana pun dalam area metropolitan.
-            </p>
-          </div>
-          <div class="w-full md:w-1/2 overflow-hidden rounded-2xl">
-            <img :src="carhome1" alt="Penyerahan kunci mobil" class="w-full h-48 lg:h-64 object-cover group-hover:scale-105 transition-transform duration-500 grayscale" />
-          </div>
-        </div>
-
-        <!-- Kotak 2 (Kanan Atas, Biru) -->
-        <div class="bg-[#0d6efd] rounded-3xl p-8 lg:p-10 flex flex-col justify-center text-white">
-          <div class="bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-            </svg>
-          </div>
-          <h3 class="text-2xl font-bold mb-4">Pemesanan Instan</h3>
-          <p class="text-blue-100 leading-relaxed">
-            Pendekatan digital kami memastikan Anda berada di balik kemudi dalam waktu kurang dari 5 menit. Tanpa dokumen rumit, langsung nikmati perjalanan.
-          </p>
-        </div>
-
-        <!-- Kotak 3 (Kiri Bawah, Putih) -->
-        <div class="bg-white rounded-3xl p-8 lg:p-10 shadow-sm border border-gray-100 flex flex-col justify-center">
-          <div class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center text-blue-600 mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-            </svg>
-          </div>
-          <h3 class="text-2xl font-bold text-slate-900 mb-4">Armada Pilihan Elit</h3>
-          <p class="text-slate-600 leading-relaxed">
-            Hanya menyediakan model keluaran terbaru dengan spesifikasi khusus. Kami menjaga standar kesempurnaan tertinggi pada setiap kendaraan.
-          </p>
-        </div>
-
-        <!-- Kotak 4 (Kanan Bawah, Lebar) -->
-        <div class="lg:col-span-2 bg-[#f0f2f5] rounded-3xl p-8 lg:p-10 flex flex-col md:flex-row items-center gap-8 group">
-          <div class="flex-1 space-y-4">
-            <div class="bg-white w-12 h-12 rounded-full flex items-center justify-center text-blue-600 shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
-              </svg>
-            </div>
-            <h3 class="text-2xl font-bold text-slate-900">Kebebasan Tanpa Batas</h3>
-            <p class="text-slate-600 leading-relaxed">
-              Jarak tempuh tanpa batas untuk model mewah pilihan serta opsi pengembalian antar-kota demi melengkapi perjalanan jauh Anda.
-            </p>
-          </div>
-          <div class="w-full md:w-1/2 overflow-hidden rounded-2xl">
-            <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800&auto=format&fit=crop" alt="Jalan pesisir pantai" class="w-full h-48 lg:h-56 object-cover group-hover:scale-105 transition-transform duration-500" />
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==========================================
-         5. CALL TO ACTION (Form Email)
-         ========================================== -->
-    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-24">
-      <div class="bg-white rounded-[40px] shadow-sm py-16 px-6 sm:px-12 text-center border border-gray-100">
-        <h2 class="text-3xl md:text-4xl lg:text-[42px] font-black text-[#111827] uppercase leading-tight mb-4">
-          Siap Mengubah <br class="hidden sm:block" />
-          Perspektif Perjalanan Anda?
-        </h2>
-        <p class="text-slate-500 text-lg mb-8 max-w-xl mx-auto">
-          Bergabunglah dengan klub eksklusif GASNGO untuk mendapatkan akses prioritas ke unit terbaru dan penawaran khusus member.
+        <p class="text-base md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
+          Rasakan puncak mahakarya otomotif melalui koleksi eksklusif supercar kelas dunia dan sedan mewah kami.
         </p>
 
-        <!-- Form Input & Button -->
-        <form @submit.prevent class="flex flex-col sm:flex-row justify-center gap-3 max-w-lg mx-auto">
-          <input
-            type="email"
-            placeholder="Alamat email Anda"
-            required
-            class="w-full sm:flex-1 bg-[#f0f2f5] px-6 py-4 rounded-md outline-none text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-600/50 transition-all"
-          />
-          <button
-            type="submit"
-            class="bg-[#0d6efd] hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-md uppercase text-sm tracking-wide transition-colors"
+        <div class="flex flex-col sm:flex-row justify-center gap-4 relative z-20">
+          <RouterLink
+            to="/cars"
+            class="bg-[#0d6efd] hover:bg-blue-700 text-white font-bold px-10 py-4 rounded-full shadow-[0_10px_30px_rgba(13,110,253,0.3)] transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1 inline-block text-center"
           >
-            Gabung Sekarang
-          </button>
-        </form>
+            Jelajahi Armada
+          </RouterLink>
+          <RouterLink
+            to="/services"
+            class="bg-white text-[#0d6efd] border border-gray-200 hover:bg-blue-50 font-bold px-10 py-4 rounded-full transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1 inline-block text-center shadow-sm"
+          >
+            Lihat Layanan
+          </RouterLink>
+        </div>
       </div>
     </section>
+
+    <!-- ==========================================
+         2. OVERLAPPING SECTION (Semua Konten Bawah)
+         ========================================== -->
+    <div class="relative z-20 bg-white rounded-t-[3rem] sm:rounded-t-[4rem] -mt-24 pt-16 sm:pt-24 pb-24 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] border-t border-gray-100">
+
+      <!-- ================= POPULAR CARS (Baru Ditambahkan) ================= -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32 pt-10">
+        <div class="flex flex-col sm:flex-row justify-between items-center sm:items-end mb-12 text-center sm:text-left">
+          <div class="relative">
+            <div class="absolute -inset-1 bg-blue-100 blur-2xl rounded-full opacity-50"></div>
+            <h2 class="text-3xl md:text-4xl font-black text-slate-900 uppercase relative z-10">Armada <span class="text-[#0d6efd]">Populer</span></h2>
+            <p class="text-slate-500 mt-3 text-lg font-medium relative z-10">Pilihan kendaraan terbaik untuk menemani perjalanan eksklusif Anda.</p>
+          </div>
+          <RouterLink to="/cars" class="mt-6 sm:mt-0 font-bold text-[#0d6efd] hover:text-blue-700 flex items-center gap-1 transition-colors uppercase tracking-widest text-sm">
+            Lihat Semua <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </RouterLink>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+
+          <!-- Looping Mobil Populer -->
+          <div v-for="car in popularCars" :key="car.id" class="group bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_60px_-15px_rgba(13,110,253,0.3)] transition-all duration-500 transform hover:-translate-y-2 flex flex-col relative">
+
+            <!-- Gambar Mobil -->
+            <div class="relative h-60 sm:h-64 overflow-hidden bg-slate-50 p-2">
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[2rem]"></div>
+
+              <div class="w-full h-full overflow-hidden rounded-[2rem] relative bg-white">
+                <img :src="car.image_url" :alt="car.name" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out" />
+              </div>
+
+              <!-- Badge Kategori & Tahun -->
+              <div class="absolute top-6 left-6 z-20 flex flex-col gap-2">
+                <div class="bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-4 py-2 rounded-2xl shadow-sm flex items-center gap-1.5 w-max">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#0d6efd]"></span>
+                  {{ car.year }}
+                </div>
+                <div class="bg-[#111827]/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-sm border border-white/10 uppercase tracking-widest w-max">
+                  {{ car.category }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Deskripsi Bawah Mobil -->
+            <div class="p-8 pt-6 flex-grow flex flex-col relative bg-white">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <p class="text-[10px] font-black text-[#0d6efd] uppercase tracking-[0.2em] mb-1.5">{{ car.brand }}</p>
+                  <h3 class="text-2xl font-black text-slate-900 leading-tight">{{ car.name }}</h3>
+                </div>
+              </div>
+
+              <p class="text-slate-500 text-sm mt-2 mb-8 line-clamp-2 leading-relaxed flex-grow font-medium">{{ car.description }}</p>
+
+              <!-- Tombol & Harga -->
+              <div class="pt-6 border-t border-slate-100 flex flex-col gap-5 mt-auto">
+                <div class="flex items-end justify-between">
+                  <div>
+                    <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Tarif Sewa</span>
+                    <div class="flex items-baseline gap-1">
+                      <span class="text-2xl font-black text-slate-900">{{ formatPrice(car.price_per_day) }}</span>
+                      <span class="text-slate-400 text-sm font-medium">/hari</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex gap-3">
+                  <button @click="router.push(`/car/${car.id}`)" class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm py-3 rounded-xl transition-colors border border-slate-200">
+                    Detail
+                  </button>
+                  <button @click="router.push(`/car/${car.id}`)" class="flex-1 bg-[#111827] text-white hover:bg-[#0d6efd] hover:shadow-lg hover:shadow-blue-500/40 font-bold text-sm py-3 rounded-xl transition-all duration-300">
+                    Sewa Sekarang
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= CARA SEWA (How It Works) ================= -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32">
+        <div class="text-center mb-16 relative">
+          <div class="absolute -inset-1 bg-blue-100 blur-2xl rounded-full w-40 h-40 mx-auto opacity-50"></div>
+          <h2 class="text-3xl md:text-4xl font-black text-[#111827] uppercase relative z-10">Langkah <span class="text-[#0d6efd]">Mudah</span></h2>
+          <p class="text-slate-500 mt-3 text-lg font-medium relative z-10">Proses penyewaan yang cepat dalam 3 tahap sederhana.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
+          <!-- Connector Line (Desktop Only) -->
+          <div class="hidden md:block absolute top-12 left-20 right-20 h-[2px] bg-slate-100 z-0"></div>
+
+          <!-- Step 1 -->
+          <div class="relative z-10 flex flex-col items-center text-center">
+            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] border border-slate-100 mb-6 group transition-transform hover:-translate-y-2">
+              <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-[#0d6efd] group-hover:bg-[#0d6efd] group-hover:text-white transition-colors duration-300">
+                <span class="material-symbols-outlined text-3xl">key</span>
+              </div>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">1. Pilih Armada</h3>
+            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Jelajahi katalog kami dan temukan kendaraan yang paling sesuai untuk perjalanan Anda.</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="relative z-10 flex flex-col items-center text-center">
+            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] border border-slate-100 mb-6 group transition-transform hover:-translate-y-2">
+              <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-[#0d6efd] group-hover:bg-[#0d6efd] group-hover:text-white transition-colors duration-300">
+                <span class="material-symbols-outlined text-3xl">calendar_month</span>
+              </div>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">2. Tentukan Tanggal</h3>
+            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Pilih jadwal pengambilan dan pengembalian sesuai dengan rencana liburan Anda.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="relative z-10 flex flex-col items-center text-center">
+            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] border border-slate-100 mb-6 group transition-transform hover:-translate-y-2">
+              <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-[#0d6efd] group-hover:bg-[#0d6efd] group-hover:text-white transition-colors duration-300">
+                <span class="material-symbols-outlined text-3xl">verified</span>
+              </div>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">3. Selesai & Nikmati</h3>
+            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Konfirmasi pesanan dengan aman, dan mobil impian Anda siap menunggu kedatangan Anda!</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= BENTO GRID FEATURES ================= -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-12">
+          <h2 class="text-3xl md:text-4xl lg:text-[40px] font-black text-[#111827] uppercase leading-none mb-4">
+            Mendefinisikan Ulang <br/>Standar Mobilitas Mewah.
+          </h2>
+          <p class="text-slate-500 text-lg font-medium leading-relaxed max-w-2xl">
+            Kami tidak sekadar menyewakan mobil; kami menghadirkan pengalaman sempurna yang dirancang khusus bagi pengemudi dengan selera tinggi.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 bg-[#f0f2f5] rounded-[2.5rem] p-8 lg:p-10 flex flex-col md:flex-row items-center gap-8 group hover:shadow-xl transition-all duration-500 border border-gray-100">
+            <div class="flex-1 space-y-4">
+              <div class="bg-white w-14 h-14 rounded-2xl flex items-center justify-center text-[#0d6efd] shadow-sm">
+                <span class="material-symbols-outlined text-3xl">volunteer_activism</span>
+              </div>
+              <h3 class="text-2xl font-extrabold text-slate-900">Layanan Pramutamu Premium</h3>
+              <p class="text-slate-600 font-medium leading-relaxed">
+                Tim ahli kami memastikan kendaraan Anda diantar dan dijemput sesuai kenyamanan Anda, di mana pun dalam area metropolitan.
+              </p>
+            </div>
+            <div class="w-full md:w-1/2 overflow-hidden rounded-[2rem]">
+              <img :src="carhome1" alt="Penyerahan kunci mobil" class="w-full h-48 lg:h-64 object-cover group-hover:scale-105 transition-transform duration-700 grayscale hover:grayscale-0" />
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-[#0d6efd] to-[#0050cb] rounded-[2.5rem] p-8 lg:p-10 flex flex-col justify-center text-white shadow-lg shadow-blue-600/20 group hover:-translate-y-1 transition-all duration-500">
+            <div class="bg-white/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
+              <span class="material-symbols-outlined text-3xl">bolt</span>
+            </div>
+            <h3 class="text-2xl font-extrabold mb-4">Pemesanan Instan</h3>
+            <p class="text-blue-100 font-medium leading-relaxed">
+              Pendekatan digital kami memastikan Anda berada di balik kemudi dalam waktu kurang dari 5 menit. Tanpa dokumen rumit, langsung nikmati perjalanan.
+            </p>
+          </div>
+
+          <div class="bg-white rounded-[2.5rem] p-8 lg:p-10 shadow-sm hover:shadow-xl border border-gray-200 flex flex-col justify-center group transition-all duration-500 hover:-translate-y-1">
+            <div class="bg-blue-50 w-14 h-14 rounded-2xl flex items-center justify-center text-[#0d6efd] mb-6">
+              <span class="material-symbols-outlined text-3xl">diamond</span>
+            </div>
+            <h3 class="text-2xl font-extrabold text-slate-900 mb-4">Armada Pilihan Elit</h3>
+            <p class="text-slate-500 font-medium leading-relaxed">
+              Hanya menyediakan model keluaran terbaru dengan spesifikasi khusus. Kami menjaga standar kesempurnaan tertinggi pada setiap kendaraan.
+            </p>
+          </div>
+
+          <div class="lg:col-span-2 bg-[#f0f2f5] rounded-[2.5rem] p-8 lg:p-10 flex flex-col md:flex-row items-center gap-8 group hover:shadow-xl transition-all duration-500 border border-gray-100">
+            <div class="flex-1 space-y-4">
+              <div class="bg-white w-14 h-14 rounded-2xl flex items-center justify-center text-[#0d6efd] shadow-sm">
+                <span class="material-symbols-outlined text-3xl">route</span>
+              </div>
+              <h3 class="text-2xl font-extrabold text-slate-900">Kebebasan Tanpa Batas</h3>
+              <p class="text-slate-600 font-medium leading-relaxed">
+                Jarak tempuh tanpa batas untuk model mewah pilihan serta opsi pengembalian antar-kota demi melengkapi perjalanan jauh Anda.
+              </p>
+            </div>
+            <div class="w-full md:w-1/2 overflow-hidden rounded-[2rem]">
+              <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800&auto=format&fit=crop" alt="Jalan pesisir pantai" class="w-full h-48 lg:h-56 object-cover group-hover:scale-105 transition-transform duration-700" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CALL TO ACTION ================= -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-32">
+        <div class="bg-white rounded-[3rem] p-10 md:p-20 text-center relative overflow-hidden shadow-2xl shadow-blue-900/5 border border-gray-100">
+
+          <div class="absolute -top-32 -left-32 w-64 h-64 bg-blue-100 rounded-full blur-[80px] opacity-60"></div>
+          <div class="absolute -bottom-32 -right-32 w-64 h-64 bg-cyan-100 rounded-full blur-[80px] opacity-60"></div>
+
+          <div class="relative z-10 max-w-3xl mx-auto">
+            <h2 class="text-3xl md:text-5xl font-black text-[#111827] uppercase leading-tight mb-6 tracking-tight">
+              Siap Mengubah <br class="hidden sm:block" />
+              Perspektif Perjalanan Anda?
+            </h2>
+            <p class="text-slate-500 text-lg mb-10 font-medium">
+              Bergabunglah dengan klub eksklusif GASNGO untuk mendapatkan akses prioritas ke unit terbaru dan penawaran khusus member.
+            </p>
+
+            <form @submit.prevent class="flex flex-col sm:flex-row justify-center gap-3 w-full max-w-xl mx-auto bg-slate-50 p-2 rounded-full border border-gray-200">
+              <input
+                type="email"
+                placeholder="Alamat email Anda"
+                required
+                class="w-full sm:flex-1 bg-transparent px-6 py-4 outline-none text-slate-800 placeholder-slate-400 font-bold"
+              />
+              <button
+                type="submit"
+                class="bg-[#0d6efd] hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-full uppercase text-xs tracking-widest transition-all shadow-md shadow-blue-500/20 active:scale-95 shrink-0"
+              >
+                Gabung Sekarang
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </div>
   </div>
 </template>
 
-<style>
-/* Animasi kecil untuk floating card (naik turun pelan) */
+<style scoped>
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 @keyframes bounce-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 .animate-bounce-slow {
   animation: bounce-slow 4s ease-in-out infinite;

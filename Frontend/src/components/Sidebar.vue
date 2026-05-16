@@ -73,18 +73,18 @@ const handleLogout = () => {
         <span>Profil Saya</span>
       </RouterLink>
 
+      <!-- PERUBAHAN: Link menuju /user/orders dan nama diubah menjadi My Orders -->
       <RouterLink
-        to="/user/cart"
+        to="/user/orders"
         class="flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200 group font-bold text-sm"
-        :class="route.path.includes('/user/cart') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
+        :class="route.path.includes('/user/orders') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
       >
         <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-[20px]" :class="route.path.includes('/user/cart') ? 'text-[#0050cb]' : 'text-[#727687]'">local_shipping</span>
-          <span>Pesanan Aktif</span>
+          <span class="material-symbols-outlined text-[20px]" :class="route.path.includes('/user/orders') ? 'text-[#0050cb]' : 'text-[#727687]'">local_shipping</span>
+          <span>My Orders</span>
         </div>
         <span class="bg-[#0050cb] text-white text-[9px] px-2 py-0.5 rounded-full">1</span>
       </RouterLink>
-
 
       <RouterLink
         to="/user/review"

@@ -7,25 +7,19 @@ import UserLayout from '@/layouts/UserLayout.vue'
 
 // ================= PAGES PUBLIC =================
 import HomePage from '../pages/Home.vue'
-import ServicePage from '../pages/Service.vue'
+import SearchingPage from '../pages/Searching.vue'
 import AboutPage from '../pages/About.vue'
 import CarsPage from '../pages/Cars.vue'
 import CarDetailPage from '../pages/CarDetail.vue'
-import CheckoutPage from '../pages/Checkout.vue'
-import VerifIdentityPage from '@/pages/VerifIdentity.vue'
-import PaymentPage from '@/pages/Payment.vue'
+import BookingPage from '@/pages/Booking.vue'
 
 // ================= PAGES USER PROFILE =================
 import ProfilePage from '@/pages/profile/Profile.vue'
 import ReviewPage from '@/pages/profile/Review.vue'
-// Anda bisa import halaman user lainnya di sini jika sudah dibuat
-// import CartPage from '@/pages/profile/Cart.vue'
-// import WishlistPage from '@/pages/profile/Wishlist.vue'
+import MyOrdersPage from '@/pages/profile/MyOrders.vue'
 
 // ================= PAGES ADMIN =================
 import Dashboard from '@/pages/admin/Dashboard.vue'
-
-// PERBAIKAN: Import halaman Cars yang sudah kita buat
 import Cars from '@/pages/admin/cars/Cars.vue'
 import CarLists from '@/pages/admin/cars/CarLists.vue'
 import AddCar from '@/pages/admin/cars/AddCars.vue'
@@ -34,6 +28,7 @@ import UserLists from '@/pages/admin/users/UserLists.vue'
 import AddUsers from '@/pages/admin/users/CreateAdmin.vue'
 import CategoryLists from '@/pages/admin/category/CategoryLists.vue'
 import RatingLists from '@/pages/admin/Ratings/RatingLists.vue'
+import RentalLists from '@/pages/admin/rentals/RentalLists.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,13 +42,11 @@ const router = createRouter({
       component: AppLayout,
       children:[
         { path: '', name: 'home', component: HomePage },
-        { path: 'services', name: 'services', component: ServicePage },
+        { path: 'searching', name: 'searching', component: SearchingPage },
         { path: 'about', name: 'about', component: AboutPage },
         { path: 'cars', name: 'cars', component: CarsPage },
         { path: 'car/:id', name: 'car-detail', component: CarDetailPage },
-        { path: 'checkout', name: 'checkout', component: CheckoutPage },
-        { path: 'verification', name: 'verify', component: VerifIdentityPage },
-        { path: 'payment', name: 'payment', component: PaymentPage },
+        { path: 'booking', name: 'booking', component: BookingPage },
 
         // 1.B RUTE USER PROFILE
         {
@@ -62,6 +55,7 @@ const router = createRouter({
           children:[
             { path: 'profile', name: 'Profile', component: ProfilePage },
             { path: 'review', name: 'Review', component: ReviewPage },
+            { path: 'orders', name: 'MyOrders', component: MyOrdersPage },
           ]
         }
       ]
@@ -122,6 +116,15 @@ const router = createRouter({
           children:[
             { path: "", name: "admin-ratings-list", component: RatingLists },
           ],
+        },
+        {
+          // PERBAIKAN: Konfigurasi rute admin rentals
+          path: "rentals",
+          component: RentalLists,
+          children:[
+            { path: "", name: "admin-rentals-list", component: RentalLists },
+            { path: "detail/:id", name: "admin-rental-detail", component: () => import('@/pages/admin/rentals/RentalDetails.vue') }
+          ]
         }
       ]
     }
