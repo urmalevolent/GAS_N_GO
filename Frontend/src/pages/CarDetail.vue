@@ -5,18 +5,18 @@ import { ref } from 'vue';
 
 const isBookingModalOpen = ref(false);
 
-// 2. Menerima props dari komponen induk (Cars.vue)
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
-  // Data mobil yang dipilih untuk ditampilkan detailnya
-  carDetail: {
-    type: Object,
-    default: null
-  }
-})
+// // 2. Menerima props dari komponen induk (Cars.vue)
+// const props = defineProps({
+//   show: {
+//     type: Boolean,
+//     default: false
+//   },
+//   // Data mobil yang dipilih untuk ditampilkan detailnya
+//   carDetail: {
+//     type: Object,
+//     default: null
+//   }
+// })
 
 // 3. Emits untuk komunikasi kembali ke komponen induk
 const emit = defineEmits(['close', 'book'])
@@ -28,10 +28,10 @@ const close = () => {
 
 // 5. Helper: Format Dolar
 const formatPrice = (price) => {
-  if (!price) return '$0'
-  return new Intl.NumberFormat('en-US', {
+  if (!price) return 'Rp 0'
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'IDR',
     minimumFractionDigits: 0
   }).format(price)
 }

@@ -5,14 +5,44 @@ import { useRouter } from 'vue-router'
 // ASSETS
 import carhome1 from '@/assets/images/gambar_mobil_home.png'
 import Taycan from '@/assets/images/Taycan_TurboS.png'
+import BeverlyPNG from '@/assets/images/BeverlyHills.png'
+
+// IMPORT KOMPONEN MODAL
+import CarDetailModal from '@/pages/CarDetail.vue' // Sesuaikan jika ini ada di folder components
+import BookingModal from '@/pages/Booking.vue'     // Sesuaikan jika ini ada di folder components
 
 const router = useRouter()
 
+// --- STATE UNTUK MODAL ---
+const isModalOpen = ref(false)
+const isBookingOpen = ref(false)
+const selectedCarData = ref(null)
+
+// --- FUNGSI MODAL DETAIL ---
+const openDetail = (carObj) => {
+  selectedCarData.value = carObj
+  isModalOpen.value = true
+}
+
+// --- FUNGSI MODAL BOOKING (Saat tombol "Sewa Sekarang" ditekan) ---
+const openBooking = (carObj) => {
+  selectedCarData.value = carObj
+  isBookingOpen.value = true
+}
+
+// --- FUNGSI KETIKA MODAL DETAIL INGIN LANJUT SEWA ---
+const goToCheckout = (carObj) => {
+  isModalOpen.value = false // Tutup modal detail
+  setTimeout(() => {
+    openBooking(carObj) // Buka modal booking dengan jeda sedikit agar halus
+  }, 300)
+}
+
 // Fungsi format harga
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'IDR',
     minimumFractionDigits: 0
   }).format(price)
 }
@@ -23,31 +53,47 @@ const popularCars = ref([
     id: 1,
     name: 'Porsche Taycan',
     brand: 'Porsche',
-    category: 'Elektrik Mewah',
+    category_name: 'Elektrik Mewah', // Sesuaikan key category_name agar sesuai props modal detail
     year: '2024',
-    price_per_day: 1250,
+    price: 2000000, // Sesuaikan dengan key 'price' yang dibaca modal
+    discount_price: 1800000,
+    is_promotion: 1,
+    transmission: 'Auto (EV)',
+    seats: 4,
+    speed: '2.8s',
+    engine: '750 HP',
     description: 'Tenaga listrik tanpa kompromi berpadu dengan kemewahan artisanal. Mahakarya otomotif masa depan.',
-    image_url: Taycan
+    image: Taycan // Sesuaikan key 'image' agar terbaca oleh modal
   },
   {
     id: 2,
     name: 'BMW M8 Gran Coupe',
-    brand: 'BMW',
-    category: 'Sedan Eksekutif',
+    brand_name: 'BMW', // Sesuaikan key brand_name
+    category_name: 'Sedan Eksekutif',
     year: '2023',
-    price_per_day: 950,
+    price: 2000000,
+    is_promotion: 0,
+    transmission: 'XDRIVE',
+    seats: 4,
+    speed: '3.0s',
+    engine: '617 HP',
     description: 'Perpaduan sempurna antara performa sport dan kenyamanan sedan mewah untuk perjalanan bisnis maupun liburan Anda.',
-    image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE'
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE'
   },
   {
     id: 3,
     name: 'Ferrari F8 Tributo',
-    brand: 'Ferrari',
-    category: 'Supercar Eksotis',
+    brand_name: 'Ferrari',
+    category_name: 'Supercar Eksotis',
     year: '2024',
-    price_per_day: 2450,
+    price: 24500000,
+    is_promotion: 0,
+    transmission: 'RWD',
+    seats: 2,
+    speed: '2.9s',
+    engine: '710 HP',
     description: 'Mesin V8 terkuat dalam sejarah. Rasakan sensasi berkendara mendebarkan tiada tara dengan performa tanpa batas.',
-    image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp'
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp'
   }
 ])
 </script>
@@ -56,23 +102,28 @@ const popularCars = ref([
   <div class="bg-[#f8fafa] min-h-screen pb-20 font-['Manrope']">
 
     <!-- ==========================================
-         1. HERO SECTION (Gaya Cinematic Light Theme)
+         1. HERO SECTION (Gaya Cinematic dengan Latar Gambar)
          ========================================== -->
-    <section class="relative pt-24 pb-36 lg:pt-32 lg:pb-48 overflow-hidden bg-[#f8fafa]">
-      <div class="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-blue-300 blur-[128px] opacity-30 pointer-events-none"></div>
-      <div class="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-cyan-200 blur-[128px] opacity-40 pointer-events-none"></div>
+    <section
+      class="relative pt-28 pb-40 lg:pt-36 lg:pb-56 overflow-hidden bg-cover bg-center bg-no-repeat"
+      :style="{ backgroundImage: `url(${BeverlyPNG})` }"
+    >
+      <div class="absolute inset-0 bg-white/75 sm:bg-white/40"></div>
+      <div class="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-blue-500 blur-[120px] opacity-20 pointer-events-none z-0"></div>
+      <div class="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-cyan-400 blur-[120px] opacity-20 pointer-events-none z-0"></div>
+      <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#f8fafa] to-transparent z-0"></div>
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-        <div class="inline-block bg-blue-100 text-blue-700 font-bold text-xs px-4 py-2 rounded-full uppercase tracking-widest mb-6 shadow-sm border border-blue-200/50">
+        <div class="inline-block bg-white/80 backdrop-blur-md text-blue-700 font-bold text-xs px-5 py-2.5 rounded-full uppercase tracking-widest mb-6 shadow-sm border border-blue-200/50">
           Tingkatkan Pengalaman Anda
         </div>
 
-        <h1 class="text-4xl md:text-6xl lg:text-[5.5rem] font-black text-[#111827] mb-6 tracking-tight leading-[1.1] uppercase">
+        <h1 class="text-4xl md:text-6xl lg:text-[5.5rem] font-black text-[#111827] mb-6 tracking-tight leading-[1.1] uppercase drop-shadow-sm">
           Kendarai <br />
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0d6efd] to-cyan-500">Kemewahan Sempurna</span>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0050cb] to-[#00b4d8]">Kemewahan Sempurna</span>
         </h1>
 
-        <p class="text-base md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
+        <p class="text-base md:text-xl text-slate-700 max-w-2xl mx-auto mb-10 font-bold leading-relaxed drop-shadow-sm">
           Rasakan puncak mahakarya otomotif melalui koleksi eksklusif supercar kelas dunia dan sedan mewah kami.
         </p>
 
@@ -81,11 +132,11 @@ const popularCars = ref([
             to="/cars"
             class="bg-[#0d6efd] hover:bg-blue-700 text-white font-bold px-10 py-4 rounded-full shadow-[0_10px_30px_rgba(13,110,253,0.3)] transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1 inline-block text-center"
           >
-            Jelajahi Armada
+            Jelajahi Mobil
           </RouterLink>
           <RouterLink
             to="/services"
-            class="bg-white text-[#0d6efd] border border-gray-200 hover:bg-blue-50 font-bold px-10 py-4 rounded-full transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1 inline-block text-center shadow-sm"
+            class="bg-white/90 backdrop-blur-md text-[#0d6efd] border border-white hover:bg-white font-bold px-10 py-4 rounded-full transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1 inline-block text-center shadow-lg"
           >
             Lihat Layanan
           </RouterLink>
@@ -98,12 +149,12 @@ const popularCars = ref([
          ========================================== -->
     <div class="relative z-20 bg-white rounded-t-[3rem] sm:rounded-t-[4rem] -mt-24 pt-16 sm:pt-24 pb-24 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] border-t border-gray-100">
 
-      <!-- ================= POPULAR CARS (Baru Ditambahkan) ================= -->
+      <!-- ================= POPULAR CARS ================= -->
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32 pt-10">
         <div class="flex flex-col sm:flex-row justify-between items-center sm:items-end mb-12 text-center sm:text-left">
           <div class="relative">
             <div class="absolute -inset-1 bg-blue-100 blur-2xl rounded-full opacity-50"></div>
-            <h2 class="text-3xl md:text-4xl font-black text-slate-900 uppercase relative z-10">Armada <span class="text-[#0d6efd]">Populer</span></h2>
+            <h2 class="text-3xl md:text-4xl font-black text-slate-900 uppercase relative z-10">Mobil <span class="text-[#0d6efd]">Populer</span></h2>
             <p class="text-slate-500 mt-3 text-lg font-medium relative z-10">Pilihan kendaraan terbaik untuk menemani perjalanan eksklusif Anda.</p>
           </div>
           <RouterLink to="/cars" class="mt-6 sm:mt-0 font-bold text-[#0d6efd] hover:text-blue-700 flex items-center gap-1 transition-colors uppercase tracking-widest text-sm">
@@ -121,7 +172,7 @@ const popularCars = ref([
               <div class="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[2rem]"></div>
 
               <div class="w-full h-full overflow-hidden rounded-[2rem] relative bg-white">
-                <img :src="car.image_url" :alt="car.name" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out" />
+                <img :src="car.image" :alt="car.name" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out" />
               </div>
 
               <!-- Badge Kategori & Tahun -->
@@ -131,7 +182,7 @@ const popularCars = ref([
                   {{ car.year }}
                 </div>
                 <div class="bg-[#111827]/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-sm border border-white/10 uppercase tracking-widest w-max">
-                  {{ car.category }}
+                  {{ car.category_name }}
                 </div>
               </div>
             </div>
@@ -140,7 +191,7 @@ const popularCars = ref([
             <div class="p-8 pt-6 flex-grow flex flex-col relative bg-white">
               <div class="flex justify-between items-start mb-3">
                 <div>
-                  <p class="text-[10px] font-black text-[#0d6efd] uppercase tracking-[0.2em] mb-1.5">{{ car.brand }}</p>
+                  <p class="text-[10px] font-black text-[#0d6efd] uppercase tracking-[0.2em] mb-1.5">{{ car.brand_name || car.brand }}</p>
                   <h3 class="text-2xl font-black text-slate-900 leading-tight">{{ car.name }}</h3>
                 </div>
               </div>
@@ -153,17 +204,18 @@ const popularCars = ref([
                   <div>
                     <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Tarif Sewa</span>
                     <div class="flex items-baseline gap-1">
-                      <span class="text-2xl font-black text-slate-900">{{ formatPrice(car.price_per_day) }}</span>
+                      <span class="text-2xl font-black text-slate-900">{{ formatPrice(car.price) }}</span>
                       <span class="text-slate-400 text-sm font-medium">/hari</span>
                     </div>
                   </div>
                 </div>
 
+                <!-- PERUBAHAN PADA TOMBOL: RouterLink diubah menjadi button yang memanggil fungsi pop-up modal -->
                 <div class="flex gap-3">
-                  <button @click="router.push(`/car/${car.id}`)" class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm py-3 rounded-xl transition-colors border border-slate-200">
+                  <button @click="openDetail(car)" class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm py-3 rounded-xl transition-colors border border-slate-200 shadow-sm active:scale-95">
                     Detail
                   </button>
-                  <button @click="router.push(`/car/${car.id}`)" class="flex-1 bg-[#111827] text-white hover:bg-[#0d6efd] hover:shadow-lg hover:shadow-blue-500/40 font-bold text-sm py-3 rounded-xl transition-all duration-300">
+                  <button @click="openBooking(car)" class="flex-1 bg-[#111827] text-white hover:bg-[#0d6efd] hover:shadow-lg hover:shadow-blue-500/40 font-bold text-sm py-3 rounded-xl transition-all duration-300 shadow-sm active:scale-95">
                     Sewa Sekarang
                   </button>
                 </div>
@@ -193,7 +245,7 @@ const popularCars = ref([
                 <span class="material-symbols-outlined text-3xl">key</span>
               </div>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-2">1. Pilih Armada</h3>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">1. Pilih Mobil</h3>
             <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Jelajahi katalog kami dan temukan kendaraan yang paling sesuai untuk perjalanan Anda.</p>
           </div>
 
@@ -262,7 +314,7 @@ const popularCars = ref([
             <div class="bg-blue-50 w-14 h-14 rounded-2xl flex items-center justify-center text-[#0d6efd] mb-6">
               <span class="material-symbols-outlined text-3xl">diamond</span>
             </div>
-            <h3 class="text-2xl font-extrabold text-slate-900 mb-4">Armada Pilihan Elit</h3>
+            <h3 class="text-2xl font-extrabold text-slate-900 mb-4">Mobil Pilihan Elit</h3>
             <p class="text-slate-500 font-medium leading-relaxed">
               Hanya menyediakan model keluaran terbaru dengan spesifikasi khusus. Kami menjaga standar kesempurnaan tertinggi pada setiap kendaraan.
             </p>
@@ -320,14 +372,32 @@ const popularCars = ref([
       </section>
 
     </div>
+
+    <!-- KOMPONEN MODAL DETAIL MOBIL -->
+    <CarDetailModal
+      :show="isModalOpen"
+      :carDetail="selectedCarData"
+      @close="isModalOpen = false"
+      @book="goToCheckout"
+    />
+
+    <!-- KOMPONEN MODAL BOOKING -->
+    <BookingModal
+      :show="isBookingOpen"
+      @close="isBookingOpen = false"
+      :carData="selectedCarData"
+    />
+
   </div>
 </template>
 
 <style scoped>
+/* Pengaturan Ikon Material */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
+/* Animasi mengambang untuk badge */
 @keyframes bounce-slow {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
@@ -336,3 +406,4 @@ const popularCars = ref([
   animation: bounce-slow 4s ease-in-out infinite;
 }
 </style>
+

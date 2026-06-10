@@ -29,6 +29,7 @@ import AddUsers from '@/pages/admin/users/CreateAdmin.vue'
 import CategoryLists from '@/pages/admin/category/CategoryLists.vue'
 import RatingLists from '@/pages/admin/Ratings/RatingLists.vue'
 import RentalLists from '@/pages/admin/rentals/RentalLists.vue'
+import TransactionLists from '@/pages/admin/transactions/TransactionLists.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -124,6 +125,14 @@ const router = createRouter({
           children:[
             { path: "", name: "admin-rentals-list", component: RentalLists },
             { path: "detail/:id", name: "admin-rental-detail", component: () => import('@/pages/admin/rentals/RentalDetails.vue') }
+          ]
+        },
+        {
+          path: "transactions",
+          component: TransactionLists,
+          children:[
+            { path: "", name: "admin-transactions-list", component: TransactionLists },
+            { path: "detail/:id", name: "admin-transaction-detail", component: () => import('@/pages/admin/transactions/TransactionDetails.vue') }
           ]
         }
       ]

@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
+import Show from '@/components/icons/Show.vue' // Komponen untuk menampilkan data detail transaksi (opsional)
+import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
+import Edit from '@/components/icons/Edit.vue' // Komponen untuk mengedit data transaksi (opsional)
 
 
 // --- MOCKUP STATE (Tanpa Backend) ---
@@ -223,18 +226,18 @@ const toggleUserStatus = (user) => {
                   <!-- Jika nanti digunakan router-link: -->
                   <!-- <router-link :to="`/admin/accounts/detail/${user.id}`" ...> -->
                   <button class="w-8 h-8 rounded bg-[#295f98] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Lihat Profil">
-                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                    <Show class="size-6 text-white" />
                   </button>
 
                   <template v-if="user.id !== currentUserId">
                     <!-- Tombol Ubah Role (Kuning) -->
                     <button @click="toggleUserRole(user)" class="w-8 h-8 rounded bg-[#eab308] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Ubah Peran">
-                      <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
+                      <Edit class="size-6 text-white" />
                     </button>
 
                     <!-- Tombol Nonaktifkan (Merah) -->
                     <button v-if="user.is_active" @click="toggleUserStatus(user)" class="w-8 h-8 rounded bg-[#d32f2f] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Nonaktifkan Akun">
-                      <span class="material-symbols-outlined text-[18px]">person_off</span>
+                      <Trash class="size-6 text-white" />
                     </button>
 
                     <!-- Tombol Aktifkan/Restore (Hijau) -->

@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import Chart from 'chart.js/auto'
+import Show from '@/components/icons/Show.vue' // Komponen untuk menampilkan data detail transaksi (opsional)
+import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
 
 // --- DATA STATISTIK DUMMY ---
 const stats = ref([
@@ -160,10 +162,10 @@ onMounted(() => {
               <td class="px-6 py-5 text-[#727687]">{{ item.address }}</td>
               <td class="px-6 py-5 flex items-center justify-center gap-3">
                 <button class="w-8 h-8 rounded bg-[#295f98] text-white flex items-center justify-center hover:opacity-80 transition-opacity">
-                  <span class="material-symbols-outlined text-[18px]">visibility</span>
+                  <Show class="size-6 text-white" />
                 </button>
                 <button class="w-8 h-8 rounded bg-[#d32f2f] text-white flex items-center justify-center hover:opacity-80 transition-opacity">
-                  <span class="material-symbols-outlined text-[18px]">delete</span>
+                  <Trash class="size-6 text-white" />
                 </button>
               </td>
             </tr>

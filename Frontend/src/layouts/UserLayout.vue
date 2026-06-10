@@ -37,12 +37,15 @@ onMounted(() => {
   <!-- Background utama menyesuaikan warna halaman lain agar konsisten -->
   <div class="bg-[#f7f9fb] min-h-screen">
 
-    <!-- Wrapper Layout (Atas ke Bawah di HP, Kiri ke Kanan di Laptop) -->
-    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row pt-6 md:pt-10 pb-16 px-4 sm:px-6 lg:px-8 gap-6 md:gap-8">
+    <!-- Wrapper Layout -->
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row pt-28 md:pt-32 pb-16 px-4 sm:px-6 lg:px-8 gap-6 md:gap-8">
 
       <!-- ================= BAGIAN KIRI: SIDEBAR USER ================= -->
-      <!-- Di HP disembunyikan (bisa diganti dengan menu dropdown/burger menu nanti), di Laptop muncul (w-72) -->
-      <div class="hidden lg:block w-72 flex-shrink-0">
+      <!-- PERUBAHAN DI SINI: Menambahkan "sticky top-28 self-start" -->
+      <!-- sticky: Membuat elemen menempel saat discroll -->
+      <!-- top-28: Memberi jarak dari atas (agar tidak tertutup navbar) -->
+      <!-- self-start: Mencegah sidebar meregang/stretching mengikuti tinggi kolom kanan -->
+      <div class="hidden lg:block w-72 flex-shrink-0 sticky top-28 self-start transition-all duration-300">
         <!-- Mengirim data simulasi ke komponen Sidebar -->
         <Sidebar :user="userData" />
       </div>

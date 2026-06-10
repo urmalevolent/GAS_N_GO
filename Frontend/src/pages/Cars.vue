@@ -34,9 +34,9 @@ const goToCheckout = (carObj) => {
 
 // Fungsi Format Rupiah/Dolar
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'IDR',
     minimumFractionDigits: 0
   }).format(price)
 }
@@ -49,7 +49,7 @@ const allCars = ref([
     name: 'Porsche 911 Carrera',
     brand_name: 'Porsche',
     category_name: 'Mobil Sport',
-    price: 850,
+    price: 850000,
     transmission: 'PDK',
     seats: 2,
     description: 'Perpaduan sempurna antara desain ikonik dan performa murni. Menawarkan akselerasi mendebarkan namun tetap mewah.',
@@ -62,7 +62,7 @@ const allCars = ref([
     name: 'Audi RS7 Performance',
     brand_name: 'Audi',
     category_name: 'Sedan Eksekutif',
-    price: 1200,
+    price: 1200000,
     transmission: 'QUATTRO',
     seats: 4,
     description: 'Menggabungkan keganasan performa lintasan dengan kenyamanan kabin sedan eksklusif terbaik.',
@@ -75,7 +75,7 @@ const allCars = ref([
     name: 'Ferrari F8 Tributo',
     brand_name: 'Ferrari',
     category_name: 'Hypercar',
-    price: 2450,
+    price: 2450000,
     transmission: 'RWD',
     seats: 2,
     description: 'Mesin V8 terkuat dalam sejarah dengan penanganan tiada tara untuk sang penikmat adrenalin.',
@@ -88,7 +88,7 @@ const allCars = ref([
     name: 'Model X Plaid',
     brand_name: 'Tesla',
     category_name: 'Elektrik Mewah',
-    price: 450,
+    price: 450000,
     transmission: 'AWD',
     seats: 6,
     description: 'SUV tercepat yang menawarkan kenyamanan senyap dengan fitur autopilot pintar untuk perjalanan Anda.',
@@ -101,7 +101,7 @@ const allCars = ref([
     name: 'M8 Gran Coupe',
     brand_name: 'BMW',
     category_name: 'Sedan Eksekutif',
-    price: 950,
+    price: 950000,
     transmission: 'XDRIVE',
     seats: 4,
     description: 'Kombinasi estetika coupe dengan kelegaan sebuah sedan empat pintu berbahan material kelas satu.',
@@ -114,17 +114,24 @@ const allCars = ref([
 
 <template>
   <!-- Wrapper utama halaman Fleet/Cars -->
-  <div class="bg-[#f7f9fb] font-['Manrope'] text-[#191c1e] min-h-screen pb-20 pt-8 md:pt-16 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto antialiased">
+  <div  class="bg-[#f7f9fb] font-['Manrope'] text-[#191c1e] min-h-screen pb-20 pt-28 md:pt-36 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto antialiased">
 
-    <!-- EDITORIAL HEADER -->
-    <div class="mb-8 md:mb-12 pb-8 border-b border-[#c2c6d8]/40">
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tighter text-[#191c1e] mb-3 md:mb-4">
-        KOLEKSI ARMADA PREMIUM
-      </h1>
-      <p class="text-[#424656] text-base md:text-lg max-w-2xl leading-relaxed">
-        Kendaraan performa tinggi yang dikurasi khusus bagi pengemudi berselera tinggi. Rasakan puncak mahakarya teknik otomotif dan kemewahan.
-      </p>
-    </div>
+    <!-- ================= EDITORIAL HEADER ================= -->
+    <section class="relative py-12 md:py-20 overflow-hidden bg-white border border-[#c2c6d8]/40 rounded-[2.5rem] shadow-sm mb-10 md:mb-12">
+
+      <!-- Efek Cahaya Halus ala GASNGO -->
+      <div class="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-[#0050cb] blur-[120px] opacity-20 pointer-events-none"></div>
+      <div class="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-[#0066ff] blur-[120px] opacity-20 pointer-events-none"></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-[#191c1e] mb-4 tracking-tighter uppercase leading-none">
+          Koleksi Mobil <br class="hidden md:block"/> <span class="text-[#0050cb]">Premium</span>
+        </h1>
+        <p class="text-base md:text-lg text-[#424656] max-w-2xl mx-auto font-medium mt-4 md:mt-6 leading-relaxed">
+          Kendaraan performa tinggi yang dikurasi khusus bagi pengemudi berselera tinggi. Rasakan puncak mahakarya teknik otomotif dan kemewahan tanpa batas.
+        </p>
+      </div>
+    </section>
 
     <!-- Layout Flex (Filter Kiri & Grid Kanan) -->
     <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
@@ -169,7 +176,7 @@ const allCars = ref([
 
         <!-- Manufacturer Filter -->
         <section>
-          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Merek</h3>
+          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Brand</h3>
           <div class="grid grid-cols-2 gap-2">
             <button class="bg-[#0050cb] text-white py-2.5 px-4 rounded-md text-xs font-bold transition-all shadow-md shadow-blue-600/20">Porsche</button>
             <button class="bg-white border border-[#c2c6d8]/50 text-[#424656] py-2.5 px-4 rounded-md text-xs font-bold transition-all hover:bg-gray-50 hover:border-[#0050cb] hover:text-[#0050cb]">Tesla</button>
@@ -185,7 +192,7 @@ const allCars = ref([
         <!-- --- SECTION: SEMUA ARMADA (ALL CARS) --- -->
         <section>
           <div class="flex justify-between items-end mb-8">
-            <h2 class="text-2xl md:text-3xl font-black text-[#191c1e] uppercase relative z-10">Semua <span class="text-[#0050cb]">Armada</span></h2>
+            <h2 class="text-2xl md:text-3xl font-black text-[#191c1e] uppercase relative z-10">Semua <span class="text-[#0050cb]">Mobil</span></h2>
           </div>
 
           <!-- Ganti grid col-span ke format desktop 2, layar super lebar 3 -->

@@ -2,6 +2,10 @@
 import { ref } from 'vue'
 import Swal from 'sweetalert2'
 import { RouterLink } from 'vue-router'
+import Show from '@/components/icons/Show.vue' // Komponen untuk menampilkan data detail transaksi (opsional)
+import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
+import Edit from '@/components/icons/Edit.vue' // Komponen untuk mengedit data transaksi (opsional)
+
 
 // --- MOCKUP STATE (Tanpa Backend) ---
 const searchQuery = ref("")
@@ -229,18 +233,18 @@ const formatPrice = (price) => {
                   <div class="flex gap-2 items-center justify-center">
                       <!-- Tombol Detail (Biru) -->
                       <button class="w-8 h-8 rounded bg-[#295f98] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Lihat Detail">
-                          <span class="material-symbols-outlined text-[18px]">visibility</span>
+                          <Show class="size-6 text-white" />
                       </button>
 
                       <template v-if="product.status === 'active'">
                           <!-- Tombol Edit (Kuning/Oren) -->
                           <button class="w-8 h-8 rounded bg-[#eab308] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Edit Data">
-                              <span class="material-symbols-outlined text-[18px]">edit</span>
+                              <Edit class="size-6 text-white" />
                           </button>
 
                           <!-- Tombol Hapus/Nonaktifkan (Merah) -->
                           <button @click="deleteProduct(product.id, product.name)" class="w-8 h-8 rounded bg-[#d32f2f] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Nonaktifkan">
-                              <span class="material-symbols-outlined text-[18px]">delete</span>
+                              <Trash class="size-6 text-white" />
                           </button>
                       </template>
 

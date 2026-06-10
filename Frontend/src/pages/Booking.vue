@@ -55,9 +55,9 @@ const dpAmount = computed(() => {
 
 // --- MOCKUP FUNCTIONS ---
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'IDR',
     minimumFractionDigits: 0
   }).format(price);
 };
@@ -82,7 +82,7 @@ const processPayment = () => {
     isProcessing.value = false;
     close();
     // Arahkan pengguna ke halaman checkout akhir
-    router.push('/checkout');
+    router.push('/user/orders');
   }, 1500);
 };
 </script>

@@ -1,187 +1,224 @@
 <script setup>
-// Script setup dikosongkan karena belum ada state management khusus yang diperlukan di halaman ini
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+// --- DUMMY DATA ---
+const stats = [
+  { value: '500+', label: 'Pelanggan Setia' },
+  { value: '50+', label: 'Armada Eksklusif' },
+  { value: '5★', label: 'Rata-rata Penilaian' },
+  { value: '24/7', label: 'Dukungan Pramutamu' },
+]
+
+const values = [
+  {
+    title: 'Transparansi Penuh',
+    description: 'Tanpa biaya tersembunyi, tanpa kejutan. Apa yang Anda lihat adalah komitmen harga yang kami berikan—selalu.',
+    icon: 'verified' // Menggunakan Material Symbols Outlined
+  },
+  {
+    title: 'Kualitas Utama',
+    description: 'Setiap armada kami melewati inspeksi ketat dan perawatan berkala demi memastikan keselamatan dan kenyamanan absolut Anda.',
+    icon: 'workspace_premium'
+  },
+  {
+    title: 'Layanan Eksekutif',
+    description: 'Tim pramutamu kami senantiasa siap sedia mendampingi Anda sebelum, selama, hingga sesudah masa penyewaan berakhir.',
+    icon: 'support_agent'
+  }
+]
+
+const team = [
+  {
+    name: 'Julian Vance',
+    role: 'Chief Executive Officer',
+    bio: 'Berpengalaman 15+ tahun di industri hospitality mewah global, Julian mendirikan GASNGO untuk mendefinisikan ulang standar mobilitas elit.',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop&facepad=2'
+  },
+  {
+    name: 'Elena Rostova',
+    role: 'Direktur Kurasi Armada',
+    bio: 'Dengan insting tajamnya, Elena memastikan bahwa hanya model kendaraan terbaik dan terlangka yang layak masuk ke dalam garasi GASNGO.',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop&facepad=2'
+  },
+  {
+    name: 'Marcus Thorne',
+    role: 'Kepala Teknik Kendaraan',
+    bio: 'Marcus memimpin tim teknisi elit untuk menjaga performa jantung mekanis seluruh armada GASNGO selalu dalam kondisi prima.',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop&facepad=2'
+  },
+  {
+    name: 'Sophia Chen',
+    role: 'VP Pengalaman Pelanggan',
+    bio: 'Sophia adalah otak di balik kelancaran dan kemewahan setiap perjalanan klien. Ia menjamin kepuasan pada setiap kilometer yang ditempuh.',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop&facepad=2'
+  }
+]
 </script>
 
 <template>
-  <div class="bg-[#f7f9fb] font-['Manrope'] text-[#191c1e] min-h-screen antialiased flex flex-col pb-10">
+  <div class="pb-24 font-['Manrope'] bg-[#f7f9fb] min-h-screen">
 
-    <!-- Hero Section -->
-    <section class="relative w-full h-[500px] md:h-[700px] lg:h-[870px] bg-[#f2f4f6] flex items-center justify-center overflow-hidden">
-      <!-- Background Image -->
-      <div class="absolute inset-0 z-0">
-        <img class="w-full h-full object-cover opacity-80 mix-blend-multiply"
-             alt="Tampilan sinematik mobil sport mewah"
-             src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_YmFVuQ4ycF0QgmsJpm01_-XaYv8uDnL5KXKCi4xxVS8mnoujeXm8sAMzNTVTvmSt8wg8zkzGWB7TWwpFD50HhDYIlD1wbRZZQWA9H9mzhmtcwnS-PYFhUWtK6eFtiPx9EZ2jhuXeryC0S58ImDViEmDExV2JtUwmOi1daaKz30dXXhJ_SjNDxzTWd8dSXvRLSxGrVFPhT7U1uFvmjhGGbKIxlOPi1MMQqKa9Me8WvajvxYWFwx4DMi8mCCTyPyARxD4xhZj3PHaw"/>
-      </div>
-      <!-- Text Overlay -->
-      <div class="relative z-10 text-center px-4 md:px-6 lg:px-8 max-w-5xl mx-auto pt-10 md:pt-0">
-        <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter text-white leading-tight drop-shadow-2xl">
-          Mahakarya <br class="hidden md:block"/> Mobilitas
+    <!-- ==========================================
+         1. HERO SECTION
+         ========================================== -->
+    <section class="relative pt-32 pb-48 overflow-hidden bg-[#f7f9fb]">
+      <!-- Efek Cahaya Halus -->
+      <div class="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-[#0050cb] blur-[128px] opacity-20 pointer-events-none"></div>
+      <div class="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-[#0066ff] blur-[128px] opacity-20 pointer-events-none"></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center mt-10">
+        <p class="text-[#0050cb] font-bold text-xs uppercase tracking-[0.3em] mb-4">Mengenal Kami</p>
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-[#191c1e] mb-6 tracking-tighter leading-tight uppercase">
+          Kisah <span class="text-[#0050cb]">GASNGO</span>
         </h1>
-        <p class="mt-4 md:mt-6 text-base sm:text-lg md:text-xl text-white/90 max-w-2xl mx-auto font-medium tracking-wide drop-shadow-md">
-          Mendefinisikan ulang makna perjalanan melalui presisi tingkat tinggi, keanggunan yang paripurna, dan komitmen tanpa kompromi terhadap kualitas luar biasa.
+        <p class="text-lg md:text-xl text-[#424656] max-w-2xl mx-auto font-medium leading-relaxed">
+          Klub mobilitas eksklusif di Indonesia, dibangun atas dasar gairah untuk menciptakan perjalanan tanpa batas dan pengalaman pelanggan yang sempurna.
         </p>
       </div>
     </section>
 
-    <!-- Our Philosophy -->
-    <section class="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 lg:gap-24 items-center">
-        <!-- Text Area -->
-        <div class="space-y-6 md:space-y-8 order-2 md:order-1">
-          <h2 class="text-[10px] md:text-sm font-bold text-[#0050cb] uppercase tracking-[0.2em]">Filosofi Kami</h2>
-          <h3 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#191c1e] tracking-tight leading-tight">
-            Keanggunan Dinamis <br/> Bertemu Presisi.
-          </h3>
-          <p class="text-sm sm:text-base lg:text-lg text-[#424656] leading-relaxed">
-            Kami percaya bahwa kemewahan sejati bukanlah sekadar ketiadaan hambatan, melainkan kehadiran kurasi yang matang dan bernilai. Setiap kendaraan di galeri kami, serta setiap interaksi dengan layanan pramutamu kami, dirancang khusus untuk mengangkat pengalaman berkendara menjadi sebuah bentuk seni.
-          </p>
-          <p class="text-sm sm:text-base lg:text-lg text-[#424656] leading-relaxed">
-            GASNGO didirikan dengan satu premis utama: menghadirkan pengalaman mobilitas yang tidak terasa seperti sekadar menyewa, melainkan seperti mengendarai koleksi pribadi Anda sendiri.
-          </p>
-        </div>
-        <!-- Image Area -->
-        <div class="relative order-1 md:order-2 px-4 sm:px-0">
-          <div class="aspect-[4/5] bg-[#e6e8ea] rounded-xl overflow-hidden relative z-10 shadow-lg">
-            <img class="w-full h-full object-cover"
-                 alt="Detail arsitektur modern dari ruang galeri"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgZCJxy9cCTEe5ZBmAICmufXHurQqJYvGa5URHb4-BclEk8TahjpOwNqWnLC0_CEXSwqxJoyn94XRpWZHrwtL3Ji8Qv0J8nO7jHV5G5MGw0DkYD3WxJ8JDKH_LJ6FgtWA9rUoC23CMTEVIME4rFuL9Wq_HTK72u3BefEH7dNTJ1--HJyBy65srDFoGHnm2qd39NDZZPEX2Y_l-qlw4sx3quHbJmehLfxwSkn2y1MJSVO454UmzghR_R_nFXj9c_RklWEc5-2QEN9aY"/>
+    <!-- ==========================================
+         2. CONTENT WRAPPER (Rounded Top)
+         ========================================== -->
+    <div class="relative z-20 bg-white rounded-t-[3rem] sm:rounded-t-[4rem] -mt-24 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] border-t border-[#c2c6d8]/30">
+
+      <!-- Misi Section -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div class="order-2 lg:order-1">
+            <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">Misi Kami</p>
+            <h2 class="text-4xl sm:text-5xl font-black text-[#191c1e] mb-6 leading-tight tracking-tight">
+              Kebebasan Menjelajah, <span class="text-[#0050cb]">Tanpa Kompromi.</span>
+            </h2>
+            <p class="text-[#424656] text-base leading-relaxed mb-6 font-medium">
+              Di GASNGO, kami percaya bahwa mengeksplorasi destinasi harus terasa leluasa. Sejak awal pendirian kami, kami berkomitmen penuh untuk menyediakan kendaraan kelas atas dengan tarif transparan dan nol biaya tersembunyi — agar Anda bisa fokus sepenuhnya pada perjalanan Anda.
+            </p>
+            <p class="text-[#424656] text-base leading-relaxed font-medium">
+              Apakah Anda mencari sedan eksekutif yang elegan, SUV keluarga premium yang tangguh, atau *supercar* eksotis untuk tiba dengan penuh gaya, armada kami selalu dirawat sempurna dan siap menemani setiap petualangan Anda.
+            </p>
           </div>
-          <!-- Asymmetric accent -->
-          <div class="absolute -bottom-6 -left-6 md:-bottom-8 md:-left-8 w-32 h-32 md:w-48 md:h-48 bg-[#0050cb]/10 rounded-full z-0 blur-2xl"></div>
+
+          <div class="relative order-1 lg:order-2">
+            <div class="absolute -inset-4 bg-gradient-to-tr from-[#0050cb]/20 to-[#0066ff]/20 rounded-[3rem] blur-2xl"></div>
+            <!-- Gambar Suasana/Perjalanan Elegan -->
+            <img
+              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=800&auto=format&fit=crop"
+              alt="Perjalanan Mewah"
+              class="relative w-full h-80 sm:h-96 object-cover rounded-[2.5rem] shadow-2xl shadow-[#191c1e]/10 border border-[#c2c6d8]/20"
+            />
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Our Story (Asymmetrical Grid) -->
-    <section class="py-16 md:py-24 lg:py-32 bg-[#f2f4f6]">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
-
-        <div class="text-center md:text-left mb-12 md:mb-20 space-y-3 md:space-y-4">
-          <h2 class="text-[10px] md:text-sm font-bold text-[#0050cb] uppercase tracking-[0.2em]">Arsip Kami</h2>
-          <h3 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#191c1e] tracking-tight">Evolusi GASNGO</h3>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 items-start">
-
-          <!-- Item 1 (Kiri Atas) -->
-          <div class="md:col-span-5 md:mt-16 lg:mt-24 space-y-4 md:space-y-6">
-            <div class="aspect-[3/2] rounded-xl overflow-hidden shadow-lg bg-[#f7f9fb]">
-              <img class="w-full h-full object-cover"
-                   alt="Mobil sport klasik"
-                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRH8wiCNmI7YMd6oFntepC_wBiXAaTsAVm5rK_Ui8lEFuLi1PFNUvi0EWm9MBq7SYoqUPZx6eCFZmSj6AtfXsYlsfvvEDPBM-lXnDVGoAPbIdbOV86nTNdCBx4Pwk5AmdAfpyv6bA0vnmxG6RlzbufLrzx8azDdoVdKCIpiN9X0pkthO6HKb4Snq8Pn1L0A_PDPm4Xr1mvO60ZdSqx_4y_MuPeFGQO2uZwKge4nJ6gJztT2wSzr7hbQ9suVWG4UoV0Us5mVU06yAK0"/>
-            </div>
-            <div>
-              <span class="text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-wider">2015</span>
-              <h4 class="text-xl md:text-2xl font-bold text-[#191c1e] mt-1 md:mt-2">Awal Mula</h4>
-              <p class="text-[#424656] text-sm md:text-base mt-2 md:mt-3 leading-relaxed">
-                Lahir dari keinginan untuk mendobrak pasar penyewaan mobil konvensional, kami hadir dengan armada kecil berisi kendaraan performa tinggi yang dikurasi secara ketat di satu lokasi butik eksklusif.
-              </p>
+      <!-- Stats Section -->
+      <section class="bg-[#f7f9fb] py-20 border-y border-[#c2c6d8]/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div v-for="stat in stats" :key="stat.label" class="group">
+              <div class="text-4xl md:text-5xl font-black text-[#191c1e] mb-2 group-hover:text-[#0050cb] transition-colors duration-300">
+                {{ stat.value }}
+              </div>
+              <div class="text-[#727687] text-[10px] sm:text-xs font-bold uppercase tracking-widest">{{ stat.label }}</div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <!-- Item 2 (Kanan Tengah) -->
-          <div class="md:col-span-6 md:col-start-7 space-y-4 md:space-y-6 mt-8 md:mt-0">
-            <div class="aspect-[4/3] rounded-xl overflow-hidden shadow-lg bg-[#f7f9fb]">
-              <img class="w-full h-full object-cover"
-                   alt="Kendaraan listrik mewah modern"
-                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs7AI_DtWMiQFgnWpdWmZG18JIIIAYShrWYhe46cGa3bgsEqJ_x_BbdXHLVw_11L3VTI6QIERSUuilGPyez8wl1CWG_dFDorkzZZZ52XLCFRihGTpK07J2dR_YqgQNiqlBRBI8JLZoqxryWc7MAC1inHpgP_ukj9WyJdiXDIZcOzyn5oWj6Sb7HxE2Tb7RPk-uQvAo6xweyL9WjtG0B3h0ePFYF7jEpLjA9IqqNPnSP3iVozOjWayDf7hLWp72TEPD4HA0rT2OP0jK"/>
+      <!-- Nilai (Values) Section -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div class="text-center mb-16">
+          <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">Prinsip Fundamental Kami</p>
+          <h2 class="text-4xl font-black text-[#191c1e] tracking-tight">Nilai <span class="text-[#0050cb]">Utama</span></h2>
+          <p class="text-[#727687] mt-3 text-lg font-medium">Panduan utama kami dalam menyewakan armada dan melayani setiap pelanggan VIP.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div
+            v-for="value in values"
+            :key="value.title"
+            class="bg-white rounded-[2rem] p-8 border border-[#c2c6d8]/40 shadow-sm hover:shadow-2xl hover:shadow-[#0050cb]/10 transition-all duration-500 hover:-translate-y-2 group"
+          >
+            <!-- Ikon Material Symbols Outlined -->
+            <div class="w-14 h-14 bg-[#e6eeff] group-hover:bg-[#0050cb] rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300 border border-[#b3c5ff]/50 group-hover:border-[#0050cb]">
+              <span class="material-symbols-outlined text-[28px] text-[#0050cb] group-hover:text-white transition-colors duration-300">
+                {{ value.icon }}
+              </span>
             </div>
-            <div>
-              <span class="text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-wider">2019</span>
-              <h4 class="text-xl md:text-2xl font-bold text-[#191c1e] mt-1 md:mt-2">Transisi Elektrik</h4>
-              <p class="text-[#424656] text-sm md:text-base mt-2 md:mt-3 leading-relaxed">
-                Mengantisipasi masa depan kemewahan, kami mengintegrasikan kendaraan listrik paling mutakhir di dunia ke dalam galeri kami, dengan mengutamakan performa senyap dan keanggunan tanpa emisi.
-              </p>
+            <h3 class="text-xl font-extrabold text-[#191c1e] mb-3">{{ value.title }}</h3>
+            <p class="text-[#424656] font-medium leading-relaxed">{{ value.description }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Profil Tim (Team) Section -->
+      <section class="bg-[#f2f4f6] py-24 border-t border-[#c2c6d8]/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-16">
+            <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">Tokoh Di Balik GASNGO</p>
+            <h2 class="text-4xl font-black text-[#191c1e] tracking-tight">Jajaran <span class="text-[#0050cb]">Eksekutif</span></h2>
+            <p class="text-[#727687] mt-3 text-lg font-medium">Grup profesional yang berdedikasi menciptakan standar kemewahan tiada tara.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div
+              v-for="member in team"
+              :key="member.name"
+              class="group text-center bg-white p-8 rounded-[2rem] border border-[#c2c6d8]/30 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              <div class="relative mb-6 mx-auto w-28 h-28">
+                <!-- Efek Glow Belakang Avatar saat dihover -->
+                <div class="absolute inset-0 bg-gradient-to-br from-[#0050cb] to-[#0066ff] rounded-full blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-300 scale-110"></div>
+                <img
+                  :src="member.avatar"
+                  :alt="member.name"
+                  class="relative w-28 h-28 rounded-full object-cover border-4 border-white shadow-md group-hover:scale-105 transition-transform duration-300 grayscale group-hover:grayscale-0"
+                />
+              </div>
+              <h3 class="text-lg font-extrabold text-[#191c1e]">{{ member.name }}</h3>
+              <p class="text-[#0050cb] text-[10px] font-bold uppercase tracking-widest mt-1 mb-4">{{ member.role }}</p>
+              <p class="text-[#727687] text-sm font-medium leading-relaxed">{{ member.bio }}</p>
             </div>
           </div>
-
-          <!-- Item 3 (Bawah Lebar) -->
-          <div class="md:col-span-9 md:col-start-2 lg:col-span-7 lg:col-start-1 mt-12 md:mt-24 lg:mt-32 space-y-4 md:space-y-6">
-            <div class="aspect-[16/9] md:aspect-[21/9] rounded-xl overflow-hidden shadow-lg bg-[#f7f9fb]">
-              <img class="w-full h-full object-cover"
-                   alt="Interior mewah minimalis kendaraan kelas atas"
-                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXRdVjYdzYUJeLDDTeaOec6iF8SeXsTXe_LBirPJznCu-Xa3ZtBIUom4KejiaxQvXCThAdBj9jntP6Fm090WQ49Q50L4qUqdA0pqwaPqhpZi6Tr4tdGWLQceiJmPKO0RXeudtlPacfFjNbCIJaJPKIzqh10oq0ATRPVlgR582bVNwuLh9vX6s2SKJjkfrGprU58x_v6gVMYBCZbInD41ayef7X0UrxIQ9lVTxY6mPm48PMdRBEU93eUgcqetuJ1QLYpNl6xoGNaajv"/>
-            </div>
-            <div>
-              <span class="text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-wider">Masa Kini</span>
-              <h4 class="text-xl md:text-2xl font-bold text-[#191c1e] mt-1 md:mt-2">GASNGO: Galeri Kinetik Anda</h4>
-              <p class="text-[#424656] text-sm md:text-base mt-2 md:mt-3 leading-relaxed">
-                Berkembang menjadi GASNGO, kini kami beroperasi sebagai galeri kendaraan bertaraf global. Kami tidak hanya menyediakan unit penyewaan, tetapi memberikan pengalaman mobilitas yang dikurasi dan terintegrasi sempurna dengan layanan pramutamu kelas dunia.
-              </p>
-            </div>
-          </div>
-
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Leadership Team -->
-    <section class="py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto">
-      <div class="mb-10 md:mb-16 text-center md:text-left">
-        <h2 class="text-[10px] md:text-sm font-bold text-[#0050cb] uppercase tracking-[0.2em]">Para Kurator</h2>
-        <h3 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#191c1e] tracking-tight mt-2 md:mt-4">Jajaran Kepemimpinan</h3>
-      </div>
+      <!-- ==========================================
+           CALL TO ACTION (Disamakan dengan halaman Home/Cars)
+           ========================================== -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24 mb-10">
+        <div class="bg-white rounded-[3rem] p-10 md:p-20 text-center relative overflow-hidden shadow-2xl shadow-blue-900/5 border border-gray-100">
 
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          <div class="absolute -top-32 -left-32 w-64 h-64 bg-blue-100 rounded-full blur-[80px] opacity-60 pointer-events-none"></div>
+          <div class="absolute -bottom-32 -right-32 w-64 h-64 bg-cyan-100 rounded-full blur-[80px] opacity-60 pointer-events-none"></div>
 
-        <!-- Exec 1 -->
-        <div class="group cursor-pointer">
-          <div class="aspect-[3/4] bg-[#f2f4f6] rounded-lg overflow-hidden mb-3 md:mb-6 relative shadow-sm">
-            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                 alt="Julian Vance"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaSKtVS0xhb2BscHDDoFKd7kE0WGLyLj_NW7SUZpghSjM9GJy_S0E09e0W_GjE7K7k_i0dIPZL-C8GngWWlglZa9xfYRdenmZLwyDlzubNe7QhLFuIZLb4QRumHW5qPvZpwANcQ9rApd3Infbs4pu-xkBDaPUe3hnHXXJNXhJhptYYFKiF0g57R0aAqx83rg7-8nLKMQY2ef1dP9nq7WKsDCqqPTDdDynyGbAsrzOjVGg0XPJg2nSAJEYZGNWaC7El1H8yWd1Q3_le"/>
-            <div class="absolute inset-0 bg-transparent group-hover:bg-[#0050cb]/10 transition-colors duration-500"></div>
+          <div class="relative z-10 max-w-3xl mx-auto">
+            <h2 class="text-3xl md:text-5xl font-black text-[#111827] uppercase leading-tight mb-6 tracking-tight">
+              Siap Mengubah <br class="hidden sm:block" />
+              Perspektif Perjalanan Anda?
+            </h2>
+            <p class="text-slate-500 text-lg mb-10 font-medium">
+              Eksplorasi langsung armada kelas satu kami dan pesan kendaraan sempurna untuk agenda Anda hari ini.
+            </p>
+
+            <button
+              @click="router.push('/cars')"
+              class="bg-[#0050cb] hover:bg-[#0066ff] text-white font-bold px-10 py-4.5 rounded-full uppercase text-sm tracking-widest transition-all shadow-lg shadow-blue-500/20 active:scale-95 inline-block text-center"
+            >
+              Lihat Armada Kami
+            </button>
           </div>
-          <h4 class="text-base sm:text-lg md:text-xl font-bold text-[#191c1e]">Julian Vance</h4>
-          <p class="text-[9px] md:text-xs font-bold text-[#424656] uppercase tracking-wider mt-1">Chief Executive Officer</p>
         </div>
+      </section>
 
-        <!-- Exec 2 -->
-        <div class="group cursor-pointer">
-          <div class="aspect-[3/4] bg-[#f2f4f6] rounded-lg overflow-hidden mb-3 md:mb-6 relative shadow-sm">
-            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                 alt="Elena Rostova"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiNHg4W2xzI-biZDU5nSLCCNkzD-BOFjMeWuZ-i1YWELSjyNvQqy03T_kbu4-XQjd2tgsGZ73ilMgVBTezZjjkEGDMH5A3outcLvu99_KVSC4_CvuooV6ghujbLqzIOkbTCtnL1UbHfrNAQ_7FXPPVPXQW2ULQCB8Qyzr8xxjK5Kkgw34XRWVtTa95EI_Mr0dIX0tsi0cRtapFzpyNQMhnniVvSflb4BUdHwsDqoTrw7RiumWB7OWLY84iNximZUfv5dTwn3AxHdvB"/>
-            <div class="absolute inset-0 bg-transparent group-hover:bg-[#0050cb]/10 transition-colors duration-500"></div>
-          </div>
-          <h4 class="text-base sm:text-lg md:text-xl font-bold text-[#191c1e]">Elena Rostova</h4>
-          <p class="text-[9px] md:text-xs font-bold text-[#424656] uppercase tracking-wider mt-1">Direktur Kurasi Armada</p>
-        </div>
-
-        <!-- Exec 3 -->
-        <div class="group cursor-pointer">
-          <div class="aspect-[3/4] bg-[#f2f4f6] rounded-lg overflow-hidden mb-3 md:mb-6 relative shadow-sm mt-4 lg:mt-0">
-            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                 alt="Marcus Thorne"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDUI59c2ztFvcm76ETmTYfOE2GsYELUUGo6Rfr_fxSqbRNMHmTyxMC9oLi6yr-KihTw2keiRV8GpnsYkRx6n6hlS-jXVT6RqYy-GfG3Kej-MNa4YKY8KGqFQ5VXUkPdRJAoxE_UC05hewTGB4c7bn6JukKCTAjcHSQ8lFylPizKDryn-Hkxh-nHE-ZYwv83cCnOOK5yB5bI8qbiBR7bM1erQX9dZyprQWOftKYK0tPg_lvW51iBDzN4Z9q5ebcnPy8-xTvzFxtAByu"/>
-            <div class="absolute inset-0 bg-transparent group-hover:bg-[#0050cb]/10 transition-colors duration-500"></div>
-          </div>
-          <h4 class="text-base sm:text-lg md:text-xl font-bold text-[#191c1e]">Marcus Thorne</h4>
-          <p class="text-[9px] md:text-xs font-bold text-[#424656] uppercase tracking-wider mt-1">Kepala Teknik Kendaraan</p>
-        </div>
-
-        <!-- Exec 4 -->
-        <div class="group cursor-pointer">
-          <div class="aspect-[3/4] bg-[#f2f4f6] rounded-lg overflow-hidden mb-3 md:mb-6 relative shadow-sm mt-4 lg:mt-0">
-            <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                 alt="Sophia Chen"
-                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi52SpVv-xgkTNdb8X05F6z-n2RWiknfPYDF17dgBcC5Q_tGjYjlFkfzanpqrS-4prOq0ZIIIywvJdhOoNgUO20P2jGzDmZrc-OnV0K3QfS8sbB03DzV7K3bB3CCNc9lQDwewspo3B19DEEiI3Eg97FUh6obb82aHGqdTw3G1qTd5sf9IORmzBREeziwCSU_hs0eUz1ths7YpTqoppln8Mgkcdlg5FA0MecTuBmQxOvuxXzJsqRYpF6hwT249PEm-tTrYuH4kNdrlD"/>
-            <div class="absolute inset-0 bg-transparent group-hover:bg-[#0050cb]/10 transition-colors duration-500"></div>
-          </div>
-          <h4 class="text-base sm:text-lg md:text-xl font-bold text-[#191c1e]">Sophia Chen</h4>
-          <p class="text-[9px] md:text-xs font-bold text-[#424656] uppercase tracking-wider mt-1">VP Pengalaman Global</p>
-        </div>
-
-      </div>
-    </section>
-
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* Pengaturan base font/icons jika diperlukan di lokal component */
+/* Pengaturan Ikon Material */
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 </style>

@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
+import Show from '@/components/icons/Show.vue' // Komponen untuk menampilkan data detail transaksi (opsional)
+import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
 
 // --- MOCKUP STATE (Tanpa Backend) ---
 const searchQuery = ref("")
@@ -223,12 +225,12 @@ const deleteReview = (id) => {
                 <div class="flex gap-2 items-center justify-center">
                   <!-- Tombol Detail (Biru) -->
                   <button @click="openDetail(item)" class="w-8 h-8 rounded bg-[#295f98] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Lihat Detail Ulasan">
-                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                    <Show class="size-6 text-white" />
                   </button>
 
                   <!-- Tombol Hapus (Merah) -->
                   <button @click="deleteReview(item.id)" class="w-8 h-8 rounded bg-[#d32f2f] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Hapus Ulasan">
-                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                    <Trash class="size-6 text-white" />
                   </button>
                 </div>
               </td>

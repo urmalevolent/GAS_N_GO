@@ -180,7 +180,7 @@ onUnmounted(() => {
                     </RouterLink>
 
                     <!-- Muncul jika role user adalah admin -->
-                    <RouterLink v-if="currentUser.role === 'admin'" @click="isUserOpen=false" to="/admin/dashboard" class="flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] transition-colors">
+                    <RouterLink v-if="currentUser.role === 'customer'" @click="isUserOpen=false" to="/admin/dashboard" class="flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] transition-colors">
                       <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Dashboard Admin
                     </RouterLink>
 

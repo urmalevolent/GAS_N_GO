@@ -2,358 +2,356 @@
 import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
 
-// --- MOCKUP STATE (Tanpa Backend) ---
-const searchQuery = ref('')
+// --- MOCKUP STATE ---
 
-// Data Dummy Pesanan Sewa Mobil GASNGO
-const orders = ref([
+const activeTab = ref('transactions') // Untuk simulasi Tab Navigasi atas (dari referensi May 26)
+const statusFilter = ref('all')       // Untuk Filter Pill
+
+// Dummy Data Pesanan (Sesuai Konteks Sewa Mobil)
+const rentals = ref([
   {
     id: 'LX-8892-TY',
     recipient_name: 'Daniel Pratama',
-    recipient_phone: '081234567890',
+    recipient_phone: '0812-3456-7890',
+    car_name: 'Porsche Taycan',
+    car_brand: 'Porsche',
     total_price: 1925,
-    status: 'paid', // Status: paid (siap diantar)
-    tracking_number: null,
-    courier: null,
-    shipping_address: 'Kawasan Elit Pondok Indah, Jakarta Selatan'
+    dp_amount: 562,
+    status: 'dp_paid',
+    payment_method: 'cash_with_dp'
   },
   {
     id: 'LX-8871-FR',
     recipient_name: 'Elena Rostova',
-    recipient_phone: '081987654321',
+    recipient_phone: '0819-8765-4321',
+    car_name: 'Ferrari F8 Tributo',
+    car_brand: 'Ferrari',
     total_price: 2450,
-    status: 'shipped', // Status: shipped (sedang diantar / dibawa pelanggan)
-    tracking_number: 'LX-VIP-001',
-    courier: 'Pramutamu Internal',
-    shipping_address: 'Bandara Internasional Soekarno-Hatta (VIP Lounge)'
+    dp_amount: 2450,
+    status: 'active',
+    payment_method: 'full_transfer'
   },
   {
     id: 'LX-8820-BM',
     recipient_name: 'Ahmad Wijaya',
-    recipient_phone: '082211223344',
+    recipient_phone: '0822-1122-3344',
+    car_name: 'BMW M8 Gran Coupe',
+    car_brand: 'BMW',
     total_price: 1900,
-    status: 'pending', // Status: pending (belum dibayar)
-    tracking_number: null,
-    courier: null,
-    shipping_address: 'Hotel Mulia Senayan, Jakarta'
+    dp_amount: 1900,
+    status: 'pending',
+    payment_method: 'full_transfer'
   },
   {
     id: 'LX-8999-AD',
     recipient_name: 'Clara Michelle',
-    recipient_phone: '081333444555',
+    recipient_phone: '0813-3344-4555',
+    car_name: 'Audi RS7 Performance',
+    car_brand: 'Audi',
     total_price: 6000,
-    status: 'completed', // Status: completed (Sewa selesai)
-    tracking_number: 'LX-VIP-099',
-    courier: 'Pramutamu Internal',
-    shipping_address: 'Plaza Indonesia, Jakarta Pusat'
+    dp_amount: 6000,
+    status: 'completed',
+    payment_method: 'full_transfer'
   }
 ])
 
+// Pilihan Filter Berdasarkan Status
+const statusFilters = [
+  { value: 'all', label: 'Semua Status' },
+  { value: 'pending', label: 'Menunggu Bayar' },
+  { value: 'dp_paid', label: 'DP Dibayar' },
+  { value: 'active', label: 'Aktif Disewa' },
+  { value: 'completed', label: 'Selesai' },
+  { value: 'rejected', label: 'Ditolak/Batal' },
+]
+
 // --- MOCKUP FUNCTIONS ---
 
-// Filter Pencarian Lokal
-const filteredOrders = computed(() => {
-  if (!searchQuery.value) return orders.value
-  const query = searchQuery.value.toLowerCase()
-  return orders.value.filter(order =>
-    order.recipient_name.toLowerCase().includes(query) ||
-    order.id.toLowerCase().includes(query) ||
-    order.status.toLowerCase().includes(query)
-  )
+// Filter Table Berdasarkan Status Pill
+const filteredRentals = computed(() => {
+  if (statusFilter.value === 'all') return rentals.value
+  return rentals.value.filter(r => r.status === statusFilter.value)
 })
 
-// Format Mata Uang USD
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0
-  }).format(price)
+// Menghitung jumlah per status (Untuk badge di Pill Filter)
+const rentalCountByStatus = (val) => {
+  if (val === 'all') return rentals.value.length
+  return rentals.value.filter(r => r.status === val).length
 }
 
-// Simulasi Buka Detail (Alert Sederhana)
-const openDetail = (order) => {
+// Menghitung Total Pendapatan
+const totalRevenue = computed(() => {
+  // Hanya hitung yang aktif/selesai/dp dibayar
+  return rentals.value
+    .filter(r => ['dp_paid', 'active', 'completed'].includes(r.status))
+    .reduce((sum, r) => sum + r.dp_amount, 0)
+})
+
+// Formatting Harga
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(price)
+}
+
+// Terjemahan & Warna Badge Status
+const getStatusLabel = (rental) => {
+  const labels = {
+    'pending': 'Menunggu Bayar',
+    'dp_paid': 'Menunggu Persetujuan (DP)',
+    'active': 'Sedang Disewa (Lunas)',
+    'completed': 'Selesai',
+    'rejected': 'Ditolak / Batal'
+  }
+  return labels[rental.status] || rental.status
+}
+
+const statusClass = (status) => {
+  return {
+    'bg-orange-100 text-[#cc4204] border-[#cc4204]/30': status === 'pending',
+    'bg-blue-100 text-[#0050cb] border-[#0050cb]/30': status === 'dp_paid',
+    'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50': status === 'active',
+    'bg-green-100 text-green-700 border-green-300': status === 'completed',
+    'bg-red-100 text-[#ba1a1a] border-[#ba1a1a]/30': status === 'rejected',
+  }[status] || 'bg-gray-100 text-gray-600 border-gray-200'
+}
+
+// --- AKSI BUTTONS DENGAN SWEETALERT MOCKUP ---
+
+// Approve Rental
+const handleApproveRental = (id) => {
   Swal.fire({
-    title: `Detail Pesanan ${order.id}`,
-    text: `Penyewa: ${order.recipient_name} | Total: ${formatPrice(order.total_price)}`,
-    icon: 'info',
-    confirmButtonColor: '#0050cb'
+    title: 'Setujui Reservasi?',
+    text: "Status akan diubah menjadi 'Aktif Disewa'.",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#0050cb',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, Setujui',
+    cancelButtonText: 'Batal'
+  }).then((res) => {
+    if (res.isConfirmed) {
+      const ord = rentals.value.find(o => o.id === id)
+      if (ord) ord.status = 'active'
+      Swal.fire({ icon: 'success', title: 'Disetujui!', showConfirmButton: false, timer: 1500 })
+    }
   })
 }
 
-// Simulasi Hapus Pesanan
-const deleteOrder = (order) => {
+// Complete Rental
+const handleCompleteRental = (id) => {
   Swal.fire({
-    title: 'Hapus Pesanan?',
-    text: `Data pesanan ${order.id} akan dihapus secara permanen.`,
+    title: 'Kendaraan Dikembalikan?',
+    text: "Tandai reservasi ini sebagai selesai.",
+    icon: 'info',
+    showCancelButton: true,
+    confirmButtonColor: '#16a34a',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, Selesai',
+    cancelButtonText: 'Batal'
+  }).then((res) => {
+    if (res.isConfirmed) {
+      const ord = rentals.value.find(o => o.id === id)
+      if (ord) ord.status = 'completed'
+      Swal.fire({ icon: 'success', title: 'Selesai!', showConfirmButton: false, timer: 1500 })
+    }
+  })
+}
+
+// Reject Rental
+const handleRejectRental = (id) => {
+  Swal.fire({
+    title: 'Tolak & Kembalikan Dana?',
+    text: "Dana pelanggan akan dikembalikan secara sistem.",
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#d33',
+    confirmButtonColor: '#ba1a1a',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: 'Ya, Hapus'
-  }).then((result) => {
-    if(result.isConfirmed) {
-      orders.value = orders.value.filter(o => o.id !== order.id)
-      Swal.fire({ icon: 'success', title: 'Terhapus!', timer: 1500, showConfirmButton: false })
+    confirmButtonText: 'Ya, Tolak',
+    cancelButtonText: 'Batal'
+  }).then((res) => {
+    if (res.isConfirmed) {
+      const ord = rentals.value.find(o => o.id === id)
+      if (ord) ord.status = 'rejected'
+      Swal.fire({ icon: 'success', title: 'Ditolak!', text: 'Dana (DP) sedang dikembalikan.', showConfirmButton: false, timer: 2000 })
     }
   })
 }
 
-// --- LOGIKA 1: INPUT RESI (Status: PAID -> SHIPPED) ---
-const handleInputResi = async (order) => {
-    const { value: formValues } = await Swal.fire({
-        title: 'Konfirmasi Pengiriman Armada',
-        html: `
-            <div class="text-left font-['Manrope']">
-                <label class="block mb-2 font-bold text-[#191c1e] text-sm">Metode Pengiriman:</label>
-                <div class="flex gap-4 mb-5">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="courier" value="Pramutamu Internal" id="concierge" checked class="w-4 h-4 accent-[#0050cb]">
-                        <span class="text-sm font-medium text-[#424656]">Pramutamu (Concierge)</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="courier" value="Ambil Sendiri" id="pickup" class="w-4 h-4 accent-[#0050cb]">
-                        <span class="text-sm font-medium text-[#424656]">Ambil Sendiri (Lounge)</span>
-                    </label>
-                </div>
-                <label class="block mb-2 font-bold text-[#191c1e] text-sm">Nomor Referensi Pengiriman:</label>
-                <input id="swal-input-resi" class="w-full border border-[#c2c6d8] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0050cb]/30 text-sm" placeholder="Contoh: LX-VIP-001">
-            </div>
-        `,
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Proses & Beri Tahu Pelanggan',
-        cancelButtonText: 'Batal',
-        confirmButtonColor: '#0050cb',
-        customClass: { popup: 'rounded-2xl' },
-        preConfirm: () => {
-            const resi = document.getElementById('swal-input-resi').value;
-            const courier = document.querySelector('input[name="courier"]:checked').value;
-
-            if (!resi) {
-                Swal.showValidationMessage('Nomor referensi wajib diisi!');
-                return false;
-            }
-            return { resi, courier };
-        }
-    });
-
-    if (formValues) {
-        const { resi, courier } = formValues;
-
-        // Simulasi Loading Jaringan
-        Swal.fire({
-            title: 'Memproses...',
-            text: `Menugaskan ${courier}...`,
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
-
-        setTimeout(() => {
-          // Update UI Lokal
-          const ord = orders.value.find(o => o.id === order.id)
-          if(ord) {
-            ord.status = 'shipped';
-            ord.tracking_number = resi;
-            ord.courier = courier;
-          }
-
-          Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: `Armada sedang diproses via ${courier}. Email notifikasi telah dikirim ke pelanggan.`,
-            confirmButtonColor: '#0050cb'
-          });
-        }, 1500)
-    }
-};
-
-// --- LOGIKA 2: TANDAI SELESAI (Status: SHIPPED -> COMPLETED) ---
-const handleMarkDelivered = async (order) => {
-    Swal.fire({
-        title: 'Armada Telah Dikembalikan?',
-        text: "Status pesanan akan diubah menjadi Selesai dan tidak bisa dikembalikan ke status sebelumnya.",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Ya, Tandai Selesai',
-        cancelButtonText: 'Batal',
-        confirmButtonColor: '#16a34a',
-        cancelButtonColor: '#d33',
-        customClass: { popup: 'rounded-2xl' }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({ title: 'Memperbarui...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-            setTimeout(() => {
-              const ord = orders.value.find(o => o.id === order.id)
-              if(ord) ord.status = 'completed';
-
-              Swal.fire({
-                icon: 'success',
-                title: 'Selesai!',
-                text: 'Pesanan telah berhasil diselesaikan.',
-                timer: 1500,
-                showConfirmButton: false
-              });
-            }, 1000)
-        }
-    });
-};
+// Simulasi Detail Modal menggunakan SweetAlert
+const openRentalDetail = (rental) => {
+  Swal.fire({
+    title: `Detail Pesanan ${rental.id}`,
+    html: `
+      <div class="text-left font-['Manrope'] text-sm space-y-3 mt-4">
+        <p><strong>Pelanggan:</strong> ${rental.recipient_name} (${rental.recipient_phone})</p>
+        <p><strong>Kendaraan:</strong> ${rental.car_name} (${rental.car_brand})</p>
+        <p><strong>Metode Pembayaran:</strong> ${rental.payment_method === 'cash_with_dp' ? 'Cash (Bayar DP)' : 'Transfer Penuh'}</p>
+        <p><strong>Total Tagihan:</strong> ${formatPrice(rental.total_price)}</p>
+        <p><strong>Sudah Dibayar:</strong> <span class="text-[#0050cb] font-bold">${formatPrice(rental.dp_amount)}</span></p>
+      </div>
+    `,
+    confirmButtonColor: '#0050cb',
+    confirmButtonText: 'Tutup'
+  })
+}
 </script>
 
 <template>
-  <div class="space-y-6 font-['Manrope'] text-[#191c1e] pb-10">
+  <div class="font-['Manrope'] text-[#191c1e] pb-24">
 
-    <!-- Bagian Header Judul -->
-    <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6">
-      <div class="flex flex-col gap-1">
-        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Daftar Pesanan</h1>
-        <p class="text-sm text-[#727687]">Pantau dan kelola seluruh status reservasi penyewaan armada GASNGO.</p>
+    <!-- ================= HEADER OVERVIEW ================= -->
+    <div class="mb-10 flex flex-col md:flex-row justify-between md:items-end gap-6 border-b border-[#c2c6d8]/40 pb-6">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Ringkasan Dashboard</h1>
+        <p class="text-[#727687] mt-1 text-sm">Kelola armada dan pantau laporan transaksi masuk Anda.</p>
+      </div>
+
+      <!-- Stats Summary (Highlight Pendapatan) -->
+      <div class="flex gap-4">
+        <div class="bg-gradient-to-br from-[#003161] to-[#0050cb] text-white px-6 py-4 rounded-2xl shadow-md flex items-center gap-4 border border-[#0066ff]/20">
+          <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-sm border border-white/20">
+            <span class="material-symbols-outlined text-white text-2xl">account_balance_wallet</span>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-[#b3c5ff] mb-0.5">Total Pendapatan</p>
+            <p class="text-2xl font-black tracking-tighter leading-none">{{ formatPrice(totalRevenue) }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Kotak Utama Pembungkus -->
-    <div class="bg-white rounded-3xl border border-[#c2c6d8]/40 shadow-sm overflow-hidden flex flex-col">
-
-      <!-- Bagian Atas: Search Bar -->
-      <div class="p-5 md:p-6 border-b border-[#f2f4f6]">
-        <div class="relative w-full md:w-1/2">
-          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#727687] text-[20px]">search</span>
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="w-full pl-11 pr-4 py-3 bg-[#f2f4f6] border border-transparent rounded-full text-sm outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] focus:bg-white transition-all text-[#191c1e] font-medium"
-            placeholder="Cari ID Reservasi atau Nama Pelanggan..."
-          />
-        </div>
-      </div>
-
-      <!-- Wrapper Tabel agar bisa digeser di HP (Responsive) -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left whitespace-nowrap min-w-[1000px]">
-          <!-- Header Tabel (Navy Blue) -->
-          <thead class="bg-[#003161] text-white text-[11px] font-bold uppercase tracking-wider">
-            <tr>
-              <th class="px-6 py-4 w-12 text-center">NO</th>
-              <th class="px-6 py-4">REFERENSI</th>
-              <th class="px-6 py-4">PELANGGAN</th>
-              <th class="px-6 py-4 text-right">TAGIHAN</th>
-              <th class="px-6 py-4 text-center">STATUS</th>
-              <th class="px-6 py-4">PENGIRIMAN & ALAMAT</th>
-              <th class="px-6 py-4 text-center w-40">AKSI</th>
-            </tr>
-          </thead>
-
-          <tbody class="divide-y divide-gray-100">
-
-             <!-- Empty State -->
-             <tr v-if="filteredOrders.length === 0">
-                <td colspan="7" class="p-12 text-center text-[#727687] font-medium">
-                  <span class="material-symbols-outlined text-4xl mb-2 opacity-50 block">receipt_long</span>
-                  Tidak ada data reservasi ditemukan.
-                </td>
-             </tr>
-
-             <!-- Looping Order -->
-             <tr v-else v-for="(order, index) in filteredOrders" :key="order.id" class="transition-colors hover:bg-blue-50/30">
-
-                <!-- 1. Nomor -->
-                <td class="px-6 py-5 text-center text-[#727687] font-bold text-sm">{{ index + 1 }}</td>
-
-                <!-- 2. ID Referensi -->
-                <td class="px-6 py-5">
-                  <span class="font-bold text-[#0050cb] bg-[#e6eeff] px-2.5 py-1 rounded text-xs border border-[#b3c5ff]/50 uppercase tracking-widest">
-                    {{ order.id }}
-                  </span>
-                </td>
-
-                <!-- 3. Pelanggan -->
-                <td class="px-6 py-5">
-                  <div class="font-extrabold text-[#191c1e] text-sm">{{ order.recipient_name }}</div>
-                  <div class="text-[11px] font-bold text-[#727687] tracking-widest mt-0.5">{{ order.recipient_phone }}</div>
-                </td>
-
-                <!-- 4. Total Tagihan -->
-                <td class="px-6 py-5 text-right font-black text-[#191c1e] text-base">
-                  {{ formatPrice(order.total_price) }}
-                </td>
-
-                <!-- 5. Status -->
-                <td class="px-6 py-5 text-center">
-                  <span
-                    class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                    :class="{
-                      'bg-orange-100 text-[#cc4204] border-[#cc4204]/30': order.status === 'pending',
-                      'bg-green-100 text-green-700 border-green-300': order.status === 'paid',
-                      'bg-blue-100 text-[#0050cb] border-[#0050cb]/30': order.status === 'shipped',
-                      'bg-[#f2f4f6] text-[#424656] border-[#c2c6d8]/50': order.status === 'completed'
-                    }"
-                  >
-                    <!-- Terjemahan Teks Status -->
-                    {{
-                      order.status === 'pending' ? 'MENUNGGU PEMBAYARAN' :
-                      order.status === 'paid' ? 'LUNAS (SIAP ANTAR)' :
-                      order.status === 'shipped' ? 'DALAM MASA SEWA' : 'SELESAI'
-                    }}
-                  </span>
-                </td>
-
-                <!-- 6. Pengiriman & Alamat -->
-                <td class="px-6 py-5">
-                  <div v-if="order.tracking_number" class="text-[#191c1e] font-extrabold text-sm flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[16px] text-[#0050cb]">verified</span>
-                    {{ order.tracking_number }}
-                  </div>
-                  <div v-else class="text-[#727687] text-[10px] font-bold uppercase tracking-widest italic flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[14px]">pending_actions</span>
-                    Belum diproses
-                  </div>
-                  <div class="text-[11px] text-[#424656] font-medium mt-1 truncate max-w-[200px]" :title="order.shipping_address">
-                    {{ order.shipping_address }}
-                  </div>
-                </td>
-
-                <!-- 7. Aksi (Tombol Proses / Detail / Hapus) -->
-                <td class="px-6 py-5">
-                  <div class="flex gap-2 items-center justify-center">
-
-                    <!-- Tombol Proses Kirim (Muncul jika status PAID) -->
-                    <button v-if="order.status === 'paid'" @click="handleInputResi(order)" title="Proses Pengiriman" class="flex items-center justify-center h-8 px-3 rounded-lg bg-[#0050cb] hover:bg-[#0066ff] transition-colors text-white gap-1.5 shadow-sm shadow-blue-600/20 active:scale-95">
-                       <span class="material-symbols-outlined text-[16px]">local_shipping</span>
-                       <span class="text-[10px] font-bold uppercase tracking-widest">KIRIM</span>
-                    </button>
-
-                    <!-- Tombol Selesai (Muncul jika status SHIPPED) -->
-                    <button v-if="order.status === 'shipped'" @click="handleMarkDelivered(order)" title="Tandai Sewa Selesai" class="flex items-center justify-center h-8 px-3 rounded-lg bg-[#16a34a] hover:bg-green-700 transition-colors text-white gap-1.5 shadow-sm active:scale-95">
-                       <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                       <span class="text-[10px] font-bold uppercase tracking-widest">SELESAI</span>
-                    </button>
-
-                    <!-- Tombol Detail (Umum) -->
-                    <button @click="openDetail(order)" title="Lihat Detail Pesanan" class="w-8 h-8 rounded-lg bg-[#295f98] hover:bg-blue-800 transition-colors text-white flex items-center justify-center shadow-sm">
-                      <span class="material-symbols-outlined text-[18px]">visibility</span>
-                    </button>
-
-                    <!-- Tombol Hapus (Umum) -->
-                    <button @click="deleteOrder(order)" title="Hapus Reservasi" class="w-8 h-8 rounded-lg bg-[#d32f2f] hover:bg-red-700 transition-colors text-white flex items-center justify-center shadow-sm">
-                      <span class="material-symbols-outlined text-[18px]">delete</span>
-                    </button>
-
-                  </div>
-                </td>
-             </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Footer Tabel (Summary) -->
-      <div class="p-5 md:p-6 border-t border-[#f2f4f6] bg-[#f7f9fb]/50 flex justify-between items-center text-sm text-[#727687]">
-        <div class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">
-          Menampilkan <span class="text-[#0050cb] font-black text-sm">{{ filteredOrders.length }}</span> Reservasi Aktif
-        </div>
-      </div>
-
+    <!-- ================= TABS NAVIGATION ================= -->
+    <!-- Simulasi Tab ala "May 26", namun disesuaikan warna biru GASNGO -->
+    <div class="flex gap-4 mb-8 overflow-x-auto border-b border-[#c2c6d8]/40">
+      <button
+        @click="activeTab = 'transactions'"
+        class="px-4 py-3 text-sm font-extrabold uppercase tracking-widest border-b-2 transition-colors whitespace-nowrap flex items-center gap-2"
+        :class="activeTab === 'transactions' ? 'border-[#0050cb] text-[#0050cb]' : 'border-transparent text-[#727687] hover:text-[#191c1e]'">
+        <span class="material-symbols-outlined text-[18px]">receipt_long</span> Reservasi
+      </button>
     </div>
+
+    <!-- ================= TRANSACTIONS TAB (ISI UTAMA) ================= -->
+    <div v-if="activeTab === 'transactions'" class="space-y-6">
+
+      <!-- Status Filter Pills -->
+      <div class="flex gap-2.5 flex-wrap">
+        <button v-for="f in statusFilters" :key="f.value"
+          @click="statusFilter = f.value"
+          class="px-4 py-2 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all border"
+          :class="statusFilter === f.value ? 'bg-[#0050cb] text-white border-[#0050cb] shadow-md shadow-blue-600/20' : 'bg-white text-[#424656] border-[#c2c6d8]/60 hover:border-[#0050cb] hover:text-[#0050cb]'">
+          {{ f.label }} <span class="ml-1 opacity-70">({{ rentalCountByStatus(f.value) }})</span>
+        </button>
+      </div>
+
+      <!-- Kotak Tabel -->
+      <div class="bg-white rounded-3xl border border-[#c2c6d8]/40 shadow-sm overflow-hidden flex flex-col mt-4">
+
+        <!-- Header Tabel Box -->
+        <div class="px-6 py-5 border-b border-[#f2f4f6] flex justify-between items-center bg-[#f7f9fb]/50">
+          <h2 class="text-lg font-extrabold text-[#191c1e] flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#0050cb]">list_alt</span> Daftar Transaksi Reservasi
+          </h2>
+          <!-- Refresh Mockup Button -->
+          <button class="text-xs font-bold text-[#0050cb] hover:text-white bg-[#e6eeff] hover:bg-[#0050cb] px-4 py-2 rounded-lg transition-colors flex items-center gap-2 uppercase tracking-widest border border-[#b3c5ff]/50 active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">sync</span> Segarkan
+          </button>
+        </div>
+
+        <!-- Area Tabel (Responsive Scroll X) -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left whitespace-nowrap min-w-[900px]">
+            <thead class="bg-[#003161] text-white text-[11px] font-bold uppercase tracking-wider">
+              <tr>
+                <th class="py-4 px-6">PELANGGAN</th>
+                <th class="py-4 px-6">KENDARAAN</th>
+                <th class="py-4 px-6">STATUS & AKSI</th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y divide-gray-100">
+
+              <!-- Empty State -->
+              <tr v-if="filteredRentals.length === 0">
+                <td colspan="3" class="py-16 px-6 text-center text-[#727687]">
+                  <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">receipt_long</span>
+                  <h3 class="text-base font-bold text-[#191c1e]">Tidak Ada Reservasi</h3>
+                  <p class="mt-1 text-xs">Belum ada pesanan yang cocok dengan filter status tersebut.</p>
+                </td>
+              </tr>
+
+               <!-- Looping Data Rental -->
+              <tr v-for="rental in filteredRentals" :key="rental.id" class="hover:bg-blue-50/30 transition-colors">
+
+                <!-- 1. Pelanggan -->
+                <td class="py-5 px-6">
+                  <div class="flex items-center gap-4">
+                    <!-- Avatar Inisial Bulat -->
+                    <div class="w-10 h-10 rounded-full bg-[#e6eeff] flex items-center justify-center text-[#0050cb] font-black text-sm uppercase shrink-0 border border-[#b3c5ff]/50">
+                      {{ (rental.recipient_name || 'U').substring(0,2) }}
+                    </div>
+                    <div>
+                      <div class="font-extrabold text-[#191c1e] text-sm">{{ rental.recipient_name }}</div>
+                      <div class="text-[10px] font-bold text-[#727687] tracking-widest uppercase mt-0.5">{{ rental.recipient_phone }}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 2. Kendaraan -->
+                <td class="py-5 px-6">
+                  <div class="font-bold text-[#191c1e] text-sm">{{ rental.car_name }}</div>
+                  <div class="text-[10px] font-black text-[#0050cb] uppercase tracking-widest mt-0.5">{{ rental.car_brand }}</div>
+                </td>
+
+                <!-- 3. Status & Aksi -->
+                <td class="py-5 px-6">
+                  <div class="flex items-center gap-2 flex-wrap">
+
+                    <!-- Status Lencana -->
+                    <span :class="statusClass(rental.status)" class="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 border whitespace-nowrap">
+                      {{ getStatusLabel(rental) }}
+                    </span>
+
+                    <!-- Lencana Metode Pembayaran -->
+                    <span class="px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-widest border"
+                      :class="rental.payment_method === 'cash_with_dp' ? 'bg-[#f2f4f6] text-[#424656] border-[#c2c6d8]/50' : 'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50'">
+                      {{ rental.payment_method === 'cash_with_dp' ? 'BAYAR DP' : 'LUNAS (TRANSFER)' }}
+                    </span>
+
+                    <div class="w-px h-5 bg-[#c2c6d8]/50 mx-1"></div> <!-- Pembatas Garis -->
+
+                    <!-- Tombol Detail (Biru Laut) -->
+                    <button @click="openRentalDetail(rental)" title="Lihat Rincian"
+                      class="px-3 py-1.5 bg-[#f2f4f6] text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] hover:border-[#0050cb] font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors border border-transparent flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">visibility</span> DETAIL
+                    </button>
+
+                    <!-- Tombol Approve (Hijau) -->
+                    <button v-if="rental.status === 'dp_paid'" @click="handleApproveRental(rental.id)" title="Setujui Reservasi"
+                      class="px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-400 border border-green-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">check</span> SETUJUI
+                    </button>
+
+                    <!-- Tombol Selesai (Biru Tua) -->
+                    <button v-if="rental.status === 'active'" @click="handleCompleteRental(rental.id)" title="Tandai Dikembalikan"
+                      class="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-400 border border-blue-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">done_all</span> SELESAI
+                    </button>
+
+                    <!-- Tombol Reject/Tolak (Merah) -->
+                    <button v-if="rental.status === 'dp_paid'" @click="handleRejectRental(rental.id)" title="Tolak Pesanan"
+                      class="px-3 py-1.5 bg-red-50 text-[#ba1a1a] hover:bg-red-100 hover:border-red-400 border border-red-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">close</span> TOLAK
+                    </button>
+
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 

@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
+import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
+import Edit from '@/components/icons/Edit.vue' // Komponen untuk mengedit data transaksi (opsional)
 
 // --- MOCKUP STATE (Tanpa Backend) ---
 const searchQuery = ref("")
@@ -215,12 +217,12 @@ const deleteCategory = (id, name) => {
                 <div class="flex gap-2 items-center justify-center">
                   <!-- Tombol Edit (Kuning) -->
                   <button @click="openEditModal(category)" class="w-8 h-8 rounded bg-[#eab308] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Edit Kategori">
-                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                    <Edit class="size-6 text-white" />
                   </button>
 
                   <!-- Tombol Hapus (Merah) -->
                   <button @click="deleteCategory(category.id, category.name)" class="w-8 h-8 rounded bg-[#d32f2f] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Hapus Kategori">
-                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                    <Trash class="size-6 text-white" />
                   </button>
                 </div>
               </td>
