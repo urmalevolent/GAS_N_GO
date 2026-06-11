@@ -1,6 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterLink, useRoute} from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import Swal from 'sweetalert2'
 
 // Gambar Asset
 import logocars from '@/assets/images/racingcar.png'
@@ -16,13 +18,17 @@ const scrolled = ref(false)
 
 // State untuk User Dropdown
 const isUserOpen = ref(false)
-// SIMULASI LOGIN (Murni Mockup/Desain)
-const isAuthenticated = ref(true)
-const currentUser = ref({
-  username: 'Sultan Andara',
-  email: 'sultan@executive.com',
-  role: 'customer', // Ubah jadi 'admin' jika ingin test menu admin
-  avatar: '' // Kosongkan agar pakai defaultAvatar
+
+const authStore = useAuthStore()
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const currentUser = computed(() => {
+  if (!authStore.user) return null
+  return {
+    username: authStore.user.full_name || authStore.user.email.split('@')[0],
+    email: authStore.user.email,
+    role: authStore.user.role,
+    avatar: ''
+  }
 })
 
 // State untuk Notifikasi Global (Mockup)
@@ -35,6 +41,7 @@ const toast = ref({
 // --- DATA NAVIGASI ---
 const navLinks = [
   { name: 'Cars', path: '/cars' },
+  { name: 'Service', path: '/services' },
   { name: 'Search', path: '/searching' },
   { name: 'About', path: '/about' },
 ]
@@ -64,12 +71,31 @@ const closeOnClickOutside = (event) => {
   }
 }
 
-// Fungsi Logout (Simulasi)
+const router = useRouter()
+
+// Fungsi Logout asli dengan konfirmasi UI SweetAlert2
 const handleLogout = () => {
   isUserOpen.value = false
-  triggerToast('Berhasil keluar dari akun.', 'success')
-  // isAuthenticated.value = false // Uncomment jika ingin test tampilan saat belum login
-  // router.push('/')
+  Swal.fire({
+    title: 'Keluar Akun?',
+    text: 'Apakah Anda yakin ingin keluar dari akun Anda?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ba1a1a',
+    cancelButtonColor: '#727687',
+    confirmButtonText: 'Ya, Keluar',
+    cancelButtonText: 'Batal'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const { error } = await authStore.signOut()
+      if (!error) {
+        triggerToast('Berhasil keluar dari akun.', 'success')
+        router.push('/')
+      } else {
+        triggerToast('Gagal keluar: ' + error.message, 'error')
+      }
+    }
+  })
 }
 
 const triggerToast = (msg, type = 'success') => {
@@ -180,8 +206,10 @@ onUnmounted(() => {
                     </RouterLink>
 
                     <!-- Muncul jika role user adalah admin -->
-                    <RouterLink v-if="currentUser.role === 'customer'" @click="isUserOpen=false" to="/admin/dashboard" class="flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] transition-colors">
-                      <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Dashboard Admin
+                    <RouterLink v-slot="{ href, navigate }" v-if="currentUser.role === 'admin'" to="/admin/dashboard" custom>
+                      <a :href="href" @click="navigate(); isUserOpen=false" class="flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Dashboard Admin
+                      </a>
                     </RouterLink>
 
                     <div class="mt-2 border-t border-gray-100 pt-2">
@@ -195,9 +223,9 @@ onUnmounted(() => {
 
               <!-- Jika Belum Login -->
               <div v-else>
-                <RouterLink to="/login" class="flex items-center gap-2 font-bold text-white bg-[#0050cb] hover:bg-[#0066ff] px-6 py-2.5 rounded-full transition-all shadow-md active:scale-95 text-sm uppercase tracking-widest">
+                <button @click="authStore.openAuthModal()" class="flex items-center gap-2 font-bold text-white bg-[#0050cb] hover:bg-[#0066ff] px-6 py-2.5 rounded-full transition-all shadow-md active:scale-95 text-sm uppercase tracking-widest cursor-pointer">
                   Sign In
-                </RouterLink>
+                </button>
               </div>
             </div>
 
@@ -266,9 +294,9 @@ onUnmounted(() => {
               </template>
 
               <template v-else>
-                <RouterLink @click="closeMobileMenu" to="/login" class="w-full bg-[#0050cb] hover:bg-[#0066ff] text-white font-bold text-sm px-6 py-4 rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase tracking-widest active:scale-95 flex items-center justify-center gap-2">
+                <button @click="authStore.openAuthModal(); closeMobileMenu()" class="w-full bg-[#0050cb] hover:bg-[#0066ff] text-white font-bold text-sm px-6 py-4 rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase tracking-widest active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                   <span class="material-symbols-outlined text-[18px]">login</span> Sign In
-                </RouterLink>
+                </button>
               </template>
             </div>
 

@@ -138,7 +138,7 @@ const popularCars = ref([
             to="/services"
             class="bg-white/90 backdrop-blur-md text-[#0d6efd] border border-white hover:bg-white font-bold px-10 py-4 rounded-full transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1 inline-block text-center shadow-lg"
           >
-            Lihat Layanan
+            Layanan
           </RouterLink>
         </div>
       </div>
@@ -269,70 +269,6 @@ const popularCars = ref([
             </div>
             <h3 class="text-xl font-extrabold text-slate-900 mb-2">3. Selesai & Nikmati</h3>
             <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Konfirmasi pesanan dengan aman, dan mobil impian Anda siap menunggu kedatangan Anda!</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= BENTO GRID FEATURES ================= -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-12">
-          <h2 class="text-3xl md:text-4xl lg:text-[40px] font-black text-[#111827] uppercase leading-none mb-4">
-            Mendefinisikan Ulang <br/>Standar Mobilitas Mewah.
-          </h2>
-          <p class="text-slate-500 text-lg font-medium leading-relaxed max-w-2xl">
-            Kami tidak sekadar menyewakan mobil; kami menghadirkan pengalaman sempurna yang dirancang khusus bagi pengemudi dengan selera tinggi.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 bg-[#f0f2f5] rounded-[2.5rem] p-8 lg:p-10 flex flex-col md:flex-row items-center gap-8 group hover:shadow-xl transition-all duration-500 border border-gray-100">
-            <div class="flex-1 space-y-4">
-              <div class="bg-white w-14 h-14 rounded-2xl flex items-center justify-center text-[#0d6efd] shadow-sm">
-                <span class="material-symbols-outlined text-3xl">volunteer_activism</span>
-              </div>
-              <h3 class="text-2xl font-extrabold text-slate-900">Layanan Pramutamu Premium</h3>
-              <p class="text-slate-600 font-medium leading-relaxed">
-                Tim ahli kami memastikan kendaraan Anda diantar dan dijemput sesuai kenyamanan Anda, di mana pun dalam area metropolitan.
-              </p>
-            </div>
-            <div class="w-full md:w-1/2 overflow-hidden rounded-[2rem]">
-              <img :src="carhome1" alt="Penyerahan kunci mobil" class="w-full h-48 lg:h-64 object-cover group-hover:scale-105 transition-transform duration-700 grayscale hover:grayscale-0" />
-            </div>
-          </div>
-
-          <div class="bg-gradient-to-br from-[#0d6efd] to-[#0050cb] rounded-[2.5rem] p-8 lg:p-10 flex flex-col justify-center text-white shadow-lg shadow-blue-600/20 group hover:-translate-y-1 transition-all duration-500">
-            <div class="bg-white/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
-              <span class="material-symbols-outlined text-3xl">bolt</span>
-            </div>
-            <h3 class="text-2xl font-extrabold mb-4">Pemesanan Instan</h3>
-            <p class="text-blue-100 font-medium leading-relaxed">
-              Pendekatan digital kami memastikan Anda berada di balik kemudi dalam waktu kurang dari 5 menit. Tanpa dokumen rumit, langsung nikmati perjalanan.
-            </p>
-          </div>
-
-          <div class="bg-white rounded-[2.5rem] p-8 lg:p-10 shadow-sm hover:shadow-xl border border-gray-200 flex flex-col justify-center group transition-all duration-500 hover:-translate-y-1">
-            <div class="bg-blue-50 w-14 h-14 rounded-2xl flex items-center justify-center text-[#0d6efd] mb-6">
-              <span class="material-symbols-outlined text-3xl">diamond</span>
-            </div>
-            <h3 class="text-2xl font-extrabold text-slate-900 mb-4">Mobil Pilihan Elit</h3>
-            <p class="text-slate-500 font-medium leading-relaxed">
-              Hanya menyediakan model keluaran terbaru dengan spesifikasi khusus. Kami menjaga standar kesempurnaan tertinggi pada setiap kendaraan.
-            </p>
-          </div>
-
-          <div class="lg:col-span-2 bg-[#f0f2f5] rounded-[2.5rem] p-8 lg:p-10 flex flex-col md:flex-row items-center gap-8 group hover:shadow-xl transition-all duration-500 border border-gray-100">
-            <div class="flex-1 space-y-4">
-              <div class="bg-white w-14 h-14 rounded-2xl flex items-center justify-center text-[#0d6efd] shadow-sm">
-                <span class="material-symbols-outlined text-3xl">route</span>
-              </div>
-              <h3 class="text-2xl font-extrabold text-slate-900">Kebebasan Tanpa Batas</h3>
-              <p class="text-slate-600 font-medium leading-relaxed">
-                Jarak tempuh tanpa batas untuk model mewah pilihan serta opsi pengembalian antar-kota demi melengkapi perjalanan jauh Anda.
-              </p>
-            </div>
-            <div class="w-full md:w-1/2 overflow-hidden rounded-[2rem]">
-              <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800&auto=format&fit=crop" alt="Jalan pesisir pantai" class="w-full h-48 lg:h-56 object-cover group-hover:scale-105 transition-transform duration-700" />
-            </div>
           </div>
         </div>
       </section>

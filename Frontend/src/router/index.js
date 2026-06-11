@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 // ================= LAYOUTS =================
 import AppLayout from '@/layouts/AppLayout.vue'
@@ -48,11 +49,13 @@ const router = createRouter({
         { path: 'cars', name: 'cars', component: CarsPage },
         { path: 'car/:id', name: 'car-detail', component: CarDetailPage },
         { path: 'booking', name: 'booking', component: BookingPage },
+        { path: 'services', name: 'services', component: () => import('@/pages/Services.vue') },
 
         // 1.B RUTE USER PROFILE
         {
           path: 'user',
           component: UserLayout,
+          meta: { requiresAuth: true },
           children:[
             { path: 'profile', name: 'Profile', component: ProfilePage },
             { path: 'review', name: 'Review', component: ReviewPage },
@@ -68,6 +71,7 @@ const router = createRouter({
     {
       path: '/admin',
       component: AdminLayout,
+      meta: { requiresAuth: true, requiresAdmin: true },
       children:[
         {
           path: '',
@@ -138,6 +142,30 @@ const router = createRouter({
       ]
     }
   ],
+})
+
+// Navigation Guard untuk Proteksi Rute
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+  
+  // Pastikan store auth terinisialisasi
+  if (!authStore.initialized) {
+    await authStore.initialize()
+  }
+
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+
+  if (requiresAuth && !authStore.isAuthenticated) {
+    // Pengguna belum login, arahkan ke beranda dan pemicu buka modal login global
+    authStore.openAuthModal()
+    next({ name: 'home', query: { redirect: to.fullPath } })
+  } else if (requiresAdmin && !authStore.isAdmin) {
+    // Pengguna bukan admin tapi mencoba akses rute admin
+    next({ name: 'home' })
+  } else {
+    next()
+  }
 })
 
 export default router

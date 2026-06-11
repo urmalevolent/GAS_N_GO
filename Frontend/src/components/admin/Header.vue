@@ -1,18 +1,25 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import Swal from 'sweetalert2'
 
 // Default Avatar jika user tidak memiliki foto profil
 import defaultAvatar from '@/assets/images/user_profile/default-avatar.png'
 
-// -- STATE (Murni Data Dummy untuk Desain) --
+// -- STATE (Hubungan ke Supabase Store) --
 const isUserOpen = ref(false)
-const isAuthenticated = ref(true) // Di-set true agar profil langsung tampil
-const currentUser = ref({
-  username: 'Admin GASNGO',
-  role: 'Super Administrator',
-  email: 'admin@gasngo.com',
-  avatar: '' // Kosongkan agar menggunakan defaultAvatar
+
+const authStore = useAuthStore()
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const currentUser = computed(() => {
+  if (!authStore.user) return null
+  return {
+    username: authStore.user.full_name || authStore.user.email.split('@')[0],
+    role: authStore.user.role === 'admin' ? 'Administrator' : 'Customer',
+    email: authStore.user.email,
+    avatar: ''
+  }
 })
 
 // -- EVENT & PROPS --
@@ -35,10 +42,42 @@ const toggleUserDropdown = () => {
   isUserOpen.value = !isUserOpen.value
 }
 
-// Fungsi Logout (Hanya UI / Mockup)
+const router = useRouter()
+
+// Fungsi Logout asli dengan konfirmasi UI SweetAlert2
 const handleLogout = () => {
   isUserOpen.value = false
-  alert('Simulasi Logout Berhasil!')
+  Swal.fire({
+    title: 'Keluar Akun?',
+    text: 'Apakah Anda yakin ingin keluar dari portal admin?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ba1a1a',
+    cancelButtonColor: '#727687',
+    confirmButtonText: 'Ya, Keluar',
+    cancelButtonText: 'Batal'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const { error } = await authStore.signOut()
+      if (!error) {
+        Swal.fire({
+          title: 'Berhasil',
+          text: 'Anda telah keluar dari akun.',
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 1500
+        })
+        router.push('/')
+      } else {
+        Swal.fire({
+          title: 'Gagal',
+          text: 'Gagal keluar: ' + error.message,
+          icon: 'error',
+          confirmButtonColor: '#0050cb'
+        })
+      }
+    }
+  })
 }
 
 // Tutup dropdown saat klik di luar area

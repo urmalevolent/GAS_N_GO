@@ -1,3 +1,10 @@
+<script setup>
+import AuthModal from '@/components/AuthModal.vue'
+</script>
+
 <template>
-  <router-view />
+  <div>
+    <router-view />
+    <AuthModal />
+  </div>
 </template>
