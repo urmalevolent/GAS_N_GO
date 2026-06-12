@@ -1,7 +1,13 @@
 {
-  "dependencies": {
-    "aos": "^2.3.4",
-    "chart.js": "^4.5.1",
-    "sweetalert2": "^11.26.24"
+  "name": "gas-n-go-monorepo",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm install --prefix Frontend && npm install --prefix Backend",
+    "dev:frontend": "npm run dev --prefix Frontend",
+    "dev:backend": "npm run dev --prefix Backend",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
