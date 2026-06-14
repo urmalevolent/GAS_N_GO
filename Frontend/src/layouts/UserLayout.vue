@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed } from "vue";
 import { RouterView } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
 // Asumsi: Anda akan membuat komponen Sidebar khusus untuk halaman User (bukan admin)
 import Sidebar from "@/components/Sidebar.vue";
@@ -8,28 +9,22 @@ import Sidebar from "@/components/Sidebar.vue";
 // Pastikan letak gambar default avatar Anda benar
 import defaultAvatar from "@/assets/images/user_profile/default-avatar.png";
 
-// 1. State untuk data user (dikirim ke Sidebar sebagai Props)
-// Menggunakan data dummy sementara karena belum ada backend
-const userData = ref({
-  username: "Memuat...",
-  email: "",
-  image: defaultAvatar,
-});
+const authStore = useAuthStore();
 
-// 2. Fungsi Fetch Data Simulasi (Tanpa Backend)
-const fetchUserData = () => {
-  // Simulasi loading/delay sesaat (opsional, bisa dihapus)
-  setTimeout(() => {
-    userData.value = {
-      username: "Member GASNGO",
-      email: "member@gasngo.com",
-      image: defaultAvatar, // Nanti akan diganti foto dari database
+// State untuk data user (dikirim ke Sidebar sebagai Props)
+const userData = computed(() => {
+  if (authStore.user) {
+    return {
+      username: authStore.user.full_name || authStore.user.email.split('@')[0],
+      email: authStore.user.email,
+      image: authStore.user.image_url || defaultAvatar,
     };
-  }, 500); // delay 0.5 detik
-};
-
-onMounted(() => {
-  fetchUserData();
+  }
+  return {
+    username: "Guest User",
+    email: "guest@example.com",
+    image: defaultAvatar,
+  };
 });
 </script>
 

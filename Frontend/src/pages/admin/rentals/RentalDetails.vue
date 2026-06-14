@@ -10,36 +10,28 @@ const props = defineProps({
   // Menerima data singkat dari tabel parent
   orderData: {
     type: Object,
-    default: () => ({
-      id: 'LX-8892-TY',
-      created_at: '2024-05-10T08:30:00Z',
-      recipient_name: 'Daniel Pratama',
-      recipient_phone: '0812-3456-7890',
-      shipping_address: 'Kawasan Elit Pondok Indah, Jakarta Selatan',
-      status: 'active', // pending, active, completed, cancelled
-      total_price: 1400,
-    })
+    default: null
   }
 });
 
 const emit = defineEmits(['close']);
 
-// --- MOCKUP STATE ---
+// --- STATE ---
 const isLoading = ref(false);
 const orderItems = ref([]); // Menyimpan detail armada yang disewa
 
 const close = () => {
   emit('close');
-  orderItems.value =[]; // Reset saat ditutup
+  orderItems.value = []; // Reset saat ditutup
 };
 
-// --- MOCKUP FUNCTIONS ---
+// --- FUNCTIONS ---
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'IDR',
     minimumFractionDigits: 0
-  }).format(price);
+  }).format(price || 0);
 };
 
 const formatDate = (dateString) => {
@@ -48,25 +40,30 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('id-ID', options);
 };
 
-// Logika Dummy: Mengambil item sewa ketika modal dibuka
+// Logika Mengambil item sewa ketika modal dibuka
 watch(() => props.show, (isOpen) => {
   if (isOpen && props.orderData) {
     isLoading.value = true;
 
-    // Simulasi delay API
+    // Simulasi delay singkat agar transisi loading terasa halus dan premium
     setTimeout(() => {
-      orderItems.value =[
+      // Hitung durasi hari secara dinamis
+      const start = new Date(props.orderData.start_date);
+      const end = new Date(props.orderData.end_date);
+      const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1;
+
+      orderItems.value = [
         {
-          name: 'Porsche Taycan',
-          brand: 'Porsche',
-          category: 'Elektrik Mewah',
-          duration: 3, // Hari
-          price_per_day: 1250,
-          image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCzGLHrTayzvLUSWS00F4_f8dgUwU_YxkDuVUXzx-W_Vf0mAVXvW3ngeMNZKezLL2HlkiM61rsL_aeotsre8vA2pKx0s5zwIKzmgYXU1jaIcxu-kKPv99_QyPDBJUhh_cgxC2spgQFvySwYJY9lZRRkN4bGihv-6ESETKVQJmc-CIA9cjx07PJ61xZxtsv8nx0YCC670KiiS4G_n5sAR6BOei_wl34rPEh6RZVkBA7Y0wuXwUBrleBlBmFxSrJgiO7DKQRTCN82OYi5'
+          name: props.orderData.car_name || props.orderData.car?.name || 'Mobil',
+          brand: props.orderData.car_brand || props.orderData.car?.brand || 'Armada',
+          category: props.orderData.car?.category || 'Mobil Kota',
+          duration: days,
+          price_per_day: props.orderData.car?.price_per_day || 0,
+          image: props.orderData.car?.image_url || ''
         }
       ];
       isLoading.value = false;
-    }, 600);
+    }, 300);
   }
 });
 </script>
@@ -130,6 +127,16 @@ watch(() => props.show, (isOpen) => {
             </div>
           </div>
 
+          <!-- Card Foto KTP Jaminan -->
+          <div v-if="orderData?.ktp_url" class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="font-extrabold text-[#191c1e] text-base mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#0050cb] text-[18px]">badge</span> Foto KTP Jaminan
+            </h3>
+            <div class="mt-3 border border-dashed border-[#c2c6d8]/60 rounded-2xl overflow-hidden p-2 bg-[#f7f9fb] flex justify-center">
+              <img :src="orderData.ktp_url" alt="Foto KTP Jaminan" class="max-w-full max-h-64 object-contain rounded-xl shadow-sm" />
+            </div>
+          </div>
+
           <!-- 2. Detail Armada yang Disewa -->
           <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
             <h3 class="font-extrabold text-[#191c1e] text-base mb-4 flex items-center gap-2">
@@ -178,17 +185,19 @@ watch(() => props.show, (isOpen) => {
                  <span class="material-symbols-outlined text-[#0050cb] text-[18px]">payments</span> Status Pembayaran
                </h3>
 
-               <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+               <span v-if="orderData" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
                   :class="{
-                    'bg-orange-100 text-orange-700 border-orange-200': orderData.status === 'pending',
-                    'bg-blue-100 text-blue-700 border-blue-200': orderData.status === 'active',
+                    'bg-orange-100 text-orange-700 border-orange-200': orderData.status === 'pending' || orderData.status === 'pending_dp',
+                    'bg-blue-100 text-blue-700 border-blue-200': orderData.status === 'dp_paid',
+                    'bg-indigo-100 text-indigo-700 border-indigo-200': orderData.status === 'active',
                     'bg-green-100 text-green-700 border-green-200': orderData.status === 'completed',
-                    'bg-red-100 text-red-700 border-red-200': orderData.status === 'cancelled'
+                    'bg-red-100 text-red-700 border-red-200': orderData.status === 'rejected' || orderData.status === 'cancelled'
                   }">
                  {{
-                    orderData.status === 'pending' ? 'MENUNGGU PEMBAYARAN' :
+                    orderData.status === 'pending' || orderData.status === 'pending_dp' ? 'MENUNGGU PEMBAYARAN' :
+                    orderData.status === 'dp_paid' ? 'DP DIBAYAR (MENUNGGU PERSETUJUAN)' :
                     orderData.status === 'active' ? 'DISEWA (LUNAS)' :
-                    orderData.status === 'completed' ? 'SELESAI' : 'DIBATALKAN'
+                    orderData.status === 'completed' ? 'SELESAI' : 'DIBATALKAN / DITOLAK'
                  }}
                </span>
              </div>

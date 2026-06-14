@@ -41,8 +41,8 @@ const toast = ref({
 // --- DATA NAVIGASI ---
 const navLinks = [
   { name: 'Cars', path: '/cars' },
+  { name: 'Category', path: '/category' },
   { name: 'Service', path: '/services' },
-  { name: 'Search', path: '/searching' },
   { name: 'About', path: '/about' },
 ]
 

@@ -14,3 +14,26 @@ export const supabase = createClient(
   supabaseUrl || 'https://nxtumcsfqgvcturfrqgz.supabase.co',
   supabaseAnonKey || ''
 );
+
+/**
+ * Creates or returns a Supabase client scoped to the request's authorization token.
+ * This is crucial for satisfying Row-Level Security (RLS) policies when writing/reading user data.
+ */
+export const getSupabaseClient = (req) => {
+  const authHeader = req.headers?.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    return createClient(
+      supabaseUrl || 'https://nxtumcsfqgvcturfrqgz.supabase.co',
+      supabaseAnonKey || '',
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      }
+    );
+  }
+  return supabase;
+};

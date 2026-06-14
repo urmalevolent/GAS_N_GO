@@ -1,38 +1,100 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+import { supabase } from '@/lib/supabase';
+import Swal from 'sweetalert2';
 
 // Avatar default
 import defaultAvatar from '@/assets/images/user_profile/default-avatar.png';
 
-const router = useRouter();
-const route = useRoute();
-
-// ✅ 1. Data user FULL frontend (tidak dari props/backend)
-const user = ref({
-  username: 'Guest User',
-  email: 'guest@example.com',
-  image: defaultAvatar
+const props = defineProps({
+  user: {
+    type: Object,
+    default: null
+  }
 });
 
-// Handle gambar error
+const router = useRouter();
+const route = useRoute();
+const authStore = useAuthStore();
+
+const activeOrdersCount = ref(0);
+
+// Gunakan profile user dari authStore (Pinia) yang riil
+const currentUser = computed(() => {
+  if (authStore.user) {
+    return {
+      username: authStore.user.full_name || authStore.user.email.split('@')[0],
+      email: authStore.user.email,
+      image: authStore.user.image_url || defaultAvatar
+    };
+  }
+  return props.user || {
+    username: 'Guest User',
+    email: 'guest@example.com',
+    image: defaultAvatar
+  };
+});
+
 const handleImageError = (e) => {
   e.target.src = defaultAvatar;
 };
 
-// ✅ 2. Logout frontend-only (reset state + redirect)
+// Hitung jumlah pesanan aktif dari database secara dinamis
+const fetchActiveOrdersCount = async () => {
+  if (!authStore.isAuthenticated) return;
+  try {
+    const { count, error } = await supabase
+      .from('rentals')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', authStore.user.id)
+      .in('status', ['pending_dp', 'pending', 'dp_paid', 'active']);
+
+    if (!error) {
+      activeOrdersCount.value = count || 0;
+    }
+  } catch (err) {
+    console.error('Gagal mengambil jumlah pesanan aktif:', err);
+  }
+};
+
+onMounted(() => {
+  if (authStore.initialized) {
+    fetchActiveOrdersCount();
+  } else {
+    const unwatch = authStore.$subscribe((mutation, state) => {
+      if (state.initialized) {
+        fetchActiveOrdersCount();
+        unwatch();
+      }
+    });
+  }
+});
+
+// Aksi keluar akun riil dengan konfirmasi SweetAlert
 const handleLogout = () => {
-  alert('Logout berhasil (Frontend Only)');
-
-  // Reset user ke default
-  user.value = {
-    username: 'Guest',
-    email: '',
-    image: defaultAvatar
-  };
-
-  // Redirect ke halaman utama (opsional)
-  router.push('/');
+  Swal.fire({
+    title: 'Keluar Akun?',
+    text: 'Anda harus masuk kembali untuk dapat melacak dan menyewa armada.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ba1a1a',
+    cancelButtonColor: '#0050cb',
+    confirmButtonText: 'Ya, Keluar',
+    cancelButtonText: 'Batal'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await authStore.signOut();
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil Keluar!',
+        showConfirmButton: false,
+        timer: 1500
+      });
+      router.push('/');
+    }
+  });
 };
 </script>
 
@@ -44,7 +106,7 @@ const handleLogout = () => {
     <div class="flex items-center gap-4 mb-8 pb-8 border-b border-[#c2c6d8]/40">
       <div class="shrink-0 rounded-full border-2 border-[#0050cb] p-0.5">
         <img
-          :src="user.image || defaultAvatar"
+          :src="currentUser.image || defaultAvatar"
           alt="Profile Avatar"
           class="w-12 h-12 rounded-full object-cover"
           @error="handleImageError"
@@ -52,11 +114,11 @@ const handleLogout = () => {
       </div>
 
       <div class="overflow-hidden">
-        <p class="font-extrabold text-[#191c1e] truncate text-base" :title="user.username">
-          {{ user.username }}
+        <p class="font-extrabold text-[#191c1e] truncate text-base" :title="currentUser.username">
+          {{ currentUser.username }}
         </p>
-        <p class="text-xs text-[#727687] truncate mt-0.5" :title="user.email">
-          {{ user.email || 'Belum ada email' }}
+        <p class="text-xs text-[#727687] truncate mt-0.5" :title="currentUser.email">
+          {{ currentUser.email || 'Belum ada email' }}
         </p>
       </div>
     </div>
@@ -83,7 +145,7 @@ const handleLogout = () => {
           <span class="material-symbols-outlined text-[20px]" :class="route.path.includes('/user/orders') ? 'text-[#0050cb]' : 'text-[#727687]'">local_shipping</span>
           <span>My Orders</span>
         </div>
-        <span class="bg-[#0050cb] text-white text-[9px] px-2 py-0.5 rounded-full">1</span>
+        <span v-if="activeOrdersCount > 0" class="bg-[#0050cb] text-white text-[9px] px-2 py-0.5 rounded-full">{{ activeOrdersCount }}</span>
       </RouterLink>
 
       <RouterLink

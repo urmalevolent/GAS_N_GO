@@ -8,7 +8,7 @@ import UserLayout from '@/layouts/UserLayout.vue'
 
 // ================= PAGES PUBLIC =================
 import HomePage from '../pages/Home.vue'
-import SearchingPage from '../pages/Searching.vue'
+import CategoryPage from '../pages/Category.vue'
 import AboutPage from '../pages/About.vue'
 import CarsPage from '../pages/Cars.vue'
 import CarDetailPage from '../pages/CarDetail.vue'
@@ -29,7 +29,9 @@ import UserLists from '@/pages/admin/users/UserLists.vue'
 import AddUsers from '@/pages/admin/users/CreateAdmin.vue'
 import CategoryLists from '@/pages/admin/category/CategoryLists.vue'
 import RatingLists from '@/pages/admin/Ratings/RatingLists.vue'
+import Rentals from '@/pages/admin/rentals/Rentals.vue'
 import RentalLists from '@/pages/admin/rentals/RentalLists.vue'
+import RentalDetails from '@/pages/admin/rentals/RentalDetails.vue'
 import TransactionLists from '@/pages/admin/transactions/TransactionLists.vue'
 
 const router = createRouter({
@@ -44,7 +46,7 @@ const router = createRouter({
       component: AppLayout,
       children:[
         { path: '', name: 'home', component: HomePage },
-        { path: 'searching', name: 'searching', component: SearchingPage },
+        { path: 'category', name: 'category', component: CategoryPage },
         { path: 'about', name: 'about', component: AboutPage },
         { path: 'cars', name: 'cars', component: CarsPage },
         { path: 'car/:id', name: 'car-detail', component: CarDetailPage },
@@ -125,10 +127,10 @@ const router = createRouter({
         {
           // PERBAIKAN: Konfigurasi rute admin rentals
           path: "rentals",
-          component: RentalLists,
+          component: Rentals,
           children:[
             { path: "", name: "admin-rentals-list", component: RentalLists },
-            { path: "detail/:id", name: "admin-rental-detail", component: () => import('@/pages/admin/rentals/RentalDetails.vue') }
+            { path: "detail/:id", name: "admin-rental-detail", component: RentalDetails }
           ]
         },
         {

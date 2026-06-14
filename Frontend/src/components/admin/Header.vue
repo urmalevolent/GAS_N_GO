@@ -1,14 +1,16 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import Swal from 'sweetalert2'
 
 // Default Avatar jika user tidak memiliki foto profil
 import defaultAvatar from '@/assets/images/user_profile/default-avatar.png'
 
-// -- STATE (Hubungan ke Supabase Store) --
+// -- STATE (Hubungan ke Supabase Store & Router) --
 const isUserOpen = ref(false)
+const route = useRoute()
+const router = useRouter()
 
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -18,17 +20,40 @@ const currentUser = computed(() => {
     username: authStore.user.full_name || authStore.user.email.split('@')[0],
     role: authStore.user.role === 'admin' ? 'Administrator' : 'Customer',
     email: authStore.user.email,
-    avatar: ''
+    avatar: authStore.user.avatar_url || ''
   }
 })
 
 // -- EVENT & PROPS --
 const emit = defineEmits(['sidebar-open'])
 
-// FIX: Hilangkan "const props =" karena 'props' tidak dipakai di dalam script,
-// hanya dibutuhkan Vue untuk membaca variabel isSidebarOpen di dalam <template>
 defineProps({
   isSidebarOpen: Boolean
+})
+
+// -- DYNAMIC TITLE & SUBTITLE BASED ON ROUTE --
+const pageTitle = computed(() => {
+  const path = route.path
+  if (path.startsWith('/admin/dashboard')) return 'Dashboard Utama'
+  if (path.startsWith('/admin/users')) return 'Kelola Pengguna'
+  if (path.startsWith('/admin/cars')) return 'Daftar Mobil'
+  if (path.startsWith('/admin/rentals')) return 'Manajemen Sewa'
+  if (path.startsWith('/admin/category')) return 'Kategori Kelas'
+  if (path.startsWith('/admin/transactions')) return 'Transaksi Keuangan'
+  if (path.startsWith('/admin/ratings')) return 'Ulasan & Rating'
+  return 'Admin Panel'
+})
+
+const pageSubtitle = computed(() => {
+  const path = route.path
+  if (path.startsWith('/admin/dashboard')) return 'Ringkasan Sistem GASNGO'
+  if (path.startsWith('/admin/users')) return 'Daftar Akun dan Peran Pengguna'
+  if (path.startsWith('/admin/cars')) return 'Kelola Data Mobil dan Status Ketersediaan'
+  if (path.startsWith('/admin/rentals')) return 'Daftar Penyewaan Kendaraan Masuk'
+  if (path.startsWith('/admin/category')) return 'Kelola Kategori Kelas Mobil'
+  if (path.startsWith('/admin/transactions')) return 'Riwayat Transaksi Keuangan dan Pembayaran'
+  if (path.startsWith('/admin/ratings')) return 'Daftar Penilaian dan Testimoni Pelanggan'
+  return 'Sistem Informasi GASNGO'
 })
 
 // -- METHODS --
@@ -41,8 +66,6 @@ const handleSidebar = () => {
 const toggleUserDropdown = () => {
   isUserOpen.value = !isUserOpen.value
 }
-
-const router = useRouter()
 
 // Fungsi Logout asli dengan konfirmasi UI SweetAlert2
 const handleLogout = () => {
@@ -97,7 +120,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header class="sticky top-0 w-full z-40 bg-white border-b border-[#c2c6d8]/40 h-20 px-4 md:px-8 flex items-center justify-between transition-all duration-300">
+  <header class="sticky top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-[#c2c6d8]/30 h-20 px-4 md:px-8 flex items-center justify-between transition-all duration-300 shadow-sm shadow-[#191c1e]/5">
 
     <!-- Bagian Kiri: Tombol Hamburger (Mobile) & Judul (Desktop) -->
     <div class="flex items-center gap-4">
@@ -111,9 +134,9 @@ onUnmounted(() => {
       </button>
 
       <!-- Judul Dinamis -->
-      <div class="hidden lg:flex flex-col">
-        <h1 class="text-xl font-extrabold tracking-tight text-[#191c1e] leading-none">Dashboard Utama</h1>
-        <p class="text-[11px] font-bold uppercase tracking-widest text-[#727687] mt-1">Ringkasan Sistem GASNGO</p>
+      <div class="hidden md:flex flex-col animate-fadeIn">
+        <h1 class="text-xl font-black tracking-tight text-[#191c1e] leading-none">{{ pageTitle }}</h1>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-[#727687] mt-1.5">{{ pageSubtitle }}</p>
       </div>
     </div>
 
@@ -122,27 +145,27 @@ onUnmounted(() => {
 
       <!-- Tampilan Jika User Login -->
       <div v-if="isAuthenticated && currentUser">
-        <button @click="toggleUserDropdown" class="flex items-center gap-3 md:gap-4 focus:outline-none group">
+        <button @click="toggleUserDropdown" class="flex items-center gap-3 focus:outline-none group px-3 py-2 rounded-xl hover:bg-[#f2f4f6]/60 transition-all border border-transparent hover:border-[#c2c6d8]/20">
           <!-- Teks Nama & Role (Disembunyikan di layar sangat kecil) -->
           <div class="text-right hidden sm:block">
-            <p class="text-[#191c1e] font-bold text-sm leading-none group-hover:text-[#0050cb] transition-colors">
+            <p class="text-[#191c1e] font-extrabold text-sm leading-none group-hover:text-[#0050cb] transition-colors">
               {{ currentUser.username }}
             </p>
-            <p class="text-[10px] text-[#727687] font-bold uppercase tracking-widest mt-1">
+            <p class="text-[9px] text-[#727687] font-black uppercase tracking-widest mt-1.5">
               {{ currentUser.role }}
             </p>
           </div>
 
           <!-- Avatar & Panah -->
           <div class="flex items-center gap-2">
-            <div class="w-10 h-10 md:w-11 md:h-11 rounded-full overflow-hidden border-2 border-[#f2f4f6] group-hover:border-[#0050cb] transition-all shadow-sm">
+            <div class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-[#f2f4f6] group-hover:border-[#0050cb]/60 transition-all shadow-sm">
               <img
                 :src="currentUser.avatar || defaultAvatar"
                 alt="User Avatar"
                 class="w-full h-full object-cover"
               />
             </div>
-            <span class="material-symbols-outlined text-[#727687] text-sm transition-transform duration-300" :class="{'rotate-180': isUserOpen}">
+            <span class="material-symbols-outlined text-[#727687] text-[18px] transition-transform duration-300 group-hover:text-[#0050cb]" :class="{'rotate-180': isUserOpen}">
               expand_more
             </span>
           </div>
@@ -150,10 +173,10 @@ onUnmounted(() => {
 
         <!-- Dropdown Menu -->
         <transition name="fade-slide">
-          <div v-if="isUserOpen" class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl shadow-black/5 z-50 py-2 border border-[#c2c6d8]/30 overflow-hidden">
+          <div v-if="isUserOpen" class="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl shadow-black/5 z-50 py-2 border border-[#c2c6d8]/30 overflow-hidden">
 
             <!-- Info Email Detail -->
-            <div class="px-5 py-3 border-b border-[#f2f4f6] mb-1 bg-[#f7f9fb]/50">
+            <div class="px-5 py-3 border-b border-[#f2f4f6] mb-1 bg-[#f7f9fb]/60 backdrop-blur-sm">
               <p class="text-[10px] uppercase tracking-widest text-[#727687] font-bold mb-0.5">Masuk sebagai</p>
               <p class="text-xs font-bold text-[#191c1e] truncate">{{ currentUser.email }}</p>
             </div>
@@ -163,7 +186,7 @@ onUnmounted(() => {
               <span class="material-symbols-outlined text-lg">language</span> Kembali ke Website
             </RouterLink>
 
-            <RouterLink to="/admin/profile" class="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-[#424656] hover:bg-[#0050cb]/5 hover:text-[#0050cb] transition-colors">
+            <RouterLink to="/user/profile" class="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-[#424656] hover:bg-[#0050cb]/5 hover:text-[#0050cb] transition-colors">
               <span class="material-symbols-outlined text-lg">person</span> Profil Saya
             </RouterLink>
 
@@ -189,14 +212,23 @@ onUnmounted(() => {
 /* Animasi Halus Dropdown */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .fade-slide-enter-from {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-8px) scale(0.95);
 }
 .fade-slide-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-8px) scale(0.95);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
 }
 </style>

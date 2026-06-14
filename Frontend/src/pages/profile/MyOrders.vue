@@ -1,70 +1,152 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/auth';
 
-// --- MOCKUP STATE (Tanpa Backend) ---
+const authStore = useAuthStore();
+
+// --- STATE ---
 const loading = ref(false);
 const isProcessing = ref(false);
+const rentals = ref([]);
 
-// Dummy Data Pesanan (Mirip struktur data di referensi Anda)
-const rentals = ref([
-  {
-    id: 'LX-8892-TY',
-    car: {
-      name: 'Porsche Taycan',
-      brand: 'Porsche',
-      image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCzGLHrTayzvLUSWS00F4_f8dgUwU_YxkDuVUXzx-W_Vf0mAVXvW3ngeMNZKezLL2HlkiM61rsL_aeotsre8vA2pKx0s5zwIKzmgYXU1jaIcxu-kKPv99_QyPDBJUhh_cgxC2spgQFvySwYJY9lZRRkN4bGihv-6ESETKVQJmc-CIA9cjx07PJ61xZxtsv8nx0YCC670KiiS4G_n5sAR6BOei_wl34rPEh6RZVkBA7Y0wuXwUBrleBlBmFxSrJgiO7DKQRTCN82OYi5'
-    },
-    start_date: '2024-05-15',
-    end_date: '2024-05-18',
-    status: 'pending_dp', // Menunggu Pembayaran
-    payment_method: 'cash_with_dp',
-    total_price: 3750,
-    dp_amount: 562.5
-  },
-  {
-    id: 'LX-8871-FR',
-    car: {
-      name: 'Ferrari F8 Tributo',
-      brand: 'Ferrari',
-      image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp'
-    },
-    start_date: '2024-05-10',
-    end_date: '2024-05-11',
-    status: 'active', // Sedang Disewa
-    payment_method: 'full_transfer',
-    total_price: 2450,
-    dp_amount: 2450
-  },
-  {
-    id: 'LX-8820-BM',
-    car: {
-      name: 'BMW M8 Gran Coupe',
-      brand: 'BMW',
-      image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE'
-    },
-    start_date: '2024-04-01',
-    end_date: '2024-04-03',
-    status: 'completed', // Selesai
-    payment_method: 'cash_with_dp',
-    total_price: 2850,
-    dp_amount: 427.5
+// Fetch data pesanan real dari Supabase
+const fetchOrders = async () => {
+  if (!authStore.isAuthenticated) return;
+  loading.value = true;
+  try {
+    const { data, error } = await supabase
+      .from('rentals')
+      .select('*, car:cars(*), rental_details(*), rental_payments(*)')
+      .eq('user_id', authStore.user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    rentals.value = (data || []).map(r => {
+      const details = r.rental_details?.[0] || {};
+      const payment = r.rental_payments?.[0] || {};
+      
+      // Hitung fallback harga secara dinamis jika tabel rental_payments belum terisi
+      const start = new Date(r.start_date);
+      const end = new Date(r.end_date);
+      const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1;
+      const carPrice = r.car?.price_per_day || 0;
+      const calcTotalPrice = days * carPrice;
+      const calcDpAmount = (payment.payment_method || 'cash_with_dp') === 'full_transfer' ? calcTotalPrice : Math.round(calcTotalPrice * 0.15);
+
+      return {
+        id: r.id,
+        car: {
+          name: r.car?.name || 'Mobil',
+          brand: r.car?.brand || 'Armada',
+          image_url: r.car?.image_url || ''
+        },
+        start_date: r.start_date,
+        end_date: r.end_date,
+        status: r.status, // pending_dp, dp_paid, active, completed, rejected, refunded
+        payment_method: payment.payment_method || 'cash_with_dp',
+        total_price: payment.total_price || calcTotalPrice,
+        dp_amount: payment.dp_amount || calcDpAmount,
+        address: details.address || '',
+        phone_number: details.phone_number || '',
+        midtrans_order_id: payment.midtrans_order_id || '',
+        payment_status: payment.payment_status || 'unverified'
+      };
+    });
+  } catch (err) {
+    console.error('Error fetching orders:', err);
+  } finally {
+    loading.value = false;
   }
-]);
+};
 
-// --- MOCKUP FUNCTIONS ---
+onMounted(() => {
+  if (authStore.initialized) {
+    fetchOrders();
+  } else {
+    // Tunggu auth inisialisasi selesai jika dipanggil cepat
+    const unwatch = authStore.$subscribe((mutation, state) => {
+      if (state.initialized) {
+        fetchOrders();
+        unwatch();
+      }
+    });
+  }
+});
 
-const retryPayment = (rental) => {
+// Bayar Ulang (Retry Payment) untuk transaksi pending
+const retryPayment = async (rental) => {
   isProcessing.value = true;
-  setTimeout(() => {
+  try {
+    const token = authStore.session?.access_token;
+    
+    // 1. Request token baru ke backend dengan order ID yang baru
+    const response = await fetch(`http://localhost:5000/api/bookings/${rental.id}/pay`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const resData = await response.json();
+    if (!response.ok || !resData.success) {
+      throw new Error(resData.message || 'Gagal memproses pembayaran ulang.');
+    }
+
+    const snapToken = resData.data.snap_token;
+
+    // 2. Buka popup Snap
+    if (window.snap) {
+      window.snap.pay(snapToken, {
+        onSuccess: async function(result) {
+          console.log('Retry Success:', result);
+          try {
+            await fetch(`http://localhost:5000/api/bookings/${rental.id}/confirm-payment`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+          } catch (e) {
+            console.error('Auto confirm error:', e);
+          }
+          await fetchOrders();
+        },
+        onPending: async function(result) {
+          console.log('Retry Pending:', result);
+          try {
+            await fetch(`http://localhost:5000/api/bookings/${rental.id}/confirm-payment`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+          } catch (e) {
+            console.error('Auto confirm error:', e);
+          }
+          await fetchOrders();
+        },
+        onError: function(result) {
+          console.error('Retry Error:', result);
+          alert('Pembayaran gagal, silakan coba lagi.');
+        },
+        onClose: function() {
+          console.log('Retry popup closed');
+          fetchOrders();
+        }
+      });
+    } else {
+      throw new Error('Midtrans Snap SDK tidak termuat.');
+    }
+
+  } catch (err) {
+    console.error('Retry payment error:', err);
+    alert(err.message || 'Terjadi kesalahan saat menghubungi server pembayaran.');
+  } finally {
     isProcessing.value = false;
-    alert(`Simulasi pembayaran untuk Order #${rental.id} berhasil!`);
-    rental.status = 'dp_paid';
-  }, 1500);
+  }
 };
 
 const formatPrice = (p) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD', minimumFractionDigits: 0
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(p);
 };
 
@@ -74,16 +156,16 @@ const formatDate = (d) => {
 
 // --- LOGIKA PROGRESS TRACKER (HORIZONTAL TIMELINE) ---
 const STEPS = [
-  { key: 'pending_dp', label: 'Dipesan' },
+  { key: 'pending', label: 'Dipesan' },
   { key: 'dp_paid',    label: 'Uang Muka/Lunas' },
-  { key: 'active',     label: 'Aktif Disewa' },
+  { key: 'active',     label: 'Antar Mobil' },
   { key: 'completed',  label: 'Selesai' },
 ];
 const FLOW = STEPS.map(s => s.key);
 
 const getSteps = (rental) => {
-  const status = rental.status;
-  const isRejected = ['rejected', 'refunded'].includes(status);
+  const status = rental.status === 'pending_dp' ? 'pending' : rental.status;
+  const isRejected = ['rejected', 'refunded', 'cancelled'].includes(status);
   const currentIdx = FLOW.indexOf(status);
 
   return STEPS.map((s, i) => {
@@ -96,39 +178,82 @@ const getSteps = (rental) => {
 };
 
 const progressWidth = (status) => {
-  if (['rejected', 'refunded'].includes(status)) return '33%';
-  if (status === 'completed') return 'calc(100% - 32px)';
-  const idx = FLOW.indexOf(status);
+  const normStatus = status === 'pending_dp' ? 'pending' : status;
+  if (['rejected', 'refunded', 'cancelled'].includes(normStatus)) return '33%';
+  if (normStatus === 'completed') return 'calc(100% - 32px)';
+  const idx = FLOW.indexOf(normStatus);
   return `${(idx / (FLOW.length - 1)) * 100}%`;
 };
 
 // --- HELPER STATUS & WARNA ---
-const statusLabel = (s) => ({
-  pending_dp: 'Menunggu Pembayaran',
-  dp_paid:    'Menunggu Persetujuan',
-  active:     'Sedang Digunakan',
-  completed:  'Selesai',
-  rejected:   'Ditolak',
-  refunded:   'Dikembalikan',
-}[s] || s);
+const statusLabel = (rental) => {
+  const s = rental.status;
+  if (s === 'pending' || s === 'pending_dp') {
+    if (rental.payment_status === 'unverified') {
+      return 'Menunggu Verifikasi KTP';
+    }
+    return 'KTP Terverifikasi (Silakan Bayar)';
+  }
+  return {
+    dp_paid:    'Menunggu Persetujuan',
+    active:     'Mobil Diantar',
+    completed:  'Selesai',
+    rejected:   'Ditolak',
+    refunded:   'Dikembalikan',
+    cancelled:  'Dibatalkan'
+  }[s] || s;
+};
 
-const statusClass = (s) => ({
-  pending_dp: 'bg-orange-100 text-orange-700 border-orange-200',
-  dp_paid:    'bg-blue-100 text-blue-700 border-blue-200',
-  active:     'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50',
-  completed:  'bg-green-100 text-green-700 border-green-200',
-  rejected:   'bg-red-100 text-red-700 border-red-200',
-  refunded:   'bg-red-100 text-red-700 border-red-200',
-}[s] || 'bg-gray-100 text-gray-700 border-gray-200');
+const statusClass = (rental) => {
+  const s = rental.status;
+  if (s === 'pending' || s === 'pending_dp') {
+    if (rental.payment_status === 'unverified') {
+      return 'bg-purple-100 text-purple-700 border-purple-200';
+    }
+    return 'bg-orange-100 text-orange-700 border-orange-200';
+  }
+  return {
+    dp_paid:    'bg-blue-100 text-blue-700 border-blue-200',
+    active:     'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50',
+    completed:  'bg-green-100 text-green-700 border-green-200',
+    rejected:   'bg-red-100 text-red-700 border-red-200',
+    refunded:   'bg-red-100 text-red-700 border-red-200',
+    cancelled:  'bg-red-100 text-red-700 border-red-200',
+  }[s] || 'bg-gray-100 text-gray-700 border-gray-200';
+};
 
-const dotClass = (s) => ({
-  pending_dp: 'bg-orange-500',
-  dp_paid:    'bg-blue-500',
-  active:     'bg-[#0050cb]',
-  completed:  'bg-green-500',
-  rejected:   'bg-red-500',
-  refunded:   'bg-red-500',
-}[s] || 'bg-gray-400');
+const dotClass = (rental) => {
+  const s = rental.status;
+  if (s === 'pending' || s === 'pending_dp') {
+    if (rental.payment_status === 'unverified') {
+      return 'bg-purple-500';
+    }
+    return 'bg-orange-500';
+  }
+  return {
+    dp_paid:    'bg-blue-500',
+    active:     'bg-[#0050cb]',
+    completed:  'bg-green-500',
+    rejected:   'bg-red-500',
+    refunded:   'bg-red-500',
+    cancelled:  'bg-red-500',
+  }[s] || 'bg-gray-400';
+};
+
+// --- TABS & FILTRATION ---
+const activeTab = ref('active');
+
+const activeRentals = computed(() => {
+  return rentals.value.filter(r => ['pending_dp', 'pending', 'dp_paid', 'active'].includes(r.status));
+});
+
+const historyRentals = computed(() => {
+  return rentals.value.filter(r => ['completed', 'rejected', 'refunded', 'cancelled'].includes(r.status));
+});
+
+const currentTabRentals = computed(() => {
+  return activeTab.value === 'active' ? activeRentals.value : historyRentals.value;
+});
 </script>
 
 <template>
@@ -137,7 +262,7 @@ const dotClass = (s) => ({
     <!-- Header Halaman -->
     <div class="mb-8 border-b border-[#c2c6d8]/40 pb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-[#191c1e]">Pesanan Aktif Saya</h1>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-[#191c1e]">Pemesanan Saya</h1>
         <p class="text-[#727687] text-xs md:text-sm mt-1">Lacak status dan riwayat reservasi kendaraan Anda secara *real-time*.</p>
       </div>
 
@@ -151,12 +276,40 @@ const dotClass = (s) => ({
       </div>
     </div>
 
+    <!-- Tab Navigation -->
+    <div class="flex gap-4 mb-8 overflow-x-auto border-b border-[#c2c6d8]/40">
+      <button
+        @click="activeTab = 'active'"
+        class="px-4 py-3 text-sm font-extrabold uppercase tracking-widest border-b-2 transition-colors whitespace-nowrap flex items-center gap-2"
+        :class="activeTab === 'active' ? 'border-[#0050cb] text-[#0050cb]' : 'border-transparent text-[#727687] hover:text-[#191c1e]'">
+        <span class="material-symbols-outlined text-[18px]">progress_activity</span> Pesanan Aktif
+      </button>
+      <button
+        @click="activeTab = 'history'"
+        class="px-4 py-3 text-sm font-extrabold uppercase tracking-widest border-b-2 transition-colors whitespace-nowrap flex items-center gap-2"
+        :class="activeTab === 'history' ? 'border-[#0050cb] text-[#0050cb]' : 'border-transparent text-[#727687] hover:text-[#191c1e]'">
+        <span class="material-symbols-outlined text-[18px]">history</span> Riwayat Pesanan
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="flex flex-col items-center justify-center py-32 text-center">
+      <span class="material-symbols-outlined animate-spin text-4xl text-[#0050cb] mb-4">sync</span>
+      <h3 class="text-sm font-bold text-[#727687] uppercase tracking-widest">Memuat pesanan Anda...</h3>
+    </div>
+
     <!-- Data Kosong -->
-    <div v-if="rentals.length === 0" class="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-[#c2c6d8]/50 rounded-[2rem]">
+    <div v-else-if="currentTabRentals.length === 0" class="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-[#c2c6d8]/50 rounded-[2rem]">
       <span class="material-symbols-outlined text-6xl text-[#c2c6d8] mb-4">directions_car</span>
-      <h3 class="text-xl font-bold text-[#191c1e]">Belum Ada Pesanan</h3>
-      <p class="text-[#727687] mt-2 text-sm">Anda belum melakukan reservasi kendaraan apa pun. Mulai jelajahi armada kami!</p>
-      <router-link to="/cars" class="mt-8 bg-[#0050cb] hover:bg-[#0066ff] text-white px-8 py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#0050cb]/20 uppercase tracking-widest active:scale-95">
+      <h3 class="text-xl font-bold text-[#191c1e]">
+        {{ activeTab === 'active' ? 'Belum Ada Pesanan Aktif' : 'Riwayat Pesanan Kosong' }}
+      </h3>
+      <p class="text-[#727687] mt-2 text-sm max-w-md">
+        {{ activeTab === 'active' 
+            ? 'Anda tidak memiliki sewa kendaraan yang sedang berjalan saat ini. Mulai jelajahi armada kami!' 
+            : 'Anda belum menyelesaikan reservasi kendaraan apa pun di GASNGO.' }}
+      </p>
+      <router-link v-if="activeTab === 'active'" to="/cars" class="mt-8 bg-[#0050cb] hover:bg-[#0066ff] text-white px-8 py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#0050cb]/20 uppercase tracking-widest active:scale-95">
         Jelajahi Armada
       </router-link>
     </div>
@@ -164,7 +317,7 @@ const dotClass = (s) => ({
     <!-- Daftar Pesanan -->
     <div v-else class="space-y-6">
       <div
-        v-for="rental in rentals"
+        v-for="rental in currentTabRentals"
         :key="rental.id"
         class="bg-white rounded-3xl border border-[#c2c6d8]/40 shadow-sm overflow-hidden hover:shadow-lg hover:border-[#0050cb]/30 transition-all duration-300"
       >
@@ -191,9 +344,9 @@ const dotClass = (s) => ({
 
           <!-- Badge Status & ID -->
           <div class="shrink-0 text-left md:text-right mt-2 md:mt-0">
-            <span :class="statusClass(rental.status)" class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 border">
-              <span class="w-1.5 h-1.5 rounded-full" :class="dotClass(rental.status)"></span>
-              {{ statusLabel(rental.status) }}
+            <span :class="statusClass(rental)" class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 border">
+              <span class="w-1.5 h-1.5 rounded-full" :class="dotClass(rental)"></span>
+              {{ statusLabel(rental) }}
             </span>
             <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mt-2">ID: {{ rental.id }}</p>
           </div>
@@ -218,8 +371,8 @@ const dotClass = (s) => ({
                      :class="step.done
                         ? 'bg-[#0050cb] border-[#0050cb] text-white shadow-md shadow-blue-500/20'
                         : step.active
-                          ? 'border-[#0050cb] text-[#0050cb]'
-                          : 'border-[#c2c6d8] text-[#c2c6d8]'">
+                           ? 'border-[#0050cb] text-[#0050cb]'
+                           : 'border-[#c2c6d8] text-[#c2c6d8]'">
 
                   <span v-if="step.done" class="material-symbols-outlined text-[16px]">check</span>
                   <span v-else-if="step.active" class="material-symbols-outlined animate-spin text-[16px]">sync</span>
@@ -238,9 +391,16 @@ const dotClass = (s) => ({
             </div>
           </div>
 
-          <!-- Alert Khusus: Selesaikan Pembayaran (Hanya muncul jika Pending DP) -->
-          <div v-if="rental.status === 'pending_dp'" class="mt-8 border-t border-[#f2f4f6] pt-6">
-            <button @click="retryPayment(rental)" :disabled="isProcessing" class="w-full bg-[#0050cb] hover:bg-[#0066ff] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50">
+          <!-- Alert Khusus: Selesaikan Pembayaran (Hanya muncul jika Pending DP dan KTP Terverifikasi) -->
+          <div v-if="rental.status === 'pending' || rental.status === 'pending_dp'" class="mt-8 border-t border-[#f2f4f6] pt-6">
+            <div v-if="rental.payment_status === 'unverified'" class="bg-purple-50 border border-purple-100 rounded-xl p-4 flex items-start gap-3">
+              <span class="material-symbols-outlined text-purple-600 text-2xl">info</span>
+              <div>
+                <p class="font-bold text-purple-850 text-sm">Menunggu Verifikasi KTP</p>
+                <p class="text-purple-700 text-xs mt-1">Foto KTP Anda sedang diverifikasi secara manual oleh admin. Tombol pembayaran akan aktif setelah KTP Anda dinyatakan valid oleh admin.</p>
+              </div>
+            </div>
+            <button v-else @click="retryPayment(rental)" :disabled="isProcessing" class="w-full bg-[#0050cb] hover:bg-[#0066ff] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50">
               <span v-if="isProcessing" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
               <span v-else class="material-symbols-outlined text-[18px]">credit_card</span>
               {{ isProcessing ? 'Memproses...' : 'Selesaikan Pembayaran Sekarang' }}
@@ -264,6 +424,16 @@ const dotClass = (s) => ({
             <div>
               <p class="font-bold text-green-800 text-sm">Penyewaan Selesai!</p>
               <p class="text-green-700 text-xs mt-1">Terima kasih telah memilih GASNGO. Kami harap perjalanan Anda memuaskan.</p>
+            </div>
+          </div>
+
+          <!-- Alert Khusus: Dibatalkan / Ditolak -->
+          <div v-if="['rejected', 'cancelled'].includes(rental.status)"
+               class="mt-8 bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3">
+            <span class="material-symbols-outlined text-red-600 text-2xl">cancel</span>
+            <div>
+              <p class="font-bold text-red-800 text-sm">Pemesanan Batal/Ditolak</p>
+              <p class="text-red-700 text-xs mt-1">Status pemesanan ini telah dibatalkan oleh pihak kami atau oleh Anda.</p>
             </div>
           </div>
 

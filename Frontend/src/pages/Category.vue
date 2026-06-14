@@ -1,56 +1,65 @@
 <script setup>
-import { ref} from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { supabase } from '@/lib/supabase'
+import BookingModal from '@/pages/Booking.vue'
 
-// --- MOCKUP DATA KATEGORI ---
-const categories = ref([
-  {
-    id: 1,
-    name: 'Sedan Eksekutif',
-    description: 'Kenyamanan kelas satu untuk perjalanan bisnis maupun liburan eksklusif Anda.',
-    image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC8SNbMs3riBVFAKFnRL7sMK4rzp30K8474Iy0A-_328VW4EoOqUZxG9pmbiJM1NlrMULQeTNuOttjSe-rtrOqa-fhMy__teQnEL5JUqzi2OmC7ct9FjHBA59CU4thiV3M_sryU_xM9lpVIaedp9kaheNORDUEhXATlJoJ8JEhGeyAGDqCIKTWjgDShiEgA1PAVbjZQWTboT0ZZsIT8Xwn5OyVbPBlA2_TvE_qw4bw95zhV3hhRWYTYQeuGPi07pzVpl7ZS7w9PTZ4H'
-  },
-  {
-    id: 2,
-    name: 'SUV Premium',
-    description: 'Ruang ekstra, ketangguhan, dan kemewahan yang berpadu tanpa kompromi.',
+// --- VISUAL DETAILS MAP FOR CATEGORIES ---
+const categoryDetailsMap = {
+  'Luxury Car': {
+    description: 'Kenyamanan kelas satu dengan kemewahan dan performa tanpa kompromi.',
     image_url: 'https://images.unsplash.com/photo-1503376760366-5a413e971510?q=80&w=2070&auto=format&fit=crop'
   },
-  {
-    id: 3,
-    name: 'Mobil Sport',
+  'Sedan Eksekutif': {
+    description: 'Kenyamanan kelas satu untuk perjalanan bisnis maupun liburan eksklusif Anda.',
+    image_url: 'https://images.unsplash.com/photo-1503376760366-5a413e971510?q=80&w=2070&auto=format&fit=crop'
+  },
+  'SUV Premium': {
+    description: 'Ruang ekstra, ketangguhan, dan kemewahan yang berpadu tanpa kompromi.',
+    image_url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop'
+  },
+  'SUV Performa': {
+    description: 'Ketangguhan SUV dengan performa mesin luar biasa untuk segala medan.',
+    image_url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop'
+  },
+  'Mobil Sport': {
     description: 'Performa tingkat tinggi untuk Anda yang mendambakan adrenalin di jalan raya.',
-    image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDxHzsdBc2hzH_IJw-SBKJxjepSqbQO3o7PrzVULEL-UjF-Ldq3Fza8v3i0RPbmVFCLO-E_O5rQN5hEvDWcwbN10bz_4eCetDgr5taJU7ukqJ-HavuTLstjR6aADHy8TYqcP6P6nxW6WOTEAwcT3WsHIFRzWUUkcPP74Y3qu7Y0JYQYvLCvDDp37OpoY15JmaPbNBEWnyLo53hvE07ntZX1hTS0Es9qIl72meFCANR0CeyzQABsSXU3smVwh3F93g4Xen63kW1Dtydl'
+    image_url: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop'
   },
-  {
-    id: 4,
-    name: 'Elektrik Mewah',
-    description: 'Tenaga instan yang senyap dengan teknologi otonom masa depan.',
-    image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBVmS9a62zCS7ZFtaRjBN4fhlnzPinTcotpFsDSLzJNiYk8Q1ZyOUKSQgP3D_LD7tir_9aEqf0gEbcOXwCYTwP4b6kv7jrhsHMnrirpmXjUXpdtfUM0RGEFsnIUoYl4hSQhv3yXK1vqUKcchGqEVwIUQjw3oRU5anW_4Nh5tf0A0kAGEWbAEsLmOqwFMKqOxIzV2C6p45vhMJK7Rg5VZNkZ4eElGc6UlNrMGAepvXdAfXBfhxjo55fyc0jnkk6_KqJkz9BVfL--77rE'
+  'Sport Car': {
+    description: 'Performa tingkat tinggi untuk Anda yang mendambakan adrenalin di jalan raya.',
+    image_url: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop'
   },
-  {
-    id: 5,
-    name: 'Hypercar',
-    description: 'Mahakarya otomotif langka dengan desain eksotis dan tenaga buas.',
-    image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp'
+  'Elektrik Mewah': {
+    description: 'Tenaga instan yang senyap dengan teknologi ramah lingkungan masa depan.',
+    image_url: 'https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop'
+  },
+  'Electric': {
+    description: 'Tenaga instan yang senyap dengan teknologi ramah lingkungan masa depan.',
+    image_url: 'https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop'
+  },
+  'Hypercar': {
+    description: 'Mahakarya otomotif langka dengan desain eksotis dan tenaga buas luar biasa.',
+    image_url: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=2070&auto=format&fit=crop'
   }
-])
+}
 
-// --- MOCKUP DATA MOBIL ---
-const allCars = ref([
-  { id: 1, name: 'Porsche 911', brand: 'Porsche', category: 'Mobil Sport', year: '2024', price_per_day: 850, image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDxHzsdBc2hzH_IJw-SBKJxjepSqbQO3o7PrzVULEL-UjF-Ldq3Fza8v3i0RPbmVFCLO-E_O5rQN5hEvDWcwbN10bz_4eCetDgr5taJU7ukqJ-HavuTLstjR6aADHy8TYqcP6P6nxW6WOTEAwcT3WsHIFRzWUUkcPP74Y3qu7Y0JYQYvLCvDDp37OpoY15JmaPbNBEWnyLo53hvE07ntZX1hTS0Es9qIl72meFCANR0CeyzQABsSXU3smVwh3F93g4Xen63kW1Dtydl' },
-  { id: 2, name: 'Audi RS7', brand: 'Audi', category: 'Sedan Eksekutif', year: '2023', price_per_day: 1200, image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC8SNbMs3riBVFAKFnRL7sMK4rzp30K8474Iy0A-_328VW4EoOqUZxG9pmbiJM1NlrMULQeTNuOttjSe-rtrOqa-fhMy__teQnEL5JUqzi2OmC7ct9FjHBA59CU4thiV3M_sryU_xM9lpVIaedp9kaheNORDUEhXATlJoJ8JEhGeyAGDqCIKTWjgDShiEgA1PAVbjZQWTboT0ZZsIT8Xwn5OyVbPBlA2_TvE_qw4bw95zhV3hhRWYTYQeuGPi07pzVpl7ZS7w9PTZ4H' },
-  { id: 3, name: 'Model X Plaid', brand: 'Tesla', category: 'Elektrik Mewah', year: '2024', price_per_day: 450, image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBVmS9a62zCS7ZFtaRjBN4fhlnzPinTcotpFsDSLzJNiYk8Q1ZyOUKSQgP3D_LD7tir_9aEqf0gEbcOXwCYTwP4b6kv7jrhsHMnrirpmXjUXpdtfUM0RGEFsnIUoYl4hSQhv3yXK1vqUKcchGqEVwIUQjw3oRU5anW_4Nh5tf0A0kAGEWbAEsLmOqwFMKqOxIzV2C6p45vhMJK7Rg5VZNkZ4eElGc6UlNrMGAepvXdAfXBfhxjo55fyc0jnkk6_KqJkz9BVfL--77rE' },
-  { id: 4, name: 'Ferrari F8', brand: 'Ferrari', category: 'Hypercar', year: '2023', price_per_day: 2450, image_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp' },
-])
+// --- STATE ---
+const categories = ref([])
+const allCars = ref([])
+const isLoading = ref(true)
+const errorMsg = ref('')
 
-// --- MOCKUP STATE ---
 const selectedCategory = ref(null)
 const carsInCategory = ref([])
 
-// --- MOCKUP FUNCTIONS ---
+// State untuk Modal Booking
+const isBookingOpen = ref(false)
+const selectedCarForBooking = ref(null)
+
+// --- FUNCTIONS ---
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD', minimumFractionDigits: 0
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(price)
 }
 
@@ -63,13 +72,64 @@ const openCategory = (cat) => {
   carsInCategory.value = allCars.value.filter(c => c.category === cat.name)
 }
 
-const simulateBooking = (car) => {
-  alert(`Simulasi: Anda akan memesan ${car.name}. Buka modal booking di sini!`)
+// Menghubungkan tombol sewa ke modal Booking
+const openBooking = (car) => {
+  selectedCategory.value = null // Tutup modal kategori
+  selectedCarForBooking.value = {
+    id: car.id,
+    name: car.name,
+    brand_name: car.brand,
+    price: car.price_per_day,
+    image: car.image_url
+  }
+  isBookingOpen.value = true
 }
+
+// Fetch data dari database Supabase
+const fetchDatabaseData = async () => {
+  isLoading.value = true
+  errorMsg.value = ''
+  try {
+    // 1. Ambil data kategori dari tabel 'car_categories'
+    const { data: categoriesData, error: catError } = await supabase
+      .from('car_categories')
+      .select('*')
+    
+    if (catError) throw catError
+    
+    // 2. Ambil data semua mobil dari tabel 'cars'
+    const { data: carsData, error: carsError } = await supabase
+      .from('cars')
+      .select('*')
+    
+    if (carsError) throw carsError
+    
+    allCars.value = carsData || []
+    
+    // 3. Format ke array kategori memakai data asli dari tabel 'car_categories'
+    categories.value = (categoriesData || []).map((cat, index) => {
+      return {
+        id: cat.id || index + 1,
+        name: cat.name,
+        description: cat.description || `Koleksi armada kelas ${cat.name} terbaik untuk kenyamanan perjalanan Anda.`,
+        image_url: cat.image_url || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2083&auto=format&fit=crop'
+      }
+    })
+  } catch (err) {
+    console.error('Error fetching data:', err)
+    errorMsg.value = 'Gagal memuat kategori dari database. Coba lagi nanti.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchDatabaseData()
+})
 </script>
 
 <template>
-  <div class="bg-[#f7f9fb] font-['Manrope'] text-[#191c1e] min-h-screen pb-24">
+  <div class="bg-[#f7f9fb] font-['Manrope'] text-[#191c1e] min-h-screen pb-24 animate-fadeIn">
 
     <!-- ================= HERO BANNER ================= -->
     <section class="relative pt-32 pb-32 overflow-hidden bg-[#f7f9fb]">
@@ -91,8 +151,21 @@ const simulateBooking = (car) => {
     <div class="relative z-20 bg-white rounded-t-[3rem] sm:rounded-t-[4rem] -mt-16 pt-24 pb-24 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] border-t border-[#c2c6d8]/30">
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+        <!-- Loading State -->
+        <div v-if="isLoading" class="text-center py-20">
+          <span class="material-symbols-outlined animate-spin text-4xl text-[#0050cb] mb-4 block">sync</span>
+          <p class="text-[#727687] font-bold text-sm uppercase tracking-widest">Memuat kategori armada...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="errorMsg" class="text-center py-20 max-w-md mx-auto">
+          <span class="material-symbols-outlined text-4xl text-[#ba1a1a] mb-4 block">error</span>
+          <p class="text-[#ba1a1a] font-extrabold text-lg mb-2">{{ errorMsg }}</p>
+          <button @click="fetchDatabaseData" class="px-6 py-2.5 bg-[#0050cb] text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#0066ff] transition-all active:scale-95">Coba Lagi</button>
+        </div>
+
         <!-- Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
           <button
             v-for="cat in categories"
@@ -179,7 +252,8 @@ const simulateBooking = (car) => {
                     <img :src="car.image_url" :alt="car.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div class="absolute top-5 left-5 z-10 bg-white/90 backdrop-blur-md text-[#191c1e] text-[10px] font-bold px-3 py-1 rounded-xl shadow-sm border border-gray-100 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></span>Tersedia
+                    <span class="w-1.5 h-1.5 rounded-full" :class="car.status === 'available' ? 'bg-[#16a34a]' : 'bg-[#ba1a1a]'"></span>
+                    {{ car.status === 'available' ? 'Tersedia' : 'Tidak Tersedia' }}
                   </div>
                 </div>
 
@@ -201,10 +275,12 @@ const simulateBooking = (car) => {
                     </div>
 
                     <button
-                      @click="simulateBooking(car)"
-                      class="signature-gradient text-white hover:shadow-lg hover:shadow-[#0050cb]/30 font-bold text-xs uppercase tracking-widest px-4 py-3.5 rounded-xl transition-all duration-300 w-full active:scale-95"
+                      @click="openBooking(car)"
+                      :disabled="car.status !== 'available'"
+                      class="signature-gradient text-white hover:shadow-lg hover:shadow-[#0050cb]/30 font-bold text-xs uppercase tracking-widest px-4 py-3.5 rounded-xl transition-all duration-300 w-full active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                     >
-                      Sewa Sekarang
+                      <span class="material-symbols-outlined text-[16px]">{{ car.status === 'available' ? 'lock' : 'lock_open' }}</span>
+                      {{ car.status === 'available' ? 'Sewa Sekarang' : 'Habis Dipesan' }}
                     </button>
                   </div>
                 </div>
@@ -215,6 +291,13 @@ const simulateBooking = (car) => {
         </div>
       </div>
     </transition>
+
+    <!-- KOMPONEN MODAL BOOKING -->
+    <BookingModal
+      :show="isBookingOpen"
+      @close="isBookingOpen = false"
+      :carData="selectedCarForBooking"
+    />
 
   </div>
 </template>
@@ -238,6 +321,24 @@ const simulateBooking = (car) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Animasi Rotasi Loading */
+.animate-spin {
+  animation: spin 1.5s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
 /* Custom Scrollbar Khusus untuk Konten Modal */

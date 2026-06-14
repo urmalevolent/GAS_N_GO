@@ -5,18 +5,18 @@ import { ref } from 'vue';
 
 const isBookingModalOpen = ref(false);
 
-// // 2. Menerima props dari komponen induk (Cars.vue)
-// const props = defineProps({
-//   show: {
-//     type: Boolean,
-//     default: false
-//   },
-//   // Data mobil yang dipilih untuk ditampilkan detailnya
-//   carDetail: {
-//     type: Object,
-//     default: null
-//   }
-// })
+// 2. Menerima props dari komponen induk (Cars.vue)
+const props = defineProps({
+  show: {
+    type: Boolean,
+    default: false
+  },
+  // Data mobil yang dipilih untuk ditampilkan detailnya
+  carDetail: {
+    type: Object,
+    default: null
+  }
+})
 
 // 3. Emits untuk komunikasi kembali ke komponen induk
 const emit = defineEmits(['close', 'book'])
@@ -117,27 +117,27 @@ const formatPrice = (price) => {
             <!-- Spesifikasi Bento-Grid Style -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               <div class="bg-[#f7f9fb] rounded-2xl p-4 border border-[#c2c6d8]/40 shadow-sm flex flex-col justify-center">
-                <span class="material-symbols-outlined text-[#0050cb] mb-2 text-[20px]">speed</span>
-                <span class="block text-[#727687] text-[10px] font-bold uppercase tracking-widest mb-1">Akselerasi</span>
-                <span class="block text-[#191c1e] font-extrabold text-sm truncate">{{ carDetail?.speed || '3.4 Detik' }}</span>
+                <span class="material-symbols-outlined text-[#0050cb] mb-2 text-[20px]">calendar_today</span>
+                <span class="block text-[#727687] text-[10px] font-bold uppercase tracking-widest mb-1">Tahun</span>
+                <span class="block text-[#191c1e] font-extrabold text-sm truncate">{{ carDetail?.year || '-' }}</span>
               </div>
 
               <div class="bg-[#f7f9fb] rounded-2xl p-4 border border-[#c2c6d8]/40 shadow-sm flex flex-col justify-center">
                 <span class="material-symbols-outlined text-[#0050cb] mb-2 text-[20px]">settings</span>
                 <span class="block text-[#727687] text-[10px] font-bold uppercase tracking-widest mb-1">Transmisi</span>
-                <span class="block text-[#191c1e] font-extrabold text-sm truncate">{{ carDetail?.transmission || 'PDK Auto' }}</span>
+                <span class="block text-[#191c1e] font-extrabold text-sm truncate">{{ carDetail?.transmission || '-' }}</span>
               </div>
 
               <div class="bg-[#f7f9fb] rounded-2xl p-4 border border-[#c2c6d8]/40 shadow-sm flex flex-col justify-center">
                 <span class="material-symbols-outlined text-[#0050cb] mb-2 text-[20px]">airline_seat_recline_extra</span>
                 <span class="block text-[#727687] text-[10px] font-bold uppercase tracking-widest mb-1">Kapasitas</span>
-                <span class="block text-[#191c1e] font-extrabold text-sm truncate">{{ carDetail?.seats || '4' }} Kursi</span>
+                <span class="block text-[#191c1e] font-extrabold text-sm truncate">{{ carDetail?.seats || '-' }} Kursi</span>
               </div>
 
               <div class="bg-[#f7f9fb] rounded-2xl p-4 border border-[#c2c6d8]/40 shadow-sm flex flex-col justify-center">
-                <span class="material-symbols-outlined text-[#0050cb] mb-2 text-[20px]">bolt</span>
-                <span class="block text-[#727687] text-[10px] font-bold uppercase tracking-widest mb-1">Tenaga Mesin</span>
-                <span class="block text-[#191c1e] font-extrabold text-sm truncate">{{ carDetail?.engine || '450 HP' }}</span>
+                <span class="material-symbols-outlined text-[#0050cb] mb-2 text-[20px]">local_gas_station</span>
+                <span class="block text-[#727687] text-[10px] font-bold uppercase tracking-widest mb-1">Bahan Bakar</span>
+                <span class="block text-[#191c1e] font-extrabold text-sm truncate">{{ carDetail?.fuel || '-' }}</span>
               </div>
             </div>
 

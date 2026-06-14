@@ -1,38 +1,162 @@
 <script setup>
-import { ref } from 'vue'
-
+import { ref, computed, onMounted, watch } from 'vue'
+import { supabase } from '@/lib/supabase'
 
 // IMPORT KOMPONEN MODAL
-import CarDetailModal from '@/pages/CarDetail.vue' // (Atau sesuaikan jika di folder components)
-import BookingModal from '@/pages/Booking.vue'     // <-- TAMBAHKAN IMPORT INI
+import CarDetailModal from '@/pages/CarDetail.vue'
+import BookingModal from '@/pages/Booking.vue'
 
+// --- STATE ---
+const allCars = ref([])
+const categories = ref([])
+const isLoading = ref(true)
+const errorMsg = ref('')
 
-// --- STATE UNTUK MODAL ---
+// Filter States
+const selectedCategories = ref([])
+const maxPrice = ref(10000000)
+const selectedBrand = ref('All')
+
+// Paginasi States
+const currentPage = ref(1)
+const pageSize = ref(6)
+
+// Modal States
 const isModalOpen = ref(false)
-const isBookingOpen = ref(false) // <-- STATE UNTUK MODAL BOOKING
+const isBookingOpen = ref(false)
 const selectedCarData = ref(null)
 
-// --- FUNGSI MODAL DETAIL ---
+// --- NORMALISASI KENDARAAN ---
+const normalizeCar = (car) => {
+  return {
+    ...car,
+    price: car.price_per_day,
+    brand_name: car.brand,
+    category_name: car.category,
+    image: car.image_url || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2083&auto=format&fit=crop',
+    badge: car.status === 'available' ? 'Tersedia' : 'Tidak Tersedia',
+    is_rare: car.category === 'Luxury Car' || car.category === 'Hypercar'
+  }
+}
+
+// --- FETCH DATA FROM SUPABASE ---
+const fetchCarsAndCategories = async () => {
+  isLoading.value = true
+  errorMsg.value = ''
+  try {
+    // 1. Ambil kategori dari car_categories
+    const { data: catData, error: catError } = await supabase
+      .from('car_categories')
+      .select('*')
+    if (catError) throw catError
+    categories.value = catData || []
+
+    // 2. Ambil data mobil dari cars
+    const { data: carsData, error: carsError } = await supabase
+      .from('cars')
+      .select('*')
+    if (carsError) throw carsError
+    allCars.value = (carsData || []).map(normalizeCar)
+
+    // Set slider harga maksimal berdasarkan harga tertinggi di database
+    if (allCars.value.length > 0) {
+      const prices = allCars.value.map(c => c.price)
+      const maxCarPrice = Math.max(...prices)
+      maxPrice.value = maxCarPrice > 0 ? maxCarPrice : 10000000
+    }
+  } catch (err) {
+    console.error('Error fetching cars page data:', err)
+    errorMsg.value = 'Gagal memuat data armada. Silakan coba lagi.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchCarsAndCategories()
+})
+
+// --- FILTER & PAGINASI LOGIC ---
+const uniqueBrands = computed(() => {
+  const brands = allCars.value.map(c => (c.brand || '').trim())
+  const uniqueMap = {}
+  brands.forEach(b => {
+    if (!b) return
+    const key = b.toLowerCase()
+    if (!uniqueMap[key]) {
+      uniqueMap[key] = b
+    }
+  })
+  return ['All', ...Object.values(uniqueMap)]
+})
+
+const filteredCars = computed(() => {
+  return allCars.value.filter(car => {
+    // Filter Kategori
+    const matchesCategory = selectedCategories.value.length === 0 || 
+                            selectedCategories.value.includes(car.category)
+    
+    // Filter Tarif
+    const matchesPrice = car.price <= maxPrice.value
+
+    // Filter Brand (Case-Insensitive)
+    const matchesBrand = selectedBrand.value === 'All' || 
+                         (car.brand || '').trim().toLowerCase() === selectedBrand.value.toLowerCase()
+
+    return matchesCategory && matchesPrice && matchesBrand
+  })
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredCars.value.length / pageSize.value) || 1
+})
+
+const paginatedCars = computed(() => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1
+  }
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredCars.value.slice(start, end)
+})
+
+// Reset ke halaman 1 ketika filter berubah
+watch([selectedCategories, maxPrice, selectedBrand], () => {
+  currentPage.value = 1
+}, { deep: true })
+
+// --- MODAL FUNCTIONS ---
 const openDetail = (carObj) => {
   selectedCarData.value = carObj
   isModalOpen.value = true
 }
 
-// --- FUNGSI MODAL BOOKING (Saat tombol "Sewa Sekarang" ditekan) ---
 const openBooking = (carObj) => {
   selectedCarData.value = carObj
   isBookingOpen.value = true
 }
 
-// --- FUNGSI KETIKA MODAL DETAIL INGIN LANJUT SEWA ---
 const goToCheckout = (carObj) => {
-  isModalOpen.value = false // Tutup modal detail
+  isModalOpen.value = false
   setTimeout(() => {
-    openBooking(carObj) // Buka modal booking dengan jeda sedikit agar halus
+    openBooking(carObj)
   }, 300)
 }
 
-// Fungsi Format Rupiah/Dolar
+// --- PAGINATION FUNCTIONS ---
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+const setPage = (page) => {
+  currentPage.value = page
+}
+
+// Formatting Harga
 const formatPrice = (price) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -40,85 +164,14 @@ const formatPrice = (price) => {
     minimumFractionDigits: 0
   }).format(price)
 }
-
-
-// --- DATA MOCKUP: SEMUA ARMADA ---
-const allCars = ref([
-  {
-    id: 1,
-    name: 'Porsche 911 Carrera',
-    brand_name: 'Porsche',
-    category_name: 'Mobil Sport',
-    price: 850000,
-    transmission: 'PDK',
-    seats: 2,
-    description: 'Perpaduan sempurna antara desain ikonik dan performa murni. Menawarkan akselerasi mendebarkan namun tetap mewah.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDxHzsdBc2hzH_IJw-SBKJxjepSqbQO3o7PrzVULEL-UjF-Ldq3Fza8v3i0RPbmVFCLO-E_O5rQN5hEvDWcwbN10bz_4eCetDgr5taJU7ukqJ-HavuTLstjR6aADHy8TYqcP6P6nxW6WOTEAwcT3WsHIFRzWUUkcPP74Y3qu7Y0JYQYvLCvDDp37OpoY15JmaPbNBEWnyLo53hvE07ntZX1hTS0Es9qIl72meFCANR0CeyzQABsSXU3smVwh3F93g4Xen63kW1Dtydl',
-    badge: 'Tersedia',
-    is_rare: false
-  },
-  {
-    id: 2,
-    name: 'Audi RS7 Performance',
-    brand_name: 'Audi',
-    category_name: 'Sedan Eksekutif',
-    price: 1200000,
-    transmission: 'QUATTRO',
-    seats: 4,
-    description: 'Menggabungkan keganasan performa lintasan dengan kenyamanan kabin sedan eksklusif terbaik.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC8SNbMs3riBVFAKFnRL7sMK4rzp30K8474Iy0A-_328VW4EoOqUZxG9pmbiJM1NlrMULQeTNuOttjSe-rtrOqa-fhMy__teQnEL5JUqzi2OmC7ct9FjHBA59CU4thiV3M_sryU_xM9lpVIaedp9kaheNORDUEhXATlJoJ8JEhGeyAGDqCIKTWjgDShiEgA1PAVbjZQWTboT0ZZsIT8Xwn5OyVbPBlA2_TvE_qw4bw95zhV3hhRWYTYQeuGPi07pzVpl7ZS7w9PTZ4H',
-    badge: 'Tersedia',
-    is_rare: false
-  },
-  {
-    id: 3,
-    name: 'Ferrari F8 Tributo',
-    brand_name: 'Ferrari',
-    category_name: 'Hypercar',
-    price: 2450000,
-    transmission: 'RWD',
-    seats: 2,
-    description: 'Mesin V8 terkuat dalam sejarah dengan penanganan tiada tara untuk sang penikmat adrenalin.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp',
-    badge: 'Koleksi Langka',
-    is_rare: true
-  },
-  {
-    id: 4,
-    name: 'Model X Plaid',
-    brand_name: 'Tesla',
-    category_name: 'Elektrik Mewah',
-    price: 450000,
-    transmission: 'AWD',
-    seats: 6,
-    description: 'SUV tercepat yang menawarkan kenyamanan senyap dengan fitur autopilot pintar untuk perjalanan Anda.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBVmS9a62zCS7ZFtaRjBN4fhlnzPinTcotpFsDSLzJNiYk8Q1ZyOUKSQgP3D_LD7tir_9aEqf0gEbcOXwCYTwP4b6kv7jrhsHMnrirpmXjUXpdtfUM0RGEFsnIUoYl4hSQhv3yXK1vqUKcchGqEVwIUQjw3oRU5anW_4Nh5tf0A0kAGEWbAEsLmOqwFMKqOxIzV2C6p45vhMJK7Rg5VZNkZ4eElGc6UlNrMGAepvXdAfXBfhxjo55fyc0jnkk6_KqJkz9BVfL--77rE',
-    badge: 'Tersedia',
-    is_rare: false
-  },
-  {
-    id: 5,
-    name: 'M8 Gran Coupe',
-    brand_name: 'BMW',
-    category_name: 'Sedan Eksekutif',
-    price: 950000,
-    transmission: 'XDRIVE',
-    seats: 4,
-    description: 'Kombinasi estetika coupe dengan kelegaan sebuah sedan empat pintu berbahan material kelas satu.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE',
-    badge: 'Tersedia',
-    is_rare: false
-  }
-])
 </script>
 
 <template>
   <!-- Wrapper utama halaman Fleet/Cars -->
-  <div  class="bg-[#f7f9fb] font-['Manrope'] text-[#191c1e] min-h-screen pb-20 pt-28 md:pt-36 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto antialiased">
+  <div class="bg-[#f7f9fb] font-['Manrope'] text-[#191c1e] min-h-screen pb-20 pt-28 md:pt-36 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto antialiased animate-fadeIn">
 
     <!-- ================= EDITORIAL HEADER ================= -->
     <section class="relative py-12 md:py-20 overflow-hidden bg-white border border-[#c2c6d8]/40 rounded-[2.5rem] shadow-sm mb-10 md:mb-12">
-
       <!-- Efek Cahaya Halus ala GASNGO -->
       <div class="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-[#0050cb] blur-[120px] opacity-20 pointer-events-none"></div>
       <div class="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-[#0066ff] blur-[120px] opacity-20 pointer-events-none"></div>
@@ -136,52 +189,58 @@ const allCars = ref([
     <!-- Layout Flex (Filter Kiri & Grid Kanan) -->
     <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
 
-      <!-- ================= SIDEBAR FILTER (Tetap) ================= -->
+      <!-- ================= SIDEBAR FILTER ================= -->
       <aside class="w-full lg:w-72 flex-shrink-0 space-y-8 md:space-y-10 lg:border-r lg:border-[#c2c6d8]/40 lg:pr-10 pb-8 lg:pb-0 border-b border-[#c2c6d8]/40 lg:border-b-0 sticky top-28">
 
         <!-- Category Filter -->
         <section>
           <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Kategori</h3>
-          <div class="space-y-3 md:space-y-4">
-            <label class="flex items-center cursor-pointer group">
-              <input checked class="w-5 h-5 rounded border-[#c2c6d8] text-[#0050cb] focus:ring-[#0066ff] bg-[#f2f4f6]" type="checkbox"/>
-              <span class="ml-3 text-sm font-medium text-[#424656] group-hover:text-[#0050cb] transition-colors">Sedan Eksekutif</span>
-            </label>
-            <label class="flex items-center cursor-pointer group">
-              <input class="w-5 h-5 rounded border-[#c2c6d8] text-[#0050cb] focus:ring-[#0066ff] bg-[#f2f4f6]" type="checkbox"/>
-              <span class="ml-3 text-sm font-medium text-[#424656] group-hover:text-[#0050cb] transition-colors">SUV Performa</span>
-            </label>
-            <label class="flex items-center cursor-pointer group">
-              <input class="w-5 h-5 rounded border-[#c2c6d8] text-[#0050cb] focus:ring-[#0066ff] bg-[#f2f4f6]" type="checkbox"/>
-              <span class="ml-3 text-sm font-medium text-[#424656] group-hover:text-[#0050cb] transition-colors">Hypercar</span>
-            </label>
-            <label class="flex items-center cursor-pointer group">
-              <input class="w-5 h-5 rounded border-[#c2c6d8] text-[#0050cb] focus:ring-[#0066ff] bg-[#f2f4f6]" type="checkbox"/>
-              <span class="ml-3 text-sm font-medium text-[#424656] group-hover:text-[#0050cb] transition-colors">Elektrik Mewah</span>
+          <div v-if="categories.length === 0" class="text-xs text-[#727687]">Memuat kategori...</div>
+          <div v-else class="space-y-3 md:space-y-4">
+            <label v-for="cat in categories" :key="cat.id" class="flex items-center cursor-pointer group">
+              <input 
+                type="checkbox" 
+                :value="cat.name" 
+                v-model="selectedCategories"
+                class="w-5 h-5 rounded border-[#c2c6d8] text-[#0050cb] focus:ring-[#0066ff] bg-[#f2f4f6]"
+              />
+              <span class="ml-3 text-sm font-medium text-[#424656] group-hover:text-[#0050cb] transition-colors">{{ cat.name }}</span>
             </label>
           </div>
         </section>
 
         <!-- Daily Rate Range -->
         <section>
-          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Tarif Harian</h3>
+          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Tarif Maksimal</h3>
           <div class="px-2">
-            <input class="w-full h-1.5 bg-[#c2c6d8]/50 rounded-lg appearance-none cursor-pointer accent-[#0050cb]" type="range"/>
+            <input 
+              type="range"
+              min="0"
+              max="10000000"
+              step="100000"
+              v-model="maxPrice"
+              class="w-full h-1.5 bg-[#c2c6d8]/50 rounded-lg appearance-none cursor-pointer accent-[#0050cb]"
+            />
             <div class="flex justify-between mt-4 text-xs font-bold text-[#424656]">
-              <span>$250</span>
-              <span>$5,000+</span>
+              <span>Rp 0</span>
+              <span>{{ formatPrice(maxPrice) }}</span>
             </div>
           </div>
         </section>
 
-        <!-- Manufacturer Filter -->
+        <!-- Manufacturer/Brand Filter -->
         <section>
           <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Brand</h3>
           <div class="grid grid-cols-2 gap-2">
-            <button class="bg-[#0050cb] text-white py-2.5 px-4 rounded-md text-xs font-bold transition-all shadow-md shadow-blue-600/20">Porsche</button>
-            <button class="bg-white border border-[#c2c6d8]/50 text-[#424656] py-2.5 px-4 rounded-md text-xs font-bold transition-all hover:bg-gray-50 hover:border-[#0050cb] hover:text-[#0050cb]">Tesla</button>
-            <button class="bg-white border border-[#c2c6d8]/50 text-[#424656] py-2.5 px-4 rounded-md text-xs font-bold transition-all hover:bg-gray-50 hover:border-[#0050cb] hover:text-[#0050cb]">Ferrari</button>
-            <button class="bg-white border border-[#c2c6d8]/50 text-[#424656] py-2.5 px-4 rounded-md text-xs font-bold transition-all hover:bg-gray-50 hover:border-[#0050cb] hover:text-[#0050cb]">BMW</button>
+            <button 
+              v-for="brand in uniqueBrands" 
+              :key="brand"
+              @click="selectedBrand = brand"
+              :class="selectedBrand === brand ? 'bg-[#0050cb] text-white shadow-md shadow-blue-600/20' : 'bg-white border border-[#c2c6d8]/50 text-[#424656] hover:bg-gray-50 hover:border-[#0050cb] hover:text-[#0050cb]'"
+              class="py-2.5 px-4 rounded-md text-xs font-bold transition-all truncate"
+            >
+              {{ brand === 'All' ? 'Semua' : brand }}
+            </button>
           </div>
         </section>
       </aside>
@@ -189,17 +248,39 @@ const allCars = ref([
       <!-- ================= KONTEN KANAN ================= -->
       <div class="flex-grow w-full space-y-16">
 
-        <!-- --- SECTION: SEMUA ARMADA (ALL CARS) --- -->
-        <section>
+        <!-- Loading State -->
+        <div v-if="isLoading" class="text-center py-20">
+          <span class="material-symbols-outlined animate-spin text-4xl text-[#0050cb] mb-4 block">sync</span>
+          <p class="text-[#727687] font-bold text-sm uppercase tracking-widest">Memuat armada kendaraan...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="errorMsg" class="text-center py-20 max-w-md mx-auto">
+          <span class="material-symbols-outlined text-4xl text-[#ba1a1a] mb-4 block">error</span>
+          <p class="text-[#ba1a1a] font-extrabold text-lg mb-2">{{ errorMsg }}</p>
+          <button @click="fetchCarsAndCategories" class="px-6 py-2.5 bg-[#0050cb] text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#0066ff] transition-all active:scale-95">Coba Lagi</button>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="paginatedCars.length === 0" class="text-center py-20 border-2 border-dashed border-[#c2c6d8]/50 rounded-[2.5rem]">
+          <span class="material-symbols-outlined text-5xl text-[#727687] mb-4 block">directions_car</span>
+          <h3 class="text-xl font-bold text-[#191c1e] mb-1">Armada Tidak Ditemukan</h3>
+          <p class="text-[#727687] text-sm">Tidak ada kendaraan yang sesuai dengan kriteria filter Anda.</p>
+        </div>
+
+        <!-- --- SECTION: DAFTAR MOBIL (CARS GRID) --- -->
+        <section v-else>
           <div class="flex justify-between items-end mb-8">
-            <h2 class="text-2xl md:text-3xl font-black text-[#191c1e] uppercase relative z-10">Semua <span class="text-[#0050cb]">Mobil</span></h2>
+            <h2 class="text-2xl md:text-3xl font-black text-[#191c1e] uppercase relative z-10">
+              Semua <span class="text-[#0050cb]">Mobil</span>
+            </h2>
+            <span class="text-xs font-bold text-[#727687] uppercase tracking-widest">{{ filteredCars.length }} armada cocok</span>
           </div>
 
-          <!-- Ganti grid col-span ke format desktop 2, layar super lebar 3 -->
           <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 lg:gap-10">
 
             <!-- Looping Semua Armada -->
-            <div v-for="car in allCars" :key="'all-'+car.id" class="group bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_60px_-15px_rgba(0,80,203,0.2)] transition-all duration-500 transform hover:-translate-y-2 flex flex-col relative">
+            <div v-for="car in paginatedCars" :key="'all-'+car.id" class="group bg-white rounded-[2.5rem] overflow-hidden border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_60px_-15px_rgba(0,80,203,0.2)] transition-all duration-500 transform hover:-translate-y-2 flex flex-col relative">
 
               <!-- Image Section -->
               <div class="relative h-64 overflow-hidden bg-[#f2f4f6] p-2">
@@ -211,7 +292,7 @@ const allCars = ref([
                 <!-- Floating Badges -->
                 <div class="absolute top-6 left-6 z-20 flex flex-col gap-2">
                   <div class="bg-white/90 backdrop-blur-md text-[#191c1e] text-[10px] sm:text-xs font-bold px-4 py-2 rounded-2xl shadow-sm border border-white/50 flex items-center gap-1.5 w-max">
-                    <span class="w-1.5 h-1.5 rounded-full" :class="car.is_rare ? 'bg-[#ba1a1a]' : 'bg-[#0050cb]'"></span>
+                    <span class="w-1.5 h-1.5 rounded-full" :class="car.status === 'available' ? 'bg-[#16a34a]' : 'bg-[#ba1a1a]'"></span>
                     {{ car.badge }}
                   </div>
                   <div class="bg-[#191c1e]/80 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-sm border border-white/10 uppercase tracking-widest w-max">
@@ -247,9 +328,13 @@ const allCars = ref([
                     <button @click="openDetail(car)" class="flex-1 bg-[#f2f4f6] hover:bg-[#e0e3e5] text-[#191c1e] font-bold text-xs sm:text-sm py-3 sm:py-3.5 rounded-xl transition-colors border border-transparent text-center flex items-center justify-center">
                       Detail
                     </button>
-                    <!-- PERUBAHAN: Diubah menjadi tombol <button> yang memicu openBooking -->
-                    <button @click="openBooking(car)" class="flex-1 signature-gradient text-white hover:shadow-lg hover:shadow-blue-600/30 font-bold text-xs sm:text-sm py-3 sm:py-3.5 rounded-xl transition-all duration-300 text-center flex items-center justify-center">
-                      Sewa Sekarang
+                    <button 
+                      @click="openBooking(car)" 
+                      :disabled="car.status !== 'available'"
+                      class="flex-1 signature-gradient text-white hover:shadow-lg hover:shadow-blue-600/30 font-bold text-xs sm:text-sm py-3 sm:py-3.5 rounded-xl transition-all duration-300 text-center flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                    >
+                      <span class="material-symbols-outlined text-[16px]">{{ car.status === 'available' ? 'lock' : 'lock_open' }}</span>
+                      <span>{{ car.status === 'available' ? 'Sewa Sekarang' : 'Habis Dipesan' }}</span>
                     </button>
                   </div>
                 </div>
@@ -259,20 +344,32 @@ const allCars = ref([
           </div>
 
           <!-- ================= PAGINATION ================= -->
-          <div class="mt-12 md:mt-16 pt-8 border-t border-[#c2c6d8]/40 flex justify-center items-center gap-3 md:gap-5">
-            <button class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-white border border-[#c2c6d8]/50 hover:border-[#0050cb] hover:text-[#0050cb] transition-all text-[#424656] hover:shadow-md">
+          <div v-if="totalPages > 1" class="mt-12 md:mt-16 pt-8 border-t border-[#c2c6d8]/40 flex justify-center items-center gap-3 md:gap-5">
+            <button 
+              @click="prevPage" 
+              :disabled="currentPage === 1"
+              class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-white border border-[#c2c6d8]/50 hover:border-[#0050cb] hover:text-[#0050cb] transition-all text-[#424656] hover:shadow-md disabled:opacity-40 disabled:hover:border-[#c2c6d8]/50 disabled:hover:text-[#424656] disabled:hover:shadow-none"
+            >
               <span class="material-symbols-outlined">chevron_left</span>
             </button>
 
             <div class="flex gap-2">
-              <button class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl signature-gradient text-white font-bold shadow-lg shadow-[#0050cb]/30 transform hover:-translate-y-0.5 transition-all">1</button>
-              <button class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-white border border-[#c2c6d8]/40 hover:border-[#0050cb] hover:text-[#0050cb] font-bold text-[#424656] hover:shadow-sm transition-all">2</button>
-              <button class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-white border border-[#c2c6d8]/40 hover:border-[#0050cb] hover:text-[#0050cb] font-bold text-[#424656] hover:shadow-sm transition-all hidden sm:flex">3</button>
-              <span class="w-10 h-10 md:w-12 md:h-12 items-center justify-center text-[#424656] font-bold tracking-widest hidden sm:flex">...</span>
-              <button class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-white border border-[#c2c6d8]/40 hover:border-[#0050cb] hover:text-[#0050cb] font-bold text-[#424656] hover:shadow-sm transition-all hidden sm:flex">8</button>
+              <button 
+                v-for="page in totalPages" 
+                :key="page"
+                @click="setPage(page)"
+                :class="currentPage === page ? 'signature-gradient text-white font-bold shadow-lg shadow-[#0050cb]/30 transform hover:-translate-y-0.5' : 'bg-white border border-[#c2c6d8]/40 hover:border-[#0050cb] hover:text-[#0050cb] font-bold text-[#424656] hover:shadow-sm'"
+                class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl transition-all"
+              >
+                {{ page }}
+              </button>
             </div>
 
-            <button class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-white border border-[#c2c6d8]/50 hover:border-[#0050cb] hover:text-[#0050cb] transition-all text-[#424656] hover:shadow-md">
+            <button 
+              @click="nextPage" 
+              :disabled="currentPage === totalPages"
+              class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl bg-white border border-[#c2c6d8]/50 hover:border-[#0050cb] hover:text-[#0050cb] transition-all text-[#424656] hover:shadow-md disabled:opacity-40 disabled:hover:border-[#c2c6d8]/50 disabled:hover:text-[#424656] disabled:hover:shadow-none"
+            >
               <span class="material-symbols-outlined">chevron_right</span>
             </button>
           </div>
@@ -290,7 +387,6 @@ const allCars = ref([
     />
 
     <!-- KOMPONEN MODAL BOOKING -->
-    <!-- Diletakkan di paling bawah -->
     <BookingModal
       :show="isBookingOpen"
       @close="isBookingOpen = false"

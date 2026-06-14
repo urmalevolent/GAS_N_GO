@@ -1,137 +1,181 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
+import { supabase } from '@/lib/supabase'
+import RentalDetails from './RentalDetails.vue'
 
-// --- MOCKUP STATE ---
-
-const activeTab = ref('transactions') // Untuk simulasi Tab Navigasi atas (dari referensi May 26)
-const statusFilter = ref('all')       // Untuk Filter Pill
-
-// Dummy Data Pesanan (Sesuai Konteks Sewa Mobil)
-const rentals = ref([
-  {
-    id: 'LX-8892-TY',
-    recipient_name: 'Daniel Pratama',
-    recipient_phone: '0812-3456-7890',
-    car_name: 'Porsche Taycan',
-    car_brand: 'Porsche',
-    total_price: 1925,
-    dp_amount: 562,
-    status: 'dp_paid',
-    payment_method: 'cash_with_dp'
-  },
-  {
-    id: 'LX-8871-FR',
-    recipient_name: 'Elena Rostova',
-    recipient_phone: '0819-8765-4321',
-    car_name: 'Ferrari F8 Tributo',
-    car_brand: 'Ferrari',
-    total_price: 2450,
-    dp_amount: 2450,
-    status: 'active',
-    payment_method: 'full_transfer'
-  },
-  {
-    id: 'LX-8820-BM',
-    recipient_name: 'Ahmad Wijaya',
-    recipient_phone: '0822-1122-3344',
-    car_name: 'BMW M8 Gran Coupe',
-    car_brand: 'BMW',
-    total_price: 1900,
-    dp_amount: 1900,
-    status: 'pending',
-    payment_method: 'full_transfer'
-  },
-  {
-    id: 'LX-8999-AD',
-    recipient_name: 'Clara Michelle',
-    recipient_phone: '0813-3344-4555',
-    car_name: 'Audi RS7 Performance',
-    car_brand: 'Audi',
-    total_price: 6000,
-    dp_amount: 6000,
-    status: 'completed',
-    payment_method: 'full_transfer'
-  }
-])
+const activeTab = ref('transactions') 
+const statusFilter = ref('all')       
+const rentals = ref([])
+const isLoading = ref(false)
+const showDetail = ref(false)
+const selectedRental = ref(null)
 
 // Pilihan Filter Berdasarkan Status
 const statusFilters = [
   { value: 'all', label: 'Semua Status' },
-  { value: 'pending', label: 'Menunggu Bayar' },
+  { value: 'pending_dp', label: 'Menunggu DP' },
   { value: 'dp_paid', label: 'DP Dibayar' },
   { value: 'active', label: 'Aktif Disewa' },
   { value: 'completed', label: 'Selesai' },
   { value: 'rejected', label: 'Ditolak/Batal' },
 ]
 
-// --- MOCKUP FUNCTIONS ---
+// Fetch data sewa riil dari Supabase
+const fetchRentals = async () => {
+  isLoading.value = true
+  try {
+    const { data, error } = await supabase
+      .from('rentals')
+      .select('*, car:cars(*), profile:profiles(*), rental_details(*), rental_payments(*)')
+      .order('created_at', { ascending: false })
 
-// Filter Table Berdasarkan Status Pill
+    if (error) throw error
+
+    rentals.value = (data || []).map(r => {
+      const details = r.rental_details?.[0] || {}
+      const payment = r.rental_payments?.[0] || {}
+      
+      // Hitung durasi hari secara dinamis
+      const start = new Date(r.start_date)
+      const end = new Date(r.end_date)
+      const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1
+      const carPrice = r.car?.price_per_day || 0
+      const calcTotalPrice = days * carPrice
+      const calcDpAmount = (payment.payment_method || 'cash_with_dp') === 'full_transfer' ? calcTotalPrice : Math.round(calcTotalPrice * 0.15)
+
+      return {
+        id: r.id,
+        created_at: r.created_at,
+        recipient_name: r.profile?.full_name || 'Pelanggan',
+        recipient_phone: details.phone_number || r.profile?.phone_number || '-',
+        shipping_address: details.address || '-',
+        car_name: r.car?.name || 'Mobil',
+        car_brand: r.car?.brand || 'Armada',
+        car: r.car,
+        start_date: r.start_date,
+        end_date: r.end_date,
+        status: r.status, 
+        payment_method: payment.payment_method || 'cash_with_dp',
+        total_price: payment.total_price || calcTotalPrice,
+        dp_amount: payment.dp_amount || calcDpAmount,
+        midtrans_order_id: payment.midtrans_order_id || '',
+        payment_status: payment.payment_status || 'unverified',
+        ktp_url: details.ktp_url || null
+      }
+    })
+  } catch (err) {
+    console.error('Error fetching rentals:', err)
+    Swal.fire({ icon: 'error', title: 'Gagal memuat data', text: err.message })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchRentals()
+})
+
+// Filter Table Berdasarkan Status Pill (menangani pending & pending_dp, serta rejected & cancelled bersamaan)
 const filteredRentals = computed(() => {
   if (statusFilter.value === 'all') return rentals.value
+  if (statusFilter.value === 'pending_dp') {
+    return rentals.value.filter(r => r.status === 'pending_dp' || r.status === 'pending')
+  }
+  if (statusFilter.value === 'rejected') {
+    return rentals.value.filter(r => r.status === 'rejected' || r.status === 'cancelled')
+  }
   return rentals.value.filter(r => r.status === statusFilter.value)
 })
 
 // Menghitung jumlah per status (Untuk badge di Pill Filter)
 const rentalCountByStatus = (val) => {
   if (val === 'all') return rentals.value.length
+  if (val === 'pending_dp') {
+    return rentals.value.filter(r => r.status === 'pending_dp' || r.status === 'pending').length
+  }
+  if (val === 'rejected') {
+    return rentals.value.filter(r => r.status === 'rejected' || r.status === 'cancelled').length
+  }
   return rentals.value.filter(r => r.status === val).length
 }
 
 // Menghitung Total Pendapatan
 const totalRevenue = computed(() => {
-  // Hanya hitung yang aktif/selesai/dp dibayar
   return rentals.value
     .filter(r => ['dp_paid', 'active', 'completed'].includes(r.status))
     .reduce((sum, r) => sum + r.dp_amount, 0)
 })
 
-// Formatting Harga
+// Formatting Harga Rupiah (IDR)
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(price)
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price)
 }
 
 // Terjemahan & Warna Badge Status
 const getStatusLabel = (rental) => {
+  if (rental.status === 'pending' || rental.status === 'pending_dp') {
+    if (rental.payment_status === 'unverified') {
+      return 'Menunggu Verifikasi KTP'
+    }
+    return 'KTP Terverifikasi (Menunggu Bayar)'
+  }
   const labels = {
-    'pending': 'Menunggu Bayar',
     'dp_paid': 'Menunggu Persetujuan (DP)',
-    'active': 'Sedang Disewa (Lunas)',
+    'active': 'Mobil Diantar (Sedang Diantar)',
     'completed': 'Selesai',
-    'rejected': 'Ditolak / Batal'
+    'rejected': 'Ditolak',
+    'cancelled': 'Dibatalkan'
   }
   return labels[rental.status] || rental.status
 }
 
-const statusClass = (status) => {
+const statusClass = (rental) => {
+  const status = rental.status
+  if (status === 'pending' || status === 'pending_dp') {
+    if (rental.payment_status === 'unverified') {
+      return 'bg-purple-100 text-purple-750 border-purple-300'
+    }
+    return 'bg-orange-100 text-[#cc4204] border-[#cc4204]/30'
+  }
   return {
-    'bg-orange-100 text-[#cc4204] border-[#cc4204]/30': status === 'pending',
-    'bg-blue-100 text-[#0050cb] border-[#0050cb]/30': status === 'dp_paid',
-    'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50': status === 'active',
-    'bg-green-100 text-green-700 border-green-300': status === 'completed',
-    'bg-red-100 text-[#ba1a1a] border-[#ba1a1a]/30': status === 'rejected',
+    'dp_paid': 'bg-blue-100 text-[#0050cb] border-[#0050cb]/30',
+    'active': 'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50',
+    'completed': 'bg-green-100 text-green-700 border-green-300',
+    'rejected': 'bg-red-100 text-[#ba1a1a] border-[#ba1a1a]/30',
+    'cancelled': 'bg-red-100 text-[#ba1a1a] border-[#ba1a1a]/30',
   }[status] || 'bg-gray-100 text-gray-600 border-gray-200'
 }
 
-// --- AKSI BUTTONS DENGAN SWEETALERT MOCKUP ---
+// --- AKSI BUTTONS DENGAN UPDATE SUPABASE ---
 
 // Approve Rental
 const handleApproveRental = (id) => {
   Swal.fire({
-    title: 'Setujui Reservasi?',
-    text: "Status akan diubah menjadi 'Aktif Disewa'.",
+    title: 'ACC & Antar Mobil?',
+    text: "Status akan diubah menjadi 'Mobil Diantar'.",
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#0050cb',
     cancelButtonColor: '#d33',
-    confirmButtonText: 'Ya, Setujui',
+    confirmButtonText: 'Ya, ACC & Antar',
     cancelButtonText: 'Batal'
-  }).then((res) => {
+  }).then(async (res) => {
     if (res.isConfirmed) {
-      const ord = rentals.value.find(o => o.id === id)
-      if (ord) ord.status = 'active'
-      Swal.fire({ icon: 'success', title: 'Disetujui!', showConfirmButton: false, timer: 1500 })
+      try {
+        const { error } = await supabase
+          .from('rentals')
+          .update({ status: 'active' })
+          .eq('id', id)
+
+        if (error) throw error
+
+        const ord = rentals.value.find(o => o.id === id)
+        if (ord) ord.status = 'active'
+        Swal.fire({ icon: 'success', title: 'Berhasil di-ACC!', text: 'Status telah diubah menjadi Mobil Diantar.', showConfirmButton: false, timer: 1500 })
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
+      }
     }
   })
 }
@@ -147,11 +191,22 @@ const handleCompleteRental = (id) => {
     cancelButtonColor: '#d33',
     confirmButtonText: 'Ya, Selesai',
     cancelButtonText: 'Batal'
-  }).then((res) => {
+  }).then(async (res) => {
     if (res.isConfirmed) {
-      const ord = rentals.value.find(o => o.id === id)
-      if (ord) ord.status = 'completed'
-      Swal.fire({ icon: 'success', title: 'Selesai!', showConfirmButton: false, timer: 1500 })
+      try {
+        const { error } = await supabase
+          .from('rentals')
+          .update({ status: 'completed' })
+          .eq('id', id)
+
+        if (error) throw error
+
+        const ord = rentals.value.find(o => o.id === id)
+        if (ord) ord.status = 'completed'
+        Swal.fire({ icon: 'success', title: 'Selesai!', showConfirmButton: false, timer: 1500 })
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
+      }
     }
   })
 }
@@ -159,39 +214,99 @@ const handleCompleteRental = (id) => {
 // Reject Rental
 const handleRejectRental = (id) => {
   Swal.fire({
-    title: 'Tolak & Kembalikan Dana?',
-    text: "Dana pelanggan akan dikembalikan secara sistem.",
+    title: 'Tolak & Batalkan Pesanan?',
+    text: "Status akan diubah menjadi 'Ditolak'.",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ba1a1a',
     cancelButtonColor: '#0050cb',
     confirmButtonText: 'Ya, Tolak',
     cancelButtonText: 'Batal'
-  }).then((res) => {
+  }).then(async (res) => {
     if (res.isConfirmed) {
-      const ord = rentals.value.find(o => o.id === id)
-      if (ord) ord.status = 'rejected'
-      Swal.fire({ icon: 'success', title: 'Ditolak!', text: 'Dana (DP) sedang dikembalikan.', showConfirmButton: false, timer: 2000 })
+      try {
+        const { error } = await supabase
+          .from('rentals')
+          .update({ status: 'rejected' })
+          .eq('id', id)
+
+        if (error) throw error
+
+        const ord = rentals.value.find(o => o.id === id)
+        if (ord) ord.status = 'rejected'
+        Swal.fire({ icon: 'success', title: 'Ditolak!', text: 'Reservasi berhasil ditolak.', showConfirmButton: false, timer: 1500 })
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
+      }
     }
   })
 }
 
-// Simulasi Detail Modal menggunakan SweetAlert
-const openRentalDetail = (rental) => {
+// Cancel Rental (Pembatalan Pesanan oleh Admin)
+const handleCancelRental = (id) => {
   Swal.fire({
-    title: `Detail Pesanan ${rental.id}`,
-    html: `
-      <div class="text-left font-['Manrope'] text-sm space-y-3 mt-4">
-        <p><strong>Pelanggan:</strong> ${rental.recipient_name} (${rental.recipient_phone})</p>
-        <p><strong>Kendaraan:</strong> ${rental.car_name} (${rental.car_brand})</p>
-        <p><strong>Metode Pembayaran:</strong> ${rental.payment_method === 'cash_with_dp' ? 'Cash (Bayar DP)' : 'Transfer Penuh'}</p>
-        <p><strong>Total Tagihan:</strong> ${formatPrice(rental.total_price)}</p>
-        <p><strong>Sudah Dibayar:</strong> <span class="text-[#0050cb] font-bold">${formatPrice(rental.dp_amount)}</span></p>
-      </div>
-    `,
-    confirmButtonColor: '#0050cb',
-    confirmButtonText: 'Tutup'
+    title: 'Batalkan Reservasi?',
+    text: "Status akan diubah menjadi 'Dibatalkan'.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ba1a1a',
+    cancelButtonColor: '#0050cb',
+    confirmButtonText: 'Ya, Batalkan',
+    cancelButtonText: 'Batal'
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      try {
+        const { error } = await supabase
+          .from('rentals')
+          .update({ status: 'cancelled' })
+          .eq('id', id)
+
+        if (error) throw error
+
+        const ord = rentals.value.find(o => o.id === id)
+        if (ord) ord.status = 'cancelled'
+        Swal.fire({ icon: 'success', title: 'Dibatalkan!', text: 'Reservasi berhasil dibatalkan.', showConfirmButton: false, timer: 1500 })
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal membatalkan reservasi', text: err.message })
+      }
+    }
   })
+}
+
+// Verifikasi KTP Pelanggan secara manual
+const handleVerifyKtp = (id) => {
+  Swal.fire({
+    title: 'Verifikasi KTP Pelanggan?',
+    text: "KTP pelanggan akan ditandai sebagai Terverifikasi, dan pelanggan dapat melanjutkan pembayaran.",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#0050cb',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, Verifikasi',
+    cancelButtonText: 'Batal'
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      try {
+        const { error } = await supabase
+          .from('rental_payments')
+          .update({ payment_status: 'verified' })
+          .eq('rental_id', id)
+
+        if (error) throw error
+
+        const ord = rentals.value.find(o => o.id === id)
+        if (ord) ord.payment_status = 'verified'
+        Swal.fire({ icon: 'success', title: 'KTP Terverifikasi!', text: 'Pelanggan sekarang dapat melakukan pembayaran.', showConfirmButton: false, timer: 1500 })
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal memverifikasi KTP', text: err.message })
+      }
+    }
+  })
+}
+
+const openRentalDetail = (rental) => {
+  selectedRental.value = rental
+  showDetail.value = true
 }
 </script>
 
@@ -251,9 +366,9 @@ const openRentalDetail = (rental) => {
           <h2 class="text-lg font-extrabold text-[#191c1e] flex items-center gap-2">
             <span class="material-symbols-outlined text-[#0050cb]">list_alt</span> Daftar Transaksi Reservasi
           </h2>
-          <!-- Refresh Mockup Button -->
-          <button class="text-xs font-bold text-[#0050cb] hover:text-white bg-[#e6eeff] hover:bg-[#0050cb] px-4 py-2 rounded-lg transition-colors flex items-center gap-2 uppercase tracking-widest border border-[#b3c5ff]/50 active:scale-95">
-            <span class="material-symbols-outlined text-[16px]">sync</span> Segarkan
+          <!-- Refresh Button -->
+          <button @click="fetchRentals" class="text-xs font-bold text-[#0050cb] hover:text-white bg-[#e6eeff] hover:bg-[#0050cb] px-4 py-2 rounded-lg transition-colors flex items-center gap-2 uppercase tracking-widest border border-[#b3c5ff]/50 active:scale-95">
+            <span class="material-symbols-outlined text-[16px]" :class="{ 'animate-spin': isLoading }">sync</span> Segarkan
           </button>
         </div>
 
@@ -270,8 +385,16 @@ const openRentalDetail = (rental) => {
 
             <tbody class="divide-y divide-gray-100">
 
+              <!-- Loading State -->
+              <tr v-if="isLoading">
+                <td colspan="3" class="py-16 px-6 text-center text-[#727687]">
+                  <span class="material-symbols-outlined animate-spin text-4xl block mb-2 text-[#0050cb]">sync</span>
+                  <p class="mt-1 text-xs font-bold uppercase tracking-widest">Memuat data transaksi dari database...</p>
+                </td>
+              </tr>
+
               <!-- Empty State -->
-              <tr v-if="filteredRentals.length === 0">
+              <tr v-else-if="filteredRentals.length === 0">
                 <td colspan="3" class="py-16 px-6 text-center text-[#727687]">
                   <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">receipt_long</span>
                   <h3 class="text-base font-bold text-[#191c1e]">Tidak Ada Reservasi</h3>
@@ -280,7 +403,7 @@ const openRentalDetail = (rental) => {
               </tr>
 
                <!-- Looping Data Rental -->
-              <tr v-for="rental in filteredRentals" :key="rental.id" class="hover:bg-blue-50/30 transition-colors">
+              <tr v-else v-for="rental in filteredRentals" :key="rental.id" class="hover:bg-blue-50/30 transition-colors">
 
                 <!-- 1. Pelanggan -->
                 <td class="py-5 px-6">
@@ -307,7 +430,7 @@ const openRentalDetail = (rental) => {
                   <div class="flex items-center gap-2 flex-wrap">
 
                     <!-- Status Lencana -->
-                    <span :class="statusClass(rental.status)" class="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 border whitespace-nowrap">
+                    <span :class="statusClass(rental)" class="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 border whitespace-nowrap">
                       {{ getStatusLabel(rental) }}
                     </span>
 
@@ -325,10 +448,17 @@ const openRentalDetail = (rental) => {
                       <span class="material-symbols-outlined text-[14px]">visibility</span> DETAIL
                     </button>
 
+                    <!-- Tombol Verifikasi KTP (Ungu) -->
+                    <button v-if="(rental.status === 'pending_dp' || rental.status === 'pending') && rental.payment_status === 'unverified'" 
+                      @click="handleVerifyKtp(rental.id)" title="Verifikasi KTP Pelanggan"
+                      class="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 border border-purple-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">verified</span> VERIFIKASI KTP
+                    </button>
+
                     <!-- Tombol Approve (Hijau) -->
-                    <button v-if="rental.status === 'dp_paid'" @click="handleApproveRental(rental.id)" title="Setujui Reservasi"
+                    <button v-if="rental.status === 'dp_paid'" @click="handleApproveRental(rental.id)" title="ACC & Antar Mobil"
                       class="px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-400 border border-green-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[14px]">check</span> SETUJUI
+                      <span class="material-symbols-outlined text-[14px]">check</span> ACC & ANTAR
                     </button>
 
                     <!-- Tombol Selesai (Biru Tua) -->
@@ -343,6 +473,12 @@ const openRentalDetail = (rental) => {
                       <span class="material-symbols-outlined text-[14px]">close</span> TOLAK
                     </button>
 
+                    <!-- Tombol Cancel/Batalkan (Merah) -->
+                    <button v-if="['pending', 'pending_dp', 'active'].includes(rental.status)" @click="handleCancelRental(rental.id)" title="Batalkan Pesanan"
+                      class="px-3 py-1.5 bg-red-50 text-[#ba1a1a] hover:bg-red-100 hover:border-red-400 border border-red-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">close</span> BATALKAN
+                    </button>
+
                   </div>
                 </td>
               </tr>
@@ -352,6 +488,13 @@ const openRentalDetail = (rental) => {
       </div>
     </div>
 
+    <!-- Modal Detail Reservasi -->
+    <RentalDetails
+      :show="showDetail"
+      :order-data="selectedRental"
+      @close="showDetail = false"
+    />
+
   </div>
 </template>
 
@@ -359,5 +502,14 @@ const openRentalDetail = (rental) => {
 /* Pengaturan Base Icon Material */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Animasi Rotasi Loading */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

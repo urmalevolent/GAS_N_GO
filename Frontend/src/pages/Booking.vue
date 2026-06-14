@@ -1,8 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+import { supabase } from '@/lib/supabase';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 // --- PROPS & EMITS ---
 const props = defineProps({
@@ -13,6 +16,7 @@ const props = defineProps({
   carData: {
     type: Object,
     default: () => ({
+      id: '',
       name: 'Porsche 911 Carrera',
       brand_name: 'Porsche',
       price: 1250,
@@ -23,7 +27,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 
-// --- MOCKUP STATE ---
+// --- STATE ---
 const isProcessing = ref(false);
 
 const bookingForm = ref({
@@ -33,7 +37,10 @@ const bookingForm = ref({
   paymentMethod: 'cash_with_dp'
 });
 
-// --- MOCKUP COMPUTED (Logika Visual) ---
+// Jaminan KTP State
+const ktpBase64 = ref(null);
+
+// --- COMPUTED (Logika Visual) ---
 const totalDays = computed(() => {
   if (!bookingForm.value.startDate || !bookingForm.value.endDate) return 0;
   const start = new Date(bookingForm.value.startDate);
@@ -46,14 +53,14 @@ const totalDays = computed(() => {
 });
 
 const totalPrice = computed(() => {
-  return totalDays.value * (props.carData?.price || 0);
+  return totalDays.value * (props.carData?.price || props.carData?.price_per_day || 0);
 });
 
 const dpAmount = computed(() => {
   return totalPrice.value * 0.15; // DP 15%
 });
 
-// --- MOCKUP FUNCTIONS ---
+// --- FUNCTIONS ---
 const formatPrice = (price) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -64,26 +71,107 @@ const formatPrice = (price) => {
 
 const close = () => {
   emit('close');
-  // Reset Form
+  // Reset Form & KTP
   bookingForm.value = { startDate: '', endDate: '', address: '', paymentMethod: 'cash_with_dp' };
+  ktpBase64.value = null;
 };
 
-const processPayment = () => {
+// Handle KTP Upload & Read as Base64 Data URL
+const handleKtpFileChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    ktpBase64.value = reader.result;
+  };
+  reader.onerror = (error) => {
+    console.error('Error reading file:', error);
+    alert('Gagal membaca file gambar.');
+  };
+  reader.readAsDataURL(file);
+};
+
+const processPayment = async () => {
   if (totalDays.value <= 0) return;
   if (!bookingForm.value.address.trim()) {
     alert('Mohon isi alamat pengiriman/penjemputan kendaraan terlebih dahulu.');
     return;
   }
+  if (!ktpBase64.value) {
+    alert('Wajib mengunggah foto KTP sebagai jaminan sebelum memesan.');
+    return;
+  }
+
+  // 1. Pastikan pengguna sudah terautentikasi
+  if (!authStore.isAuthenticated) {
+    alert('Silakan masuk (login) terlebih dahulu untuk melanjutkan pemesanan.');
+    close();
+    authStore.openAuthModal();
+    return;
+  }
 
   isProcessing.value = true;
 
-  // Simulasi Proses Loading Gateway
-  setTimeout(() => {
+  try {
+    const token = authStore.session?.access_token;
+    const phone = authStore.user?.phone_number || authStore.user?.user_metadata?.phone_number || authStore.user?.profile?.phone_number || '081234567890';
+    
+    // Resolusi UUID mobil dari database jika yang diteruskan adalah ID mockup (integer atau string pendek)
+    let finalCarId = props.carData?.id;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!finalCarId || !uuidRegex.test(String(finalCarId))) {
+      console.log(`Resolving mockup car ID '${finalCarId}' by matching name '${props.carData?.name}'...`);
+      const { data: realCars, error: lookupError } = await supabase
+        .from('cars')
+        .select('id')
+        .ilike('name', `%${props.carData?.name}%`)
+        .limit(1);
+
+      if (lookupError) {
+        console.error('Error looking up car UUID:', lookupError);
+      } else if (realCars && realCars.length > 0) {
+        finalCarId = realCars[0].id;
+        console.log(`Resolved mockup car ID to UUID: ${finalCarId}`);
+      } else {
+        console.warn('No matching car found in database for name:', props.carData?.name);
+      }
+    }
+
+    // 2. Hubungi Backend untuk membuat booking
+    const response = await fetch('http://localhost:5000/api/bookings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        car_id: finalCarId,
+        start_date: bookingForm.value.startDate,
+        end_date: bookingForm.value.endDate,
+        address: bookingForm.value.address,
+        phone_number: phone,
+        payment_method: bookingForm.value.paymentMethod,
+        ktp_image: ktpBase64.value
+      })
+    });
+
+    const resData = await response.json();
+
+    if (!response.ok || !resData.success) {
+      throw new Error(resData.message || 'Gagal memproses pemesanan.');
+    }
+
+    // 3. Berhasil membuat pemesanan, langsung arahkan ke pesanan saya (pembayaran setelah verifikasi KTP)
     isProcessing.value = false;
     close();
-    // Arahkan pengguna ke halaman checkout akhir
     router.push('/user/orders');
-  }, 1500);
+
+  } catch (error) {
+    console.error('Booking Error:', error);
+    alert(error.message || 'Terjadi kesalahan sistem saat menghubungi backend.');
+    isProcessing.value = false;
+  }
 };
 </script>
 
@@ -175,6 +263,36 @@ const processPayment = () => {
               </div>
             </div>
 
+            <!-- Input Jaminan KTP (Manual Verification) -->
+            <div class="bg-[#f7f9fb] border border-[#c2c6d8]/40 rounded-2xl p-5 space-y-4">
+              <div>
+                <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Jaminan KTP & Verifikasi Identitas</label>
+                <p class="text-[10px] text-[#727687] mb-3 leading-relaxed">Unggah foto KTP asli Anda sebagai jaminan sewa. Pemesanan akan diverifikasi secara manual oleh admin sebelum pembayaran dapat dilakukan.</p>
+                
+                <div class="flex items-center gap-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    @change="handleKtpFileChange"
+                    id="ktp-upload"
+                    class="hidden"
+                  />
+                  <label
+                    for="ktp-upload"
+                    class="cursor-pointer bg-white border border-[#c2c6d8]/60 hover:border-[#0050cb] hover:text-[#0050cb] text-[#424656] font-bold text-xs px-4 py-3 rounded-xl transition-all flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">upload_file</span>
+                    {{ ktpBase64 ? 'Ubah Foto KTP' : 'Pilih Foto KTP' }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Preview Gambar KTP -->
+              <div v-if="ktpBase64" class="h-28 rounded-xl overflow-hidden border border-[#c2c6d8]/40 relative group bg-white shrink-0">
+                <img :src="ktpBase64" class="w-full h-full object-cover" />
+              </div>
+            </div>
+
             <!-- Kalkulasi Harga (Muncul hanya jika durasi > 0) -->
             <transition name="modal-fade">
               <div v-if="totalDays > 0" class="bg-[#191c1e] rounded-2xl p-5 border border-gray-800 mt-6 relative overflow-hidden text-white shadow-lg">
@@ -220,13 +338,13 @@ const processPayment = () => {
           <button @click="close" class="px-6 py-3.5 text-[#424656] hover:bg-[#e0e3e5] rounded-xl transition-colors font-bold text-xs uppercase tracking-widest border border-transparent">
             Batal
           </button>
-          <button @click="processPayment" :disabled="isProcessing || totalDays <= 0" class="signature-gradient text-white px-8 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-[#0050cb]/30 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 group active:scale-95">
+          <button @click="processPayment" :disabled="isProcessing || totalDays <= 0 || !ktpBase64" class="signature-gradient text-white px-8 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-[#0050cb]/30 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 group active:scale-95">
             <!-- Spinner -->
             <span v-if="isProcessing" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
             <!-- Ikon Biasa -->
-            <span v-else class="material-symbols-outlined text-[18px]">lock</span>
+            <span v-else class="material-symbols-outlined text-[18px]">send</span>
 
-            <span>{{ isProcessing ? 'Memproses...' : 'Lanjutkan Pembayaran' }}</span>
+            <span>{{ isProcessing ? 'Memproses...' : 'Kirim Pemesanan' }}</span>
 
             <!-- Ikon Panah (Muncul jika tidak loading) -->
             <span v-if="!isProcessing" class="material-symbols-outlined text-[18px] transform group-hover:translate-x-1 transition-transform">arrow_forward</span>
