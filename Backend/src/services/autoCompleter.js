@@ -15,21 +15,40 @@ export const startRentalAutoCompleter = () => {
 
       console.log(`[Auto-Completer] Memeriksa rental aktif yang masa sewanya berakhir sebelum tanggal: ${todayStr}...`);
 
-      // 1. Dapatkan rental berstatus 'active' yang end_date-nya kurang dari hari ini
-      const { data: expiredRentals, error: selectError } = await supabase
+      // 1. Dapatkan rental berstatus 'active' beserta pickup_time di rental_details
+      const { data: activeRentals, error: selectError } = await supabase
         .from('rentals')
-        .select('id, end_date, car_id')
-        .eq('status', 'active')
-        .lt('end_date', todayStr);
+        .select('id, end_date, car_id, rental_details(pickup_time)')
+        .eq('status', 'active');
 
       if (selectError) {
-        console.error('[Auto-Completer ERROR] Gagal mengambil data rental kedaluwarsa:', selectError.message);
+        console.error('[Auto-Completer ERROR] Gagal mengambil data rental aktif:', selectError.message);
         return;
       }
 
-      if (expiredRentals && expiredRentals.length > 0) {
-        const idsToUpdate = expiredRentals.map(r => r.id);
-        console.log(`[Auto-Completer] Menemukan ${expiredRentals.length} rental aktif yang telah kedaluwarsa:`, expiredRentals);
+      const idsToUpdate = [];
+      if (activeRentals && activeRentals.length > 0) {
+        for (const rental of activeRentals) {
+          const details = rental.rental_details?.[0];
+          if (details && details.pickup_time) {
+            // Combine end_date with time portion of pickup_time
+            const timePart = details.pickup_time.split('T')[1];
+            const returnDate = new Date(`${rental.end_date}T${timePart}`);
+            
+            if (today >= returnDate) {
+              idsToUpdate.push(rental.id);
+            }
+          } else {
+            // Fallback: If no pickup_time (still in delivery), check if end_date has passed
+            if (rental.end_date < todayStr) {
+              idsToUpdate.push(rental.id);
+            }
+          }
+        }
+      }
+
+      if (idsToUpdate.length > 0) {
+        console.log(`[Auto-Completer] Menemukan ${idsToUpdate.length} rental yang telah selesai:`, idsToUpdate);
 
         // 2. Update status rental menjadi 'completed'
         const { error: updateError } = await supabase

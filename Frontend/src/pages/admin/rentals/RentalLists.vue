@@ -16,7 +16,8 @@ const statusFilters = [
   { value: 'all', label: 'Semua Status' },
   { value: 'pending_dp', label: 'Menunggu DP' },
   { value: 'dp_paid', label: 'DP Dibayar' },
-  { value: 'active', label: 'Aktif Disewa' },
+  { value: 'active', label: 'Sedang Diantar' },
+  { value: 'rented', label: 'Sedang Disewa' },
   { value: 'completed', label: 'Selesai' },
   { value: 'rejected', label: 'Ditolak/Batal' },
 ]
@@ -56,6 +57,7 @@ const fetchRentals = async () => {
         start_date: r.start_date,
         end_date: r.end_date,
         status: r.status, 
+        pickup_time: details.pickup_time || null,
         payment_method: payment.payment_method || 'cash_with_dp',
         total_price: payment.total_price || calcTotalPrice,
         dp_amount: payment.dp_amount || calcDpAmount,
@@ -76,6 +78,24 @@ onMounted(() => {
   fetchRentals()
 })
 
+const getMappedStatus = (rental) => {
+  const status = rental.status === 'pending_dp' ? 'pending' : rental.status;
+  if (status === 'active') {
+    if (rental.pickup_time) {
+      const now = new Date();
+      const timePart = rental.pickup_time.split('T')[1];
+      const returnDate = new Date(`${rental.end_date}T${timePart}`);
+      
+      if (now >= returnDate) {
+        return 'completed';
+      }
+      return 'rented';
+    }
+    return 'active';
+  }
+  return status;
+}
+
 // Filter Table Berdasarkan Status Pill (menangani pending & pending_dp, serta rejected & cancelled bersamaan)
 const filteredRentals = computed(() => {
   if (statusFilter.value === 'all') return rentals.value
@@ -85,7 +105,7 @@ const filteredRentals = computed(() => {
   if (statusFilter.value === 'rejected') {
     return rentals.value.filter(r => r.status === 'rejected' || r.status === 'cancelled')
   }
-  return rentals.value.filter(r => r.status === statusFilter.value)
+  return rentals.value.filter(r => getMappedStatus(r) === statusFilter.value)
 })
 
 // Menghitung jumlah per status (Untuk badge di Pill Filter)
@@ -97,13 +117,13 @@ const rentalCountByStatus = (val) => {
   if (val === 'rejected') {
     return rentals.value.filter(r => r.status === 'rejected' || r.status === 'cancelled').length
   }
-  return rentals.value.filter(r => r.status === val).length
+  return rentals.value.filter(r => getMappedStatus(r) === val).length
 }
 
 // Menghitung Total Pendapatan
 const totalRevenue = computed(() => {
   return rentals.value
-    .filter(r => ['dp_paid', 'active', 'completed'].includes(r.status))
+    .filter(r => ['dp_paid', 'active', 'completed'].includes(r.status) || getMappedStatus(r) === 'rented')
     .reduce((sum, r) => sum + r.dp_amount, 0)
 })
 
@@ -120,14 +140,16 @@ const getStatusLabel = (rental) => {
     }
     return 'KTP Terverifikasi (Menunggu Bayar)'
   }
+  const mapped = getMappedStatus(rental);
   const labels = {
     'dp_paid': 'Menunggu Persetujuan (DP)',
-    'active': 'Mobil Diantar (Sedang Diantar)',
+    'active': 'Sedang Diantar',
+    'rented': 'Sedang Disewa',
     'completed': 'Selesai',
     'rejected': 'Ditolak',
     'cancelled': 'Dibatalkan'
   }
-  return labels[rental.status] || rental.status
+  return labels[mapped] || mapped
 }
 
 const statusClass = (rental) => {
@@ -138,22 +160,24 @@ const statusClass = (rental) => {
     }
     return 'bg-orange-100 text-[#cc4204] border-[#cc4204]/30'
   }
+  const mapped = getMappedStatus(rental);
   return {
     'dp_paid': 'bg-blue-100 text-[#0050cb] border-[#0050cb]/30',
     'active': 'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50',
+    'rented': 'bg-indigo-100 text-indigo-750 border-indigo-300',
     'completed': 'bg-green-100 text-green-700 border-green-300',
     'rejected': 'bg-red-100 text-[#ba1a1a] border-[#ba1a1a]/30',
     'cancelled': 'bg-red-100 text-[#ba1a1a] border-[#ba1a1a]/30',
-  }[status] || 'bg-gray-100 text-gray-600 border-gray-200'
+  }[mapped] || 'bg-gray-100 text-gray-600 border-gray-200'
 }
 
 // --- AKSI BUTTONS DENGAN UPDATE SUPABASE ---
 
-// Approve Rental
+// Approve Rental (ACC & Antar)
 const handleApproveRental = (id) => {
   Swal.fire({
     title: 'ACC & Antar Mobil?',
-    text: "Status akan diubah menjadi 'Mobil Diantar'.",
+    text: "Status akan diubah menjadi 'Sedang Diantar'.",
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#0050cb',
@@ -172,7 +196,38 @@ const handleApproveRental = (id) => {
 
         const ord = rentals.value.find(o => o.id === id)
         if (ord) ord.status = 'active'
-        Swal.fire({ icon: 'success', title: 'Berhasil di-ACC!', text: 'Status telah diubah menjadi Mobil Diantar.', showConfirmButton: false, timer: 1500 })
+        Swal.fire({ icon: 'success', title: 'Berhasil di-ACC!', text: 'Status telah diubah menjadi Sedang Diantar.', showConfirmButton: false, timer: 1500 })
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
+      }
+    }
+  })
+}
+
+// Start Rental (Serahkan Mobil / Sedang Disewa)
+const handleStartRental = (rental) => {
+  Swal.fire({
+    title: 'Serahkan Mobil?',
+    text: "Status akan diubah menjadi 'Sedang Disewa'.",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#0050cb',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, Serahkan',
+    cancelButtonText: 'Batal'
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      try {
+        const nowStr = new Date().toISOString()
+        const { error } = await supabase
+          .from('rental_details')
+          .update({ pickup_time: nowStr })
+          .eq('rental_id', rental.id)
+
+        if (error) throw error
+
+        rental.pickup_time = nowStr
+        Swal.fire({ icon: 'success', title: 'Berhasil Diserahkan!', text: 'Status telah diubah menjadi Sedang Disewa.', showConfirmButton: false, timer: 1500 })
       } catch (err) {
         Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
       }
@@ -461,8 +516,14 @@ const openRentalDetail = (rental) => {
                       <span class="material-symbols-outlined text-[14px]">check</span> ACC & ANTAR
                     </button>
 
+                    <!-- Tombol Serahkan Mobil (Mulai Sewa) -->
+                    <button v-if="getMappedStatus(rental) === 'active'" @click="handleStartRental(rental)" title="Serahkan Mobil ke Pelanggan"
+                      class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:border-indigo-400 border border-indigo-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">handshake</span> SERAHKAN
+                    </button>
+
                     <!-- Tombol Selesai (Biru Tua) -->
-                    <button v-if="rental.status === 'active'" @click="handleCompleteRental(rental.id)" title="Tandai Dikembalikan"
+                    <button v-if="getMappedStatus(rental) === 'rented'" @click="handleCompleteRental(rental.id)" title="Tandai Dikembalikan"
                       class="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-400 border border-blue-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
                       <span class="material-symbols-outlined text-[14px]">done_all</span> SELESAI
                     </button>

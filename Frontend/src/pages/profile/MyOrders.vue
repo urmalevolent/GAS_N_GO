@@ -45,6 +45,7 @@ const fetchOrders = async () => {
         start_date: r.start_date,
         end_date: r.end_date,
         status: r.status, // pending_dp, dp_paid, active, completed, rejected, refunded
+        pickup_time: details.pickup_time || null,
         payment_method: payment.payment_method || 'cash_with_dp',
         total_price: payment.total_price || calcTotalPrice,
         dp_amount: payment.dp_amount || calcDpAmount,
@@ -156,15 +157,35 @@ const formatDate = (d) => {
 
 // --- LOGIKA PROGRESS TRACKER (HORIZONTAL TIMELINE) ---
 const STEPS = [
-  { key: 'pending', label: 'Dipesan' },
-  { key: 'dp_paid',    label: 'Uang Muka/Lunas' },
-  { key: 'active',     label: 'Antar Mobil' },
-  { key: 'completed',  label: 'Selesai' },
+  { key: 'pending',   label: 'Dipesan' },
+  { key: 'dp_paid',   label: 'Uang Muka/Lunas' },
+  { key: 'active',    label: 'Sedang Diantar' },
+  { key: 'rented',    label: 'Sedang Disewa' },
+  { key: 'completed', label: 'Selesai' },
 ];
 const FLOW = STEPS.map(s => s.key);
 
-const getSteps = (rental) => {
+const getMappedStatus = (rental) => {
   const status = rental.status === 'pending_dp' ? 'pending' : rental.status;
+  if (status === 'active') {
+    if (rental.pickup_time) {
+      const now = new Date();
+      // Combine end_date with time portion of pickup_time
+      const timePart = rental.pickup_time.split('T')[1];
+      const returnDate = new Date(`${rental.end_date}T${timePart}`);
+      
+      if (now >= returnDate) {
+        return 'completed';
+      }
+      return 'rented';
+    }
+    return 'active';
+  }
+  return status;
+};
+
+const getSteps = (rental) => {
+  const status = getMappedStatus(rental);
   const isRejected = ['rejected', 'refunded', 'cancelled'].includes(status);
   const currentIdx = FLOW.indexOf(status);
 
@@ -177,11 +198,11 @@ const getSteps = (rental) => {
   });
 };
 
-const progressWidth = (status) => {
-  const normStatus = status === 'pending_dp' ? 'pending' : status;
-  if (['rejected', 'refunded', 'cancelled'].includes(normStatus)) return '33%';
-  if (normStatus === 'completed') return 'calc(100% - 32px)';
-  const idx = FLOW.indexOf(normStatus);
+const progressWidth = (rental) => {
+  const status = getMappedStatus(rental);
+  if (['rejected', 'refunded', 'cancelled'].includes(status)) return '25%';
+  if (status === 'completed') return 'calc(100% - 32px)';
+  const idx = FLOW.indexOf(status);
   return `${(idx / (FLOW.length - 1)) * 100}%`;
 };
 
@@ -194,14 +215,17 @@ const statusLabel = (rental) => {
     }
     return 'KTP Terverifikasi (Silakan Bayar)';
   }
+  
+  const mapped = getMappedStatus(rental);
   return {
     dp_paid:    'Menunggu Persetujuan',
-    active:     'Mobil Diantar',
+    active:     'Sedang Diantar',
+    rented:     'Sedang Disewa',
     completed:  'Selesai',
     rejected:   'Ditolak',
     refunded:   'Dikembalikan',
     cancelled:  'Dibatalkan'
-  }[s] || s;
+  }[mapped] || mapped;
 };
 
 const statusClass = (rental) => {
@@ -212,14 +236,17 @@ const statusClass = (rental) => {
     }
     return 'bg-orange-100 text-orange-700 border-orange-200';
   }
+  
+  const mapped = getMappedStatus(rental);
   return {
     dp_paid:    'bg-blue-100 text-blue-700 border-blue-200',
     active:     'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50',
+    rented:     'bg-indigo-100 text-indigo-700 border-indigo-200',
     completed:  'bg-green-100 text-green-700 border-green-200',
     rejected:   'bg-red-100 text-red-700 border-red-200',
     refunded:   'bg-red-100 text-red-700 border-red-200',
     cancelled:  'bg-red-100 text-red-700 border-red-200',
-  }[s] || 'bg-gray-100 text-gray-700 border-gray-200';
+  }[mapped] || 'bg-gray-100 text-gray-700 border-gray-200';
 };
 
 const dotClass = (rental) => {
@@ -230,14 +257,17 @@ const dotClass = (rental) => {
     }
     return 'bg-orange-500';
   }
+  
+  const mapped = getMappedStatus(rental);
   return {
     dp_paid:    'bg-blue-500',
     active:     'bg-[#0050cb]',
+    rented:     'bg-indigo-500',
     completed:  'bg-green-500',
     rejected:   'bg-red-500',
     refunded:   'bg-red-500',
     cancelled:  'bg-red-500',
-  }[s] || 'bg-gray-400';
+  }[mapped] || 'bg-gray-400';
 };
 
 // --- TABS & FILTRATION ---
@@ -360,7 +390,7 @@ const currentTabRentals = computed(() => {
             <!-- Background garis abu -->
             <div class="absolute top-4 left-4 right-4 h-0.5 bg-[#e0e3e5] z-0"></div>
             <!-- Garis biru progres (Animasi CSS inline) -->
-            <div class="absolute top-4 left-4 h-0.5 bg-[#0050cb] z-0 transition-all duration-700" :style="{ width: progressWidth(rental.status) }"></div>
+            <div class="absolute top-4 left-4 h-0.5 bg-[#0050cb] z-0 transition-all duration-700" :style="{ width: progressWidth(rental) }"></div>
 
             <!-- Titik (Steps) -->
             <div class="relative z-10 flex justify-between">
@@ -407,8 +437,8 @@ const currentTabRentals = computed(() => {
             </button>
           </div>
 
-          <!-- Alert Khusus: Persiapkan Sisa Dana (Muncul jika Aktif dan metode bayarnya DP) -->
-          <div v-if="rental.status === 'active' && (rental.total_price - rental.dp_amount) > 0"
+          <!-- Alert Khusus: Persiapkan Sisa Dana (Muncul jika Aktif/Rented dan metode bayarnya DP) -->
+          <div v-if="['active', 'rented'].includes(getMappedStatus(rental)) && (rental.total_price - rental.dp_amount) > 0"
                class="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
             <span class="material-symbols-outlined text-[#0050cb] text-2xl">info</span>
             <div>
@@ -418,7 +448,7 @@ const currentTabRentals = computed(() => {
           </div>
 
           <!-- Alert Khusus: Selesai -->
-          <div v-if="rental.status === 'completed'"
+          <div v-if="getMappedStatus(rental) === 'completed'"
                class="mt-8 bg-green-50 border border-green-100 rounded-xl p-4 flex items-start gap-3">
             <span class="material-symbols-outlined text-green-600 text-2xl">task_alt</span>
             <div>

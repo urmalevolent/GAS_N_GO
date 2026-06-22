@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 
 // --- PROPS & EMITS ---
 const props = defineProps({
@@ -39,6 +39,25 @@ const formatDate = (dateString) => {
   const options = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
   return new Date(dateString).toLocaleDateString('id-ID', options);
 };
+
+const mappedStatus = computed(() => {
+  if (!props.orderData) return '';
+  const status = props.orderData.status === 'pending_dp' ? 'pending' : props.orderData.status;
+  if (status === 'active') {
+    if (props.orderData.pickup_time) {
+      const now = new Date();
+      const timePart = props.orderData.pickup_time.split('T')[1];
+      const returnDate = new Date(`${props.orderData.end_date}T${timePart}`);
+      
+      if (now >= returnDate) {
+        return 'completed';
+      }
+      return 'rented';
+    }
+    return 'active';
+  }
+  return status;
+});
 
 // Logika Mengambil item sewa ketika modal dibuka
 watch(() => props.show, (isOpen) => {
@@ -187,17 +206,19 @@ watch(() => props.show, (isOpen) => {
 
                <span v-if="orderData" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
                   :class="{
-                    'bg-orange-100 text-orange-700 border-orange-200': orderData.status === 'pending' || orderData.status === 'pending_dp',
-                    'bg-blue-100 text-blue-700 border-blue-200': orderData.status === 'dp_paid',
-                    'bg-indigo-100 text-indigo-700 border-indigo-200': orderData.status === 'active',
-                    'bg-green-100 text-green-700 border-green-200': orderData.status === 'completed',
-                    'bg-red-100 text-red-700 border-red-200': orderData.status === 'rejected' || orderData.status === 'cancelled'
+                    'bg-orange-100 text-orange-700 border-orange-200': mappedStatus === 'pending',
+                    'bg-blue-100 text-blue-700 border-blue-200': mappedStatus === 'dp_paid',
+                    'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50': mappedStatus === 'active',
+                    'bg-indigo-100 text-indigo-700 border-indigo-200': mappedStatus === 'rented',
+                    'bg-green-100 text-green-700 border-green-200': mappedStatus === 'completed',
+                    'bg-red-100 text-red-700 border-red-200': ['rejected', 'cancelled'].includes(mappedStatus)
                   }">
                  {{
-                    orderData.status === 'pending' || orderData.status === 'pending_dp' ? 'MENUNGGU PEMBAYARAN' :
-                    orderData.status === 'dp_paid' ? 'DP DIBAYAR (MENUNGGU PERSETUJUAN)' :
-                    orderData.status === 'active' ? 'DISEWA (LUNAS)' :
-                    orderData.status === 'completed' ? 'SELESAI' : 'DIBATALKAN / DITOLAK'
+                    mappedStatus === 'pending' ? 'MENUNGGU PEMBAYARAN' :
+                    mappedStatus === 'dp_paid' ? 'DP DIBAYAR (MENUNGGU PERSETUJUAN)' :
+                    mappedStatus === 'active' ? 'SEDANG DIANTAR' :
+                    mappedStatus === 'rented' ? 'SEDANG DISEWA' :
+                    mappedStatus === 'completed' ? 'SELESAI' : 'DIBATALKAN / DITOLAK'
                  }}
                </span>
              </div>
