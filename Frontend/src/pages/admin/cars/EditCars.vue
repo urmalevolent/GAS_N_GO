@@ -1,35 +1,77 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { supabase } from '@/lib/supabase';
 
+const route = useRoute();
 const router = useRouter();
+const carId = route.params.id;
 
-// --- MOCKUP STATE (Tanpa Backend) ---
 const form = reactive({
-  name: 'Porsche 911 Carrera',
-  brand: 'Porsche',
-  category: 'Mobil Sport',
-  transmission: 'Matic (PDK)',
-  seats: 2,
-  price: 1550,
-  description: 'Kendaraan ini berada dalam kondisi prima dengan paket perawatan tahunan penuh. Cocok untuk pelanggan VIP yang mencari kecepatan dan kemewahan dalam satu paket.',
-  is_promotion: 1,
-  discount_price: 1250
+  name: '',
+  brand: '',
+  category: '',
+  transmission: '',
+  seats: 4,
+  price: '',
+  description: ''
 });
 
-const files = reactive({ image_1: null, image_2: null, image_3: null });
+const files = reactive({ image_1: null });
 const previews = reactive({
-  image_1: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDxHzsdBc2hzH_IJw-SBKJxjepSqbQO3o7PrzVULEL-UjF-Ldq3Fza8v3i0RPbmVFCLO-E_O5rQN5hEvDWcwbN10bz_4eCetDgr5taJU7ukqJ-HavuTLstjR6aADHy8TYqcP6P6nxW6WOTEAwcT3WsHIFRzWUUkcPP74Y3qu7Y0JYQYvLCvDDp37OpoY15JmaPbNBEWnyLo53hvE07ntZX1hTS0Es9qIl72meFCANR0CeyzQABsSXU3smVwh3F93g4Xen63kW1Dtydl',
-  image_2: null,
-  image_3: null
+  image_1: null
 });
 
-const brands = ref(['Porsche', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Ferrari']);
-const categories = ref(['Sedan Eksekutif', 'SUV Premium', 'Mobil Sport', 'Mobil Listrik']);
+const brands = ref(['Porsche', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Ferrari', 'Toyota', 'Honda', 'Mitsubishi']);
+const categories = ref([]);
 const isLoading = ref(false);
 
 // --- FUNCTIONS ---
+
+const fetchCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('car_categories')
+      .select('name');
+    if (error) throw error;
+    categories.value = data.map(c => c.name);
+  } catch (err) {
+    console.error('Error fetching categories:', err);
+  }
+};
+
+const fetchCarDetails = async () => {
+  isLoading.value = true;
+  try {
+    const { data, error } = await supabase
+      .from('cars')
+      .select('*')
+      .eq('id', carId)
+      .single();
+    if (error) throw error;
+    
+    form.name = data.name;
+    form.brand = data.brand;
+    form.category = data.category;
+    form.transmission = data.transmission;
+    form.seats = data.seats;
+    form.price = data.price_per_day;
+    form.description = data.description || '';
+    
+    previews.image_1 = data.image_url;
+  } catch (err) {
+    console.error('Error fetching car:', err);
+    Swal.fire('Error', 'Gagal memuat detail kendaraan.', 'error');
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(async () => {
+  await fetchCategories();
+  await fetchCarDetails();
+});
 
 // Menangani Preview Gambar (Secara Lokal)
 const handleFileChange = (event, key) => {
@@ -40,62 +82,51 @@ const handleFileChange = (event, key) => {
   }
 };
 
-// Logika Dummy SweetAlert untuk Input Persen Diskon
-const askForDiscount = async () => {
-  if (!form.price || form.price <= 0) {
-    Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Isi tarif sewa utama terlebih dahulu!', confirmButtonColor: '#0050cb' });
-    form.is_promotion = 0;
-    return false;
-  }
-
-  const { value: discountPercent } = await Swal.fire({
-    title: 'Atur Diskon Promo',
-    input: 'number',
-    inputLabel: 'Masukkan persentase diskon (1-99%)',
-    inputPlaceholder: 'Contoh: 20',
-    showCancelButton: true,
-    confirmButtonColor: '#0050cb',
-    cancelButtonColor: '#d33',
-    inputAttributes: { min: 1, max: 99 },
-    inputValidator: (value) => {
-      if (!value || value < 1 || value > 99) return 'Masukkan angka antara 1 sampai 99%';
-    }
-  });
-
-  if (discountPercent) {
-    const reduction = (form.price * discountPercent) / 100;
-    form.discount_price = Math.round(form.price - reduction);
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Diskon Terpasang!',
-      text: `Tarif promo menjadi: $${form.discount_price.toLocaleString()}`,
-      timer: 1500,
-      showConfirmButton: false
+// Upload image helper
+const uploadImage = async (file) => {
+  if (!file) return null;
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+  const { data, error } = await supabase.storage
+    .from('cars')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
     });
-    return true;
-  }
-  return false;
+  if (error) throw error;
+  
+  const { data: { publicUrl } } = supabase.storage
+    .from('cars')
+    .getPublicUrl(fileName);
+    
+  return publicUrl;
 };
 
-// Mengatur Toggle Checkbox Switch
-const handlePromotionToggle = async () => {
-  if (form.is_promotion) {
-    const success = await askForDiscount();
-    if (!success) {
-      form.is_promotion = 0;
-      form.discount_price = 0;
-    }
-  } else {
-    form.discount_price = 0;
-  }
-};
-
-// Simulasi Update Produk ke Backend
-const updateCar = () => {
+// Proses Update Produk ke Database
+const updateCar = async () => {
   isLoading.value = true;
-  setTimeout(() => {
-    isLoading.value = false;
+  try {
+    let mainImageUrl = previews.image_1;
+    if (files.image_1) {
+      mainImageUrl = await uploadImage(files.image_1);
+    }
+    
+    const { error } = await supabase
+      .from('cars')
+      .update({
+        name: form.name,
+        brand: form.brand,
+        category: form.category,
+        transmission: form.transmission,
+        seats: parseInt(form.seats) || 4,
+        price_per_day: parseInt(form.price),
+        description: form.description || '',
+        image_url: mainImageUrl
+      })
+      .eq('id', carId);
+      
+    if (error) throw error;
+    
     Swal.fire({
       icon: 'success',
       title: 'Sukses!',
@@ -104,9 +135,14 @@ const updateCar = () => {
       timer: 1500,
       showConfirmButton: false
     });
-    // router.push({ name: 'admin-cars-list' }); // Uncomment jika ingin dialihkan otomatis
-    alert('Simulasi Edit Selesai!');
-  }, 1000);
+    
+    router.push({ name: 'admin-cars-list' });
+  } catch (err) {
+    console.error('Error updating car:', err);
+    Swal.fire('Error', 'Gagal memperbarui data kendaraan.', 'error');
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 </script>
@@ -142,71 +178,17 @@ const updateCar = () => {
                     </div>
                   </div>
                 </div>
-
-                <!-- Foto 2 -->
-                <div class="flex flex-col gap-2">
-                   <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Sisi Luar</span>
-                   <div class="w-32 h-32 md:w-40 md:h-40 border-2 border-dashed border-[#c2c6d8] rounded-2xl bg-[#f2f4f6] flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group" @click="$refs.inputImage2.click()">
-                    <input type="file" ref="inputImage2" class="hidden" accept="image/*" @change="(e) => handleFileChange(e, 'image_2')" />
-                    <img v-if="previews.image_2" :src="previews.image_2" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div v-else class="text-[#727687] text-xs font-bold text-center"><span class="material-symbols-outlined text-2xl block mb-1">add_a_photo</span> Unggah<br>Samping</div>
-                    <div class="absolute inset-0 bg-[#191c1e]/60 hidden group-hover:flex flex-col items-center justify-center text-white font-bold text-xs backdrop-blur-sm transition-all">
-                      <span class="material-symbols-outlined text-xl mb-1">edit</span> UBAH
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Foto 3 -->
-                <div class="flex flex-col gap-2">
-                   <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Detail Interior</span>
-                   <div class="w-32 h-32 md:w-40 md:h-40 border-2 border-dashed border-[#c2c6d8] rounded-2xl bg-[#f2f4f6] flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group" @click="$refs.inputImage3.click()">
-                    <input type="file" ref="inputImage3" class="hidden" accept="image/*" @change="(e) => handleFileChange(e, 'image_3')" />
-                    <img v-if="previews.image_3" :src="previews.image_3" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div v-else class="text-[#727687] text-xs font-bold text-center"><span class="material-symbols-outlined text-2xl block mb-1">add_a_photo</span> Unggah<br>Interior</div>
-                    <div class="absolute inset-0 bg-[#191c1e]/60 hidden group-hover:flex flex-col items-center justify-center text-white font-bold text-xs backdrop-blur-sm transition-all">
-                      <span class="material-symbols-outlined text-xl mb-1">edit</span> UBAH
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
-            <!-- ================= PROMO & HARGA ================= -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end p-6 bg-[#f7f9fb] border border-[#c2c6d8]/40 rounded-2xl shadow-inner">
-
+            <!-- ================= HARGA ================= -->
+            <div class="p-6 bg-[#f7f9fb] border border-[#c2c6d8]/40 rounded-2xl shadow-inner">
               <!-- Harga Utama -->
               <div>
-                <label class="block text-sm font-bold text-[#191c1e] mb-2">Tarif Harian Normal (USD) <span class="text-[#ba1a1a]">*</span></label>
+                <label class="block text-sm font-bold text-[#191c1e] mb-2">Tarif Harian Normal (Rupiah) <span class="text-[#ba1a1a]">*</span></label>
                 <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-[#727687]">$</span>
-                  <input v-model="form.price" type="number" class="w-full pl-8 pr-5 py-3 border border-[#c2c6d8]/60 rounded-xl focus:ring-2 focus:ring-[#0050cb] outline-none transition bg-white text-[#191c1e] font-bold">
-                </div>
-              </div>
-
-              <!-- Switch Promo -->
-              <div class="flex items-center space-x-4 p-4 bg-white border border-[#c2c6d8]/50 rounded-xl shadow-sm h-full">
-                <!-- Checkbox Switch Ala iOS/Tailwind -->
-                <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input type="checkbox" v-model="form.is_promotion" :true-value="1" :false-value="0" @change="handlePromotionToggle" class="sr-only peer">
-                  <div class="w-11 h-6 bg-[#c2c6d8] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#c2c6d8] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#16a34a]"></div>
-                </label>
-
-                <div class="flex-1 min-w-0">
-                  <span class="text-[11px] font-black text-[#191c1e] uppercase tracking-widest block mb-0.5">Berikan Promo?</span>
-
-                  <div v-if="form.is_promotion && form.discount_price > 0" class="flex flex-col sm:flex-row sm:items-center gap-2">
-                    <p class="text-lg text-[#16a34a] font-black leading-none">
-                      ${{ form.discount_price.toLocaleString() }}
-                    </p>
-                    <button
-                      type="button"
-                      @click="askForDiscount"
-                      class="text-[9px] bg-[#0050cb] text-white px-3 py-1.5 rounded-full font-bold hover:bg-[#0066ff] transition shadow-sm active:scale-95 uppercase tracking-widest w-fit"
-                    >
-                      Ubah Diskon
-                    </button>
-                  </div>
-                  <p v-else class="text-[10px] text-[#727687] italic mt-0.5">Toggle untuk memberi harga coret.</p>
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-[#727687]">Rp</span>
+                  <input v-model="form.price" type="number" class="w-full pl-10 pr-5 py-3 border border-[#c2c6d8]/60 rounded-xl focus:ring-2 focus:ring-[#0050cb] outline-none transition bg-white text-[#191c1e] font-bold">
                 </div>
               </div>
             </div>

@@ -1,40 +1,61 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { supabase } from '@/lib/supabase';
+import Swal from 'sweetalert2';
 
-// --- MOCKUP STATE (Tanpa Backend) ---
-const isLoading = ref(false);
+const route = useRoute();
+const carId = route.params.id;
+const isLoading = ref(true);
+const product = ref(null);
 
-// Data Dummy Detail Kendaraan GASNGO
-const product = ref({
-  id: 1,
-  name: 'Porsche 911 Carrera',
-  brand_name: 'Porsche',
-  category_name: 'Mobil Sport',
-  transmission: 'PDK (Automatic)',
-  seats: 2,
-  condition: 5,
-  price: 1550,
-  is_promotion: 1,
-  discount_price: 1250,
-  description: 'Porsche 911 Carrera adalah perpaduan sempurna antara desain ikonik dan performa murni. Menawarkan akselerasi cepat dengan mesin flat-six twin-turbo, cocok untuk Anda yang menginginkan pengalaman berkendara yang mendebarkan namun tetap mewah. Dilengkapi interior kulit premium dan sistem infotainment terkini.',
-  image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDxHzsdBc2hzH_IJw-SBKJxjepSqbQO3o7PrzVULEL-UjF-Ldq3Fza8v3i0RPbmVFCLO-E_O5rQN5hEvDWcwbN10bz_4eCetDgr5taJU7ukqJ-HavuTLstjR6aADHy8TYqcP6P6nxW6WOTEAwcT3WsHIFRzWUUkcPP74Y3qu7Y0JYQYvLCvDDp37OpoY15JmaPbNBEWnyLo53hvE07ntZX1hTS0Es9qIl72meFCANR0CeyzQABsSXU3smVwh3F93g4Xen63kW1Dtydl',
-  image_2: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB7fnN2n36EMlYbVWIjzvWQqy9bOQXh86J9uhMK1aAKD_024CTTyyXZDroDQfoM-MOxF1rj9Jvgxj8nzvwBf5QzlWRVUZoaov2jBkyQl-vR7aurPWWs9wTy2J1SO04uN5fU8v25R92TFmh41zyJBNMNYxa1kS_fo2zW8BKtdiyUP_mv8S7zJIhq7vQcPTWX8jJhf2m7NISDeyA1M5gQ3H4_UGGns6amc4YN_Z_RwqjSEfB573SFj_vdEBaCBzgaGCTVCDl2EKpv-j64',
-  image_3: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABRxaX7S4GWq20T0lGvvxVi2RYvEqgRhjsDC74q7PrNy2wQU9rbBuAWrR1qDcpRzdyZzEe-SN10R02nNHLGoF-uSX3KPEOcELba_mCJU1WsDt-gj8MiJ1vSEsCl8lBSMveZbpTQTaOIB7R4IcnvKm_63AtLpj5W0tZKL9PIu9ElH3-Fy4JGNl2TFGSzLFhTyKd1uuddI-zvn1Z-amzzPr7zlHstn95yNfujGvVOmx9J3Nsl2n3RTaGvED7nT0kZvfZud4SpYKModrO'
+const fetchCarDetails = async () => {
+  isLoading.value = true;
+  try {
+    const { data, error } = await supabase
+      .from('cars')
+      .select('*')
+      .eq('id', carId)
+      .single();
+    if (error) throw error;
+    
+    product.value = {
+      id: data.id,
+      name: data.name,
+      brand_name: data.brand,
+      category_name: data.category,
+      transmission: data.transmission,
+      seats: data.seats,
+      condition: 5, // Default condition
+      price: data.price_per_day,
+      is_promotion: 0,
+      discount_price: null,
+      description: data.description || 'Tidak ada deskripsi tersedia.',
+      image: data.image_url || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2083&auto=format&fit=crop',
+      image_2: null,
+      image_3: null
+    };
+  } catch (err) {
+    console.error('Error fetching car details:', err);
+    Swal.fire('Error', 'Gagal memuat detail kendaraan.', 'error');
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchCarDetails();
 });
 
-// --- FUNCTIONS ---
-
-// Format Uang Dolar (Mockup)
 const formatPrice = (price) => {
-  if (!price) return '$ 0';
-  return new Intl.NumberFormat('en-US', {
+  if (!price) return 'Rp 0';
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'IDR',
     minimumFractionDigits: 0
   }).format(price);
 };
 
-// Terjemahan Kondisi (1-5)
 const getConditionText = (num) => {
   const conditions = {
     5: 'Sempurna (Seperti Baru)',
@@ -81,48 +102,22 @@ const getConditionText = (num) => {
       <div class="p-6 md:p-8">
 
         <form @submit.prevent>
-          <div class="space-y-10">
-
-            <!-- ================= GALERI FOTO ================= -->
+          <div class="space-y-10"            <!-- ================= FOTO UTAMA ================= -->
             <div>
               <label class="flex items-center gap-3 text-lg font-extrabold text-[#191c1e] mb-6">
                 <span class="material-symbols-outlined text-[#0050cb]">photo_library</span>
-                Galeri Foto Kendaraan
+                Foto Kendaraan
               </label>
 
-              <div class="flex flex-col md:flex-row gap-6">
-                <!-- Foto Utama (Besar) -->
-                <div class="flex flex-col gap-2 w-full md:w-1/2 lg:w-2/5">
-                   <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Foto Utama</span>
-                   <div class="aspect-[4/3] rounded-2xl overflow-hidden border border-[#c2c6d8]/40 bg-[#f2f4f6] group shadow-sm">
-                     <img :src="product.image"
-                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                   </div>
-                </div>
-
-                <!-- Foto Sampingan (Kecil-kecil berdampingan) -->
-                <div class="flex flex-row md:flex-col gap-4 w-full md:w-1/2 lg:w-1/4">
-                  <div class="flex flex-col gap-2 flex-1">
-                     <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Tampak Samping/Luar</span>
-                     <div class="aspect-video md:aspect-[4/3] rounded-2xl overflow-hidden border border-[#c2c6d8]/40 bg-[#f2f4f6] group shadow-sm">
-                       <img v-if="product.image_2" :src="product.image_2"
-                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                       <div v-else class="w-full h-full flex items-center justify-center text-[#727687] text-xs font-medium italic">Tidak ada foto</div>
-                     </div>
-                  </div>
-                  <div class="flex flex-col gap-2 flex-1">
-                     <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Detail Interior</span>
-                     <div class="aspect-video md:aspect-[4/3] rounded-2xl overflow-hidden border border-[#c2c6d8]/40 bg-[#f2f4f6] group shadow-sm">
-                       <img v-if="product.image_3" :src="product.image_3"
-                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                       <div v-else class="w-full h-full flex items-center justify-center text-[#727687] text-xs font-medium italic">Tidak ada foto</div>
-                     </div>
-                  </div>
-                </div>
+              <div class="max-w-2xl">
+                 <div class="aspect-[16/9] rounded-2xl overflow-hidden border border-[#c2c6d8]/40 bg-[#f2f4f6] group shadow-sm">
+                   <img :src="product.image"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                 </div>
               </div>
             </div>
 
-            <hr class="border-[#c2c6d8]/40">
+            <hr class="border-[#c2c6d8]/40">0">
 
             <!-- ================= SPESIFIKASI & HARGA ================= -->
             <div class="space-y-8">

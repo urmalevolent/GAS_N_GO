@@ -1,62 +1,69 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import { RouterLink } from 'vue-router'
+import { supabase } from '@/lib/supabase'
 import Show from '@/components/icons/Show.vue' // Komponen untuk menampilkan data detail transaksi (opsional)
 import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
 import Edit from '@/components/icons/Edit.vue' // Komponen untuk mengedit data transaksi (opsional)
 
-
-// --- MOCKUP STATE (Tanpa Backend) ---
 const searchQuery = ref("")
+const products = ref([])
+const isLoading = ref(true)
 
-// Data Dummy Kendaraan GASNGO
-const products = ref([
-  {
-    id: 1,
-    name: 'Porsche Taycan',
-    category_name: 'Elektrik Mewah',
-    brand_name: 'Porsche',
-    status: 'active',
-    is_promotion: 1,
-    price: 1550,
-    discount_price: 1250,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCvD6TQs93A1RrjIH7Rv96GLKfynEZps_hQ-uFhsmuMgmyndxwQJmhDHdy-7M3Hd2995hl9oVrkv4OzRgXF-MDId7BFkbcr2xw3TlJFjgucg5DAW_cpdTpO4fucwfuZm8KirYn3H7rC6A_K7aNiVlOzCpU5TFoiRRIqrjDlSAQgryccot_v9aCsXP4Ro5oMpxgeS37JSIUpW1_syxsr-UfVjthj3LyupQpBMsaBRo_OtQnu53uSNznRtPDkhvKLfrvJD8J8hklnJ6P8'
-  },
-  {
-    id: 2,
-    name: 'BMW M8 Gran Coupe',
-    category_name: 'Sedan Eksekutif',
-    brand_name: 'BMW',
-    status: 'active',
+const normalizeCarForList = (car) => {
+  return {
+    id: car.id,
+    name: car.name,
+    brand_name: car.brand,
+    category_name: car.category,
+    status: car.status === 'inactive' ? 'inactive' : 'active',
     is_promotion: 0,
-    price: 950,
+    price: car.price_per_day,
     discount_price: null,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE'
-  },
-  {
-    id: 3,
-    name: 'Ferrari F8 Tributo',
-    category_name: 'Hypercar',
-    brand_name: 'Ferrari',
-    status: 'inactive',
-    is_promotion: 0,
-    price: 2450,
-    discount_price: null,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp'
-  }
-])
-
-// --- MOCKUP FUNCTIONS ---
-
-// Simulasi Search (Fitur Frontend Filter saja)
-const filterProducts = () => {
-  if (searchQuery.value) {
-    alert(`Mensimulasikan pencarian untuk: ${searchQuery.value}`)
+    image: car.image_url || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2083&auto=format&fit=crop'
   }
 }
 
-// Simulasi Nonaktifkan (Soft Delete)
+const fetchCars = async () => {
+  isLoading.value = true
+  try {
+    const { data, error } = await supabase
+      .from('cars')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    products.value = (data || []).map(normalizeCarForList)
+  } catch (err) {
+    console.error('Error fetching cars:', err)
+    Swal.fire('Error', 'Gagal memuat data armada.', 'error')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchCars()
+})
+
+const filterProducts = async () => {
+  isLoading.value = true
+  try {
+    let query = supabase.from('cars').select('*').order('created_at', { ascending: false })
+    if (searchQuery.value) {
+      query = query.or(`name.ilike.%${searchQuery.value}%,brand.ilike.%${searchQuery.value}%`)
+    }
+    const { data, error } = await query
+    if (error) throw error
+    products.value = (data || []).map(normalizeCarForList)
+  } catch (err) {
+    console.error('Error filtering cars:', err)
+    Swal.fire('Error', 'Gagal menyaring data.', 'error')
+  } finally {
+    isLoading.value = false
+  }
+}
+
 const deleteProduct = (id, name) => {
   Swal.fire({
     title: `Nonaktifkan ${name}?`,
@@ -67,17 +74,27 @@ const deleteProduct = (id, name) => {
     cancelButtonColor: '#0050cb',
     confirmButtonText: 'Ya, Nonaktifkan!',
     cancelButtonText: 'Batal'
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      // Cari produk di array lokal dan ubah statusnya
-      const prod = products.value.find(p => p.id === id)
-      if (prod) prod.status = 'inactive'
-      Swal.fire('Berhasil!', 'Kendaraan telah dinonaktifkan.', 'success')
+      try {
+        const { error } = await supabase
+          .from('cars')
+          .update({ status: 'inactive' })
+          .eq('id', id)
+        if (error) throw error
+        
+        const prod = products.value.find(p => p.id === id)
+        if (prod) prod.status = 'inactive'
+        
+        Swal.fire('Berhasil!', 'Kendaraan telah dinonaktifkan.', 'success')
+      } catch (err) {
+        console.error('Error deactivating car:', err)
+        Swal.fire('Error', 'Gagal menonaktifkan kendaraan.', 'error')
+      }
     }
   })
 }
 
-// Simulasi Aktifkan (Restore)
 const restoreProduct = (id, name) => {
   Swal.fire({
     title: `Aktifkan ${name}?`,
@@ -88,19 +105,30 @@ const restoreProduct = (id, name) => {
     cancelButtonColor: '#0050cb',
     confirmButtonText: 'Ya, Aktifkan!',
     cancelButtonText: 'Batal'
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      const prod = products.value.find(p => p.id === id)
-      if (prod) prod.status = 'active'
-      Swal.fire('Berhasil!', 'Kendaraan sekarang aktif kembali.', 'success')
+      try {
+        const { error } = await supabase
+          .from('cars')
+          .update({ status: 'available' })
+          .eq('id', id)
+        if (error) throw error
+        
+        const prod = products.value.find(p => p.id === id)
+        if (prod) prod.status = 'active'
+        
+        Swal.fire('Berhasil!', 'Kendaraan sekarang aktif kembali.', 'success')
+      } catch (err) {
+        console.error('Error activating car:', err)
+        Swal.fire('Error', 'Gagal mengaktifkan kendaraan.', 'error')
+      }
     }
   })
 }
 
-// Format Mata Uang (USD untuk contoh mewah)
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD', minimumFractionDigits: 0
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(price)
 }
 </script>
@@ -232,15 +260,15 @@ const formatPrice = (price) => {
               <td class="px-6 py-5">
                   <div class="flex gap-2 items-center justify-center">
                       <!-- Tombol Detail (Biru) -->
-                      <button class="w-8 h-8 rounded bg-[#295f98] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Lihat Detail">
+                      <router-link :to="{ name: 'admin-car-detail', params: { id: product.id } }" class="w-8 h-8 rounded bg-[#295f98] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Lihat Detail">
                           <Show class="size-6 text-white" />
-                      </button>
+                      </router-link>
 
                       <template v-if="product.status === 'active'">
                           <!-- Tombol Edit (Kuning/Oren) -->
-                          <button class="w-8 h-8 rounded bg-[#eab308] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Edit Data">
+                          <router-link :to="{ name: 'admin-car-edit', params: { id: product.id } }" class="w-8 h-8 rounded bg-[#eab308] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Edit Data">
                               <Edit class="size-6 text-white" />
-                          </button>
+                          </router-link>
 
                           <!-- Tombol Hapus/Nonaktifkan (Merah) -->
                           <button @click="deleteProduct(product.id, product.name)" class="w-8 h-8 rounded bg-[#d32f2f] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Nonaktifkan">

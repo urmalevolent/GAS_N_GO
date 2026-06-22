@@ -1,9 +1,11 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
+import { useRouter } from 'vue-router'
+import { supabase } from '@/lib/supabase'
 
+const router = useRouter()
 
-// --- MOCKUP STATE (Tanpa Backend) ---
 const form = reactive({
   name: '',
   brand: '',
@@ -14,26 +16,36 @@ const form = reactive({
   description: ''
 })
 
-// State untuk 3 Gambar
+// State untuk Gambar
 const files = reactive({
-  image_1: null,
-  image_2: null,
-  image_3: null
+  image_1: null
 })
 
 const previews = reactive({
-  image_1: null,
-  image_2: null,
-  image_3: null
+  image_1: null
 })
 
 const isLoading = ref(false)
 
-// Data Dummy
-const brands = ref(['Porsche', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Ferrari'])
-const categories = ref(['Sedan Eksekutif', 'SUV Premium', 'Mobil Sport', 'Mobil Listrik'])
+// Data Merek & Kategori dari Database
+const brands = ref(['Porsche', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Ferrari', 'Toyota', 'Honda', 'Mitsubishi'])
+const categories = ref([])
 
-// --- FUNCTIONS ---
+const fetchCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('car_categories')
+      .select('name')
+    if (error) throw error
+    categories.value = data.map(c => c.name)
+  } catch (err) {
+    console.error('Error fetching categories:', err)
+  }
+}
+
+onMounted(() => {
+  fetchCategories()
+})
 
 // Menangani Perubahan File Gambar
 const handleFileChange = (event, key) => {
@@ -44,9 +56,28 @@ const handleFileChange = (event, key) => {
   }
 }
 
-// Simulasi Proses Pembuatan Kendaraan (Mockup Submit)
-const createCar = () => {
-  // Validasi Dummy Sederhana
+// Upload image helper
+const uploadImage = async (file) => {
+  if (!file) return null
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`
+  const { data, error } = await supabase.storage
+    .from('cars')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    })
+  if (error) throw error
+  
+  const { data: { publicUrl } } = supabase.storage
+    .from('cars')
+    .getPublicUrl(fileName)
+    
+  return publicUrl
+}
+
+// Proses Pembuatan Kendaraan ke Supabase
+const createCar = async () => {
   if (!form.name || !form.price || !form.brand || !form.category || !files.image_1) {
     Swal.fire({
       icon: 'warning',
@@ -59,9 +90,28 @@ const createCar = () => {
 
   isLoading.value = true
 
-  // Simulasi delay jaringan (1.5 detik)
-  setTimeout(() => {
-    isLoading.value = false
+  try {
+    // 1. Upload main image to storage
+    const mainImageUrl = await uploadImage(files.image_1)
+    
+    // 2. Insert into cars table
+    const { error } = await supabase
+      .from('cars')
+      .insert({
+        name: form.name,
+        brand: form.brand,
+        category: form.category,
+        transmission: form.type, // Map transmission
+        seats: parseInt(form.seats) || 4,
+        price_per_day: parseInt(form.price), // Map price
+        description: form.description || '',
+        image_url: mainImageUrl,
+        status: 'available', // Default status
+        year: new Date().getFullYear(), // Default year
+        fuel: 'Gasoline' // Default fuel type
+      })
+      
+    if (error) throw error
 
     Swal.fire({
       icon: 'success',
@@ -72,11 +122,13 @@ const createCar = () => {
       timer: 1500
     })
 
-    // Setelah sukses, kembali ke daftar armada (pastikan nama route ini benar di router Anda)
-    // router.push({ name: 'admin-products' })
-    alert('Simulasi Sukses! Kembali ke halaman daftar mobil.')
-
-  }, 1500)
+    router.push({ name: 'admin-cars-list' })
+  } catch (err) {
+    console.error('Error creating car:', err)
+    Swal.fire('Error', 'Gagal menambahkan kendaraan. ' + err.message, 'error')
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
@@ -113,38 +165,6 @@ const createCar = () => {
                     <div v-else class="flex flex-col items-center p-2 text-center group-hover:scale-105 transition-transform">
                         <span class="material-symbols-outlined text-2xl text-[#0050cb] mb-1">add_a_photo</span>
                         <span class="text-[10px] font-bold text-[#0050cb]">Unggah<br>Utama</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Foto 2 (Samping) -->
-                <div class="flex flex-col gap-2">
-                   <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Tampak Samping</span>
-                   <div
-                    class="w-32 h-32 md:w-40 md:h-40 border-2 border-dashed border-[#c2c6d8] rounded-2xl bg-[#f2f4f6] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden relative group"
-                    @click="$refs.inputImage2.click()"
-                  >
-                    <input type="file" ref="inputImage2" class="hidden" accept="image/*" @change="(e) => handleFileChange(e, 'image_2')" />
-                    <img v-if="previews.image_2" :src="previews.image_2" class="absolute inset-0 w-full h-full object-cover" />
-                    <div v-else class="flex flex-col items-center p-2 text-center group-hover:scale-105 transition-transform">
-                        <span class="material-symbols-outlined text-2xl text-[#727687] mb-1">add_a_photo</span>
-                        <span class="text-[10px] font-bold text-[#727687]">Unggah<br>Samping</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Foto 3 (Interior) -->
-                <div class="flex flex-col gap-2">
-                   <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Detail Interior</span>
-                   <div
-                    class="w-32 h-32 md:w-40 md:h-40 border-2 border-dashed border-[#c2c6d8] rounded-2xl bg-[#f2f4f6] flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden relative group"
-                    @click="$refs.inputImage3.click()"
-                  >
-                    <input type="file" ref="inputImage3" class="hidden" accept="image/*" @change="(e) => handleFileChange(e, 'image_3')" />
-                    <img v-if="previews.image_3" :src="previews.image_3" class="absolute inset-0 w-full h-full object-cover" />
-                    <div v-else class="flex flex-col items-center p-2 text-center group-hover:scale-105 transition-transform">
-                        <span class="material-symbols-outlined text-2xl text-[#727687] mb-1">add_a_photo</span>
-                        <span class="text-[10px] font-bold text-[#727687]">Unggah<br>Interior</span>
                     </div>
                   </div>
                 </div>
@@ -215,10 +235,10 @@ const createCar = () => {
 
                 <!-- Harga Sewa Harian -->
                 <div>
-                  <label class="block text-sm font-bold text-[#191c1e] mb-2">Tarif Sewa Harian (USD/IDR) <span class="text-[#ba1a1a]">*</span></label>
+                  <label class="block text-sm font-bold text-[#191c1e] mb-2">Tarif Sewa Harian (Rupiah) <span class="text-[#ba1a1a]">*</span></label>
                   <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#727687]">$</span>
-                    <input v-model="form.price" type="number" class="w-full pl-8 pr-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="Cth: 1250">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#727687]">Rp</span>
+                    <input v-model="form.price" type="number" class="w-full pl-10 pr-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="Cth: 500000">
                   </div>
                 </div>
 
@@ -239,7 +259,7 @@ const createCar = () => {
               </button>
 
               <!-- Pastikan router-link ini mengarah kembali ke tabel armada -->
-              <router-link to="/admin/products" class="w-full sm:w-auto bg-white text-[#424656] font-bold text-sm uppercase tracking-widest px-8 py-4 border border-[#c2c6d8] rounded-xl hover:bg-[#f2f4f6] transition-all text-center">
+              <router-link to="/admin/cars" class="w-full sm:w-auto bg-white text-[#424656] font-bold text-sm uppercase tracking-widest px-8 py-4 border border-[#c2c6d8] rounded-xl hover:bg-[#f2f4f6] transition-all text-center">
                 Batal
               </router-link>
             </div>

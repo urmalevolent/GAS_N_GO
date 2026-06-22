@@ -5,22 +5,16 @@ dotenv.config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
-const targetId = 'db27c405-e0d5-4841-89d6-85fe72b7c666';
-
 async function run() {
-  console.log("Fetching detailed tables structure...");
+  console.log("Fetching detailed cars table structure...");
   
-  const { data: rental } = await supabase.from('rentals').select('*').eq('id', targetId).single();
-  const { data: details } = await supabase.from('rental_details').select('*').eq('rental_id', targetId).single();
-  const { data: payment } = await supabase.from('rental_payments').select('*').eq('rental_id', targetId).single();
-
-  console.log("Rental keys:", Object.keys(rental || {}));
-  console.log("Rental details keys:", Object.keys(details || {}));
-  console.log("Rental payments keys:", Object.keys(payment || {}));
-  
-  console.log("Rental record:", JSON.stringify(rental, null, 2));
-  console.log("Rental details record:", JSON.stringify(details, null, 2));
-  console.log("Rental payments record:", JSON.stringify(payment, null, 2));
+  const { data: cars, error } = await supabase.from('cars').select('*').limit(1);
+  if (error) {
+    console.error("Error fetching cars:", error);
+  } else {
+    console.log("Car record:", JSON.stringify(cars[0], null, 2));
+    console.log("Car keys:", Object.keys(cars[0] || {}));
+  }
 }
 
 run();
