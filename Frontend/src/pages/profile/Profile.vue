@@ -1,36 +1,262 @@
 <script setup>
-import { reactive, onMounted, onUpdated } from "vue";
+import { reactive, ref, onMounted, onUpdated, watch } from "vue";
 import Swal from 'sweetalert2';
 import AOS from "aos";
 import "aos/dist/aos.css";
 
+import { useAuthStore } from "@/stores/auth";
+import { supabase } from "@/lib/supabase";
 import defaultAvatar from "@/assets/images/user_profile/default-avatar.png";
 
-// --- DATA STATIS MURNI UNTUK DESAIN ---
+const authStore = useAuthStore();
+const isLoading = ref(false);
+
 const profile = reactive({
-  username: "Sultan Andara",
-  email: "sultan.andara@executive.com",
-  phone: "081234567890",
-  address: "Kawasan Elit Pondok Indah, Jakarta Selatan",
+  username: "",
+  email: "",
+  phone: "",
   image: defaultAvatar,
 });
 
-// Simulasi Simpan Profil
-const saveProfileSettings = () => {
-  Swal.fire({
-    icon: 'success',
-    title: 'Berhasil!',
-    text: 'Profil Anda telah diperbarui.',
-    showConfirmButton: false,
-    timer: 1500,
-    iconColor: '#0050cb'
+const loadUserProfile = () => {
+  if (authStore.user) {
+    profile.username = authStore.user.full_name || authStore.user.email.split('@')[0];
+    profile.email = authStore.user.email || '';
+    profile.phone = authStore.user.phone_number || '';
+    profile.image = authStore.user.avatar_url || authStore.user.user_metadata?.avatar_url || authStore.user.image_url || defaultAvatar;
+  }
+};
+
+// Helper to compress and resize image to Base64 (max 150x150px)
+const compressAndResizeImage = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 150;
+        const MAX_HEIGHT = 150;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
   });
 };
 
-// --- LIFECYCLE ---
-onMounted(() => {
-  AOS.init({ once: true, duration: 1000, easing: "ease-out-quart" });
+// Handlers for avatar upload
+const handleAvatarChange = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const originalImage = profile.image;
+  isLoading.value = true;
+
+  try {
+    // Compress image to Base64
+    const base64Image = await compressAndResizeImage(file);
+    profile.image = base64Image;
+
+    // Update user_metadata in Supabase Auth directly
+    const { error: authError } = await supabase.auth.updateUser({
+      data: {
+        avatar_url: base64Image
+      }
+    });
+    if (authError) throw authError;
+
+    // Refresh Pinia store
+    await authStore.fetchUserProfile(authStore.user.id, authStore.user.email);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'Foto profil Anda telah diperbarui.',
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true
+    });
+  } catch (err) {
+    console.error('Error uploading avatar:', err);
+    profile.image = originalImage;
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal memperbarui foto profil',
+      text: err.message,
+      confirmButtonColor: '#0050cb'
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const saveProfileSettings = async () => {
+  if (!profile.username || !profile.username.trim()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Data tidak lengkap',
+      text: 'Nama Lengkap wajib diisi.',
+      confirmButtonColor: '#0050cb'
+    });
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    const userId = authStore.user.id;
+
+    // 1. Update profiles table (full_name, phone_number)
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        full_name: profile.username,
+        phone_number: profile.phone
+      })
+      .eq('id', userId);
+
+    if (profileError) throw profileError;
+
+    // 2. Update user_metadata in Supabase Auth
+    const { error: authError } = await supabase.auth.updateUser({
+      data: {
+        full_name: profile.username,
+        phone_number: profile.phone
+      }
+    });
+
+    if (authError) throw authError;
+
+    // 3. Refresh user profile in Pinia store
+    await authStore.fetchUserProfile(userId, authStore.user.email);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'Profil Anda telah diperbarui.',
+      showConfirmButton: false,
+      timer: 1500,
+      iconColor: '#0050cb'
+    });
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal memperbarui profil',
+      text: err.message,
+      confirmButtonColor: '#0050cb'
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const passwordForm = reactive({
+  newPassword: "",
+  confirmPassword: "",
 });
+const isChangingPassword = ref(false);
+
+const updatePassword = async () => {
+  if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Data tidak lengkap',
+      text: 'Semua kolom kata sandi wajib diisi.',
+      confirmButtonColor: '#0050cb'
+    });
+    return;
+  }
+
+  if (passwordForm.newPassword.length < 6) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Kata sandi lemah',
+      text: 'Kata sandi minimal harus terdiri dari 6 karakter.',
+      confirmButtonColor: '#0050cb'
+    });
+    return;
+  }
+
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Kesalahan Konfirmasi',
+      text: 'Konfirmasi kata sandi baru tidak cocok.',
+      confirmButtonColor: '#0050cb'
+    });
+    return;
+  }
+
+  isChangingPassword.value = true;
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: passwordForm.newPassword
+    });
+
+    if (error) throw error;
+
+    passwordForm.newPassword = "";
+    passwordForm.confirmPassword = "";
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'Kata sandi Anda telah diperbarui.',
+      showConfirmButton: false,
+      timer: 1500,
+      iconColor: '#0050cb'
+    });
+  } catch (err) {
+    console.error('Error updating password:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal memperbarui kata sandi',
+      text: err.message,
+      confirmButtonColor: '#0050cb'
+    });
+  } finally {
+    isChangingPassword.value = false;
+  }
+};
+
+// --- LIFECYCLE ---
+onMounted(async () => {
+  AOS.init({ once: true, duration: 1000, easing: "ease-out-quart" });
+  if (!authStore.initialized) {
+    await authStore.initialize();
+  }
+  loadUserProfile();
+});
+
+watch(() => authStore.user, () => {
+  loadUserProfile();
+}, { deep: true });
 
 onUpdated(() => {
   AOS.refresh();
@@ -67,7 +293,13 @@ onUpdated(() => {
           </div>
 
           <!-- Input File (Transparan menutupi seluruh gambar) -->
-          <input type="file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+          <input
+            type="file"
+            accept="image/*"
+            @change="handleAvatarChange"
+            :disabled="isLoading"
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+          />
         </div>
 
         <p class="mt-5 text-xs md:text-sm text-[#727687] font-bold uppercase tracking-widest" data-aos="fade-up" data-aos-delay="200">
@@ -112,7 +344,8 @@ onUpdated(() => {
               <input
                 v-model="profile.username"
                 type="text"
-                class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 md:py-4 focus:ring-2 focus:ring-[#0050cb]/30 focus:border-[#0050cb] outline-none transition-all duration-300 font-medium text-[#191c1e] text-sm hover:border-gray-300"
+                :disabled="isLoading"
+                class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 md:py-4 focus:ring-2 focus:ring-[#0050cb]/30 focus:border-[#0050cb] outline-none transition-all duration-300 font-medium text-[#191c1e] text-sm hover:border-gray-300 disabled:opacity-50 disabled:bg-gray-50"
               />
             </div>
 
@@ -123,19 +356,9 @@ onUpdated(() => {
                 v-model="profile.phone"
                 type="tel"
                 placeholder="08..."
-                class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 md:py-4 focus:ring-2 focus:ring-[#0050cb]/30 focus:border-[#0050cb] outline-none transition-all duration-300 font-medium text-[#191c1e] text-sm hover:border-gray-300"
+                :disabled="isLoading"
+                class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 md:py-4 focus:ring-2 focus:ring-[#0050cb]/30 focus:border-[#0050cb] outline-none transition-all duration-300 font-medium text-[#191c1e] text-sm hover:border-gray-300 disabled:opacity-50 disabled:bg-gray-50"
               />
-            </div>
-
-            <!-- Address -->
-            <div class="md:col-span-2">
-              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Alamat Domisili</label>
-              <textarea
-                v-model="profile.address"
-                rows="3"
-                placeholder="Masukkan alamat lengkap..."
-                class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 md:py-4 focus:ring-2 focus:ring-[#0050cb]/30 focus:border-[#0050cb] outline-none transition-all duration-300 font-medium text-[#191c1e] text-sm hover:border-gray-300 resize-none"
-              ></textarea>
             </div>
           </div>
 
@@ -143,15 +366,71 @@ onUpdated(() => {
           <div class="mt-10 flex flex-col sm:flex-row justify-end gap-4">
             <button
               type="button"
-              class="w-full sm:w-auto rounded-xl bg-white border border-gray-200 px-8 py-3.5 md:py-4 text-xs md:text-sm font-bold text-[#424656] transition-all hover:bg-gray-50 active:scale-95 uppercase tracking-widest"
+              @click="loadUserProfile"
+              :disabled="isLoading"
+              class="w-full sm:w-auto rounded-xl bg-white border border-gray-200 px-8 py-3.5 md:py-4 text-xs md:text-sm font-bold text-[#424656] transition-all hover:bg-gray-50 active:scale-95 uppercase tracking-widest disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
-              class="w-full sm:w-auto relative overflow-hidden rounded-xl signature-gradient px-8 py-3.5 md:py-4 text-xs md:text-sm font-bold text-white shadow-lg shadow-[#0050cb]/20 transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest"
+              :disabled="isLoading"
+              class="w-full sm:w-auto relative overflow-hidden rounded-xl signature-gradient px-8 py-3.5 md:py-4 text-xs md:text-sm font-bold text-white shadow-lg shadow-[#0050cb]/20 transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Simpan Perubahan
+              <span v-if="isLoading" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
+              {{ isLoading ? 'Menyimpan...' : 'Simpan Perubahan' }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ================= AREA UBAH KATA SANDI ================= -->
+      <section
+        class="bg-white border border-gray-100 rounded-2xl p-6 md:p-8 shadow-sm"
+        data-aos="fade-up"
+        data-aos-delay="400"
+      >
+        <form @submit.prevent="updatePassword">
+          <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+            <h2 class="text-lg md:text-xl font-extrabold text-[#191c1e]">Ubah Kata Sandi</h2>
+            <span class="bg-[#ba1a1a]/10 text-[#ba1a1a] text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-[#ba1a1a]/20">Keamanan</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <!-- Password Baru -->
+            <div>
+              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Kata Sandi Baru</label>
+              <input
+                v-model="passwordForm.newPassword"
+                type="password"
+                placeholder="••••••••"
+                :disabled="isChangingPassword"
+                class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 md:py-4 focus:ring-2 focus:ring-[#0050cb]/30 focus:border-[#0050cb] outline-none transition-all duration-300 font-medium text-[#191c1e] text-sm hover:border-gray-300 disabled:opacity-50 disabled:bg-gray-50"
+              />
+            </div>
+
+            <!-- Konfirmasi Password -->
+            <div>
+              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Konfirmasi Kata Sandi Baru</label>
+              <input
+                v-model="passwordForm.confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                :disabled="isChangingPassword"
+                class="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 md:py-4 focus:ring-2 focus:ring-[#0050cb]/30 focus:border-[#0050cb] outline-none transition-all duration-300 font-medium text-[#191c1e] text-sm hover:border-gray-300 disabled:opacity-50 disabled:bg-gray-50"
+              />
+            </div>
+          </div>
+
+          <!-- Tombol Simpan -->
+          <div class="mt-10 flex justify-end">
+            <button
+              type="submit"
+              :disabled="isChangingPassword"
+              class="w-full sm:w-auto relative overflow-hidden rounded-xl signature-gradient px-8 py-3.5 md:py-4 text-xs md:text-sm font-bold text-white shadow-lg shadow-[#0050cb]/20 transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <span v-if="isChangingPassword" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
+              {{ isChangingPassword ? 'Memperbarui...' : 'Perbarui Kata Sandi' }}
             </button>
           </div>
         </form>

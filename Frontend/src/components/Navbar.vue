@@ -27,7 +27,7 @@ const currentUser = computed(() => {
     username: authStore.user.full_name || authStore.user.email.split('@')[0],
     email: authStore.user.email,
     role: authStore.user.role,
-    avatar: ''
+    avatar: authStore.user.avatar_url || authStore.user.image_url || ''
   }
 })
 

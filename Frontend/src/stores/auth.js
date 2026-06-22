@@ -54,9 +54,18 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = false
   }
 
+
   // Mengambil atau membuat profil pengguna di tabel public.profiles
-  async function fetchUserProfile(userId, email, metadata = {}) {
+  async function fetchUserProfile(userId, email, metadata = null) {
     try {
+      let userMetadata = metadata;
+      if (!userMetadata || Object.keys(userMetadata).length === 0) {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        userMetadata = currentUser?.user_metadata || {};
+      }
+
+      const avatar = userMetadata?.avatar_url || userMetadata?.image_url || null;
+
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -64,31 +73,30 @@ export const useAuthStore = defineStore('auth', () => {
         .single()
 
       if (error) {
-        // Jika data profil belum ada di public.profiles (PGRST116: no rows returned)
         if (error.code === 'PGRST116') {
           const { data: newProfile, error: insertError } = await supabase
             .from('profiles')
             .insert({
               id: userId,
-              full_name: metadata?.full_name || email.split('@')[0],
-              phone_number: metadata?.phone_number || '',
-              role: metadata?.role || 'customer'
+              full_name: userMetadata?.full_name || email.split('@')[0],
+              phone_number: userMetadata?.phone_number || '',
+              role: userMetadata?.role || 'customer'
             })
             .select()
             .single()
 
           if (!insertError) {
-            user.value = { id: userId, email, ...newProfile }
+            user.value = { id: userId, email, avatar_url: avatar, image_url: avatar, ...newProfile }
           } else {
             console.error('Gagal menyisipkan profil baru:', insertError)
-            user.value = { id: userId, email, role: 'customer', full_name: email.split('@')[0] }
+            user.value = { id: userId, email, role: 'customer', full_name: email.split('@')[0], avatar_url: avatar, image_url: avatar }
           }
         } else {
           console.error('Gagal mengambil profil:', error)
-          user.value = { id: userId, email, role: 'customer', full_name: email.split('@')[0] }
+          user.value = { id: userId, email, role: 'customer', full_name: email.split('@')[0], avatar_url: avatar, image_url: avatar }
         }
       } else {
-        user.value = { id: userId, email, ...profile }
+        user.value = { id: userId, email, avatar_url: avatar, image_url: avatar, ...profile }
       }
     } catch (e) {
       console.error('Terjadi kesalahan tak terduga saat memuat profil:', e)
@@ -96,7 +104,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Masuk (Sign In)
   async function signIn(email, password) {
     loading.value = true
     try {
