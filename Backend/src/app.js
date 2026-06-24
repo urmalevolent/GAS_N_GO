@@ -3,6 +3,9 @@ import cors from 'cors';
 import morgan from 'morgan';
 import authRoutes from './routes/customer/auth.js';
 import bookingRoutes from './routes/customer/booking.js';
+import carRoutes from './routes/customer/car.js';
+import categoryRoutes from './routes/customer/category.js';
+import carAdminRoutes from './routes/admin/car.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -31,6 +34,9 @@ app.get('/api', (req, res) => {
 // --- ROUTES ---
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/cars', carRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/admin/cars', carAdminRoutes);
 
 // --- 404 NOT FOUND HANDLER ---
 app.use((req, res, next) => {

@@ -3,10 +3,12 @@ import { reactive, ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
 import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
 const router = useRouter();
 const carId = route.params.id;
+const authStore = useAuthStore();
 
 const form = reactive({
   name: '',
@@ -31,11 +33,10 @@ const isLoading = ref(false);
 
 const fetchCategories = async () => {
   try {
-    const { data, error } = await supabase
-      .from('car_categories')
-      .select('name');
-    if (error) throw error;
-    categories.value = data.map(c => c.name);
+    const response = await fetch('http://localhost:5000/api/categories');
+    const resData = await response.json();
+    if (!response.ok || !resData.success) throw new Error(resData.message);
+    categories.value = (resData.data || []).map(c => c.name);
   } catch (err) {
     console.error('Error fetching categories:', err);
   }
@@ -44,12 +45,10 @@ const fetchCategories = async () => {
 const fetchCarDetails = async () => {
   isLoading.value = true;
   try {
-    const { data, error } = await supabase
-      .from('cars')
-      .select('*')
-      .eq('id', carId)
-      .single();
-    if (error) throw error;
+    const response = await fetch(`http://localhost:5000/api/cars/${carId}`);
+    const resData = await response.json();
+    if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal memuat detail kendaraan.');
+    const data = resData.data;
     
     form.name = data.name;
     form.brand = data.brand;
@@ -62,7 +61,7 @@ const fetchCarDetails = async () => {
     previews.image_1 = data.image_url;
   } catch (err) {
     console.error('Error fetching car:', err);
-    Swal.fire('Error', 'Gagal memuat detail kendaraan.', 'error');
+    Swal.fire('Error', err.message || 'Gagal memuat detail kendaraan.', 'error');
   } finally {
     isLoading.value = false;
   }
@@ -102,7 +101,7 @@ const uploadImage = async (file) => {
   return publicUrl;
 };
 
-// Proses Update Produk ke Database
+// Proses Update Produk ke Database via Backend API
 const updateCar = async () => {
   isLoading.value = true;
   try {
@@ -111,9 +110,14 @@ const updateCar = async () => {
       mainImageUrl = await uploadImage(files.image_1);
     }
     
-    const { error } = await supabase
-      .from('cars')
-      .update({
+    const token = authStore.session?.access_token;
+    const response = await fetch(`http://localhost:5000/api/admin/cars/${carId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
         name: form.name,
         brand: form.brand,
         category: form.category,
@@ -123,9 +127,10 @@ const updateCar = async () => {
         description: form.description || '',
         image_url: mainImageUrl
       })
-      .eq('id', carId);
-      
-    if (error) throw error;
+    });
+
+    const resData = await response.json();
+    if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal memperbarui data kendaraan.');
     
     Swal.fire({
       icon: 'success',
@@ -139,12 +144,11 @@ const updateCar = async () => {
     router.push({ name: 'admin-cars-list' });
   } catch (err) {
     console.error('Error updating car:', err);
-    Swal.fire('Error', 'Gagal memperbarui data kendaraan.', 'error');
+    Swal.fire('Error', err.message || 'Gagal memperbarui data kendaraan.', 'error');
   } finally {
     isLoading.value = false;
   }
 };
-
 </script>
 
 <template>

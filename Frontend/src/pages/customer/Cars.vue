@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { supabase } from '@/lib/supabase'
 
 // IMPORT KOMPONEN MODAL
 import CarDetailModal from '@/pages/customer/CarDetail.vue'
@@ -39,24 +38,22 @@ const normalizeCar = (car) => {
   }
 }
 
-// --- FETCH DATA FROM SUPABASE ---
+// --- FETCH DATA FROM BACKEND API ---
 const fetchCarsAndCategories = async () => {
   isLoading.value = true
   errorMsg.value = ''
   try {
-    // 1. Ambil kategori dari car_categories
-    const { data: catData, error: catError } = await supabase
-      .from('car_categories')
-      .select('*')
-    if (catError) throw catError
-    categories.value = catData || []
+    // 1. Ambil kategori dari API backend
+    const catResponse = await fetch('http://localhost:5000/api/categories')
+    const catData = await catResponse.json()
+    if (!catResponse.ok || !catData.success) throw new Error(catData.message || 'Gagal memuat kategori.')
+    categories.value = catData.data || []
 
-    // 2. Ambil data mobil dari cars
-    const { data: carsData, error: carsError } = await supabase
-      .from('cars')
-      .select('*')
-    if (carsError) throw carsError
-    allCars.value = (carsData || []).map(normalizeCar)
+    // 2. Ambil data mobil dari API backend
+    const carsResponse = await fetch('http://localhost:5000/api/cars')
+    const carsData = await carsResponse.json()
+    if (!carsResponse.ok || !carsData.success) throw new Error(carsData.message || 'Gagal memuat mobil.')
+    allCars.value = (carsData.data || []).map(normalizeCar)
 
     // Set slider harga maksimal berdasarkan harga tertinggi di database
     if (allCars.value.length > 0) {
@@ -66,7 +63,7 @@ const fetchCarsAndCategories = async () => {
     }
   } catch (err) {
     console.error('Error fetching cars page data:', err)
-    errorMsg.value = 'Gagal memuat data armada. Silakan coba lagi.'
+    errorMsg.value = err.message || 'Gagal memuat data armada. Silakan coba lagi.'
   } finally {
     isLoading.value = false
   }

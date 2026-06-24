@@ -1,11 +1,11 @@
 import express from 'express';
 import { requireAuth } from '../../middleware/auth.js';
+import { createBooking } from '../../controllers/customer/bookingController.js';
 import {
-  createBooking,
   getRetryPaymentToken,
   confirmPayment,
   handleNotification
-} from '../../controllers/customer/bookingController.js';
+} from '../../controllers/customer/paymentController.js';
 
 const router = express.Router();
 

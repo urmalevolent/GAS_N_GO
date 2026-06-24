@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { supabase } from '@/lib/supabase';
 import Swal from 'sweetalert2';
 
 const route = useRoute();
@@ -12,12 +11,10 @@ const product = ref(null);
 const fetchCarDetails = async () => {
   isLoading.value = true;
   try {
-    const { data, error } = await supabase
-      .from('cars')
-      .select('*')
-      .eq('id', carId)
-      .single();
-    if (error) throw error;
+    const response = await fetch(`http://localhost:5000/api/cars/${carId}`);
+    const resData = await response.json();
+    if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal memuat detail kendaraan.');
+    const data = resData.data;
     
     product.value = {
       id: data.id,
@@ -37,7 +34,7 @@ const fetchCarDetails = async () => {
     };
   } catch (err) {
     console.error('Error fetching car details:', err);
-    Swal.fire('Error', 'Gagal memuat detail kendaraan.', 'error');
+    Swal.fire('Error', err.message || 'Gagal memuat detail kendaraan.', 'error');
   } finally {
     isLoading.value = false;
   }

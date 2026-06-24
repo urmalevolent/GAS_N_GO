@@ -2,11 +2,12 @@
 import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import { RouterLink } from 'vue-router'
-import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 import Show from '@/components/icons/Show.vue' // Komponen untuk menampilkan data detail transaksi (opsional)
 import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
 import Edit from '@/components/icons/Edit.vue' // Komponen untuk mengedit data transaksi (opsional)
 
+const authStore = useAuthStore()
 const searchQuery = ref("")
 const products = ref([])
 const isLoading = ref(true)
@@ -28,15 +29,18 @@ const normalizeCarForList = (car) => {
 const fetchCars = async () => {
   isLoading.value = true
   try {
-    const { data, error } = await supabase
-      .from('cars')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    products.value = (data || []).map(normalizeCarForList)
+    const token = authStore.session?.access_token
+    const response = await fetch('http://localhost:5000/api/admin/cars', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    const resData = await response.json()
+    if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal memuat data armada.')
+    products.value = (resData.data || []).map(normalizeCarForList)
   } catch (err) {
     console.error('Error fetching cars:', err)
-    Swal.fire('Error', 'Gagal memuat data armada.', 'error')
+    Swal.fire('Error', err.message || 'Gagal memuat data armada.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -49,16 +53,27 @@ onMounted(() => {
 const filterProducts = async () => {
   isLoading.value = true
   try {
-    let query = supabase.from('cars').select('*').order('created_at', { ascending: false })
+    const token = authStore.session?.access_token
+    const response = await fetch('http://localhost:5000/api/admin/cars', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    const resData = await response.json()
+    if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal menyaring data.')
+    
+    let list = resData.data || []
     if (searchQuery.value) {
-      query = query.or(`name.ilike.%${searchQuery.value}%,brand.ilike.%${searchQuery.value}%`)
+      const query = searchQuery.value.toLowerCase()
+      list = list.filter(c => 
+        (c.name || '').toLowerCase().includes(query) || 
+        (c.brand || '').toLowerCase().includes(query)
+      )
     }
-    const { data, error } = await query
-    if (error) throw error
-    products.value = (data || []).map(normalizeCarForList)
+    products.value = list.map(normalizeCarForList)
   } catch (err) {
     console.error('Error filtering cars:', err)
-    Swal.fire('Error', 'Gagal menyaring data.', 'error')
+    Swal.fire('Error', err.message || 'Gagal menyaring data.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -77,11 +92,15 @@ const deleteProduct = (id, name) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const { error } = await supabase
-          .from('cars')
-          .update({ status: 'inactive' })
-          .eq('id', id)
-        if (error) throw error
+        const token = authStore.session?.access_token
+        const response = await fetch(`http://localhost:5000/api/admin/cars/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const resData = await response.json()
+        if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal menonaktifkan kendaraan.')
         
         const prod = products.value.find(p => p.id === id)
         if (prod) prod.status = 'inactive'
@@ -89,7 +108,7 @@ const deleteProduct = (id, name) => {
         Swal.fire('Berhasil!', 'Kendaraan telah dinonaktifkan.', 'success')
       } catch (err) {
         console.error('Error deactivating car:', err)
-        Swal.fire('Error', 'Gagal menonaktifkan kendaraan.', 'error')
+        Swal.fire('Error', err.message || 'Gagal menonaktifkan kendaraan.', 'error')
       }
     }
   })
@@ -108,11 +127,15 @@ const restoreProduct = (id, name) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const { error } = await supabase
-          .from('cars')
-          .update({ status: 'available' })
-          .eq('id', id)
-        if (error) throw error
+        const token = authStore.session?.access_token
+        const response = await fetch(`http://localhost:5000/api/admin/cars/${id}/restore`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const resData = await response.json()
+        if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal mengaktifkan kendaraan.')
         
         const prod = products.value.find(p => p.id === id)
         if (prod) prod.status = 'active'
@@ -120,7 +143,7 @@ const restoreProduct = (id, name) => {
         Swal.fire('Berhasil!', 'Kendaraan sekarang aktif kembali.', 'success')
       } catch (err) {
         console.error('Error activating car:', err)
-        Swal.fire('Error', 'Gagal mengaktifkan kendaraan.', 'error')
+        Swal.fire('Error', err.message || 'Gagal mengaktifkan kendaraan.', 'error')
       }
     }
   })

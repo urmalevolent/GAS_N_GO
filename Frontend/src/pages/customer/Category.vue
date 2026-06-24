@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { supabase } from '@/lib/supabase'
 import BookingModal from '@/pages/customer/Booking.vue'
 
 // --- VISUAL DETAILS MAP FOR CATEGORIES ---
@@ -85,29 +84,25 @@ const openBooking = (car) => {
   isBookingOpen.value = true
 }
 
-// Fetch data dari database Supabase
+// Fetch data dari database via API backend
 const fetchDatabaseData = async () => {
   isLoading.value = true
   errorMsg.value = ''
   try {
-    // 1. Ambil data kategori dari tabel 'car_categories'
-    const { data: categoriesData, error: catError } = await supabase
-      .from('car_categories')
-      .select('*')
+    // 1. Ambil data kategori dari API backend
+    const catResponse = await fetch('http://localhost:5000/api/categories')
+    const catData = await catResponse.json()
+    if (!catResponse.ok || !catData.success) throw new Error(catData.message || 'Gagal memuat kategori.')
     
-    if (catError) throw catError
+    // 2. Ambil data semua mobil dari API backend
+    const carsResponse = await fetch('http://localhost:5000/api/cars')
+    const carsData = await carsResponse.json()
+    if (!carsResponse.ok || !carsData.success) throw new Error(carsData.message || 'Gagal memuat armada.')
     
-    // 2. Ambil data semua mobil dari tabel 'cars'
-    const { data: carsData, error: carsError } = await supabase
-      .from('cars')
-      .select('*')
+    allCars.value = carsData.data || []
     
-    if (carsError) throw carsError
-    
-    allCars.value = carsData || []
-    
-    // 3. Format ke array kategori memakai data asli dari tabel 'car_categories'
-    categories.value = (categoriesData || []).map((cat, index) => {
+    // 3. Format ke array kategori memakai data asli dari API
+    categories.value = (catData.data || []).map((cat, index) => {
       return {
         id: cat.id || index + 1,
         name: cat.name,
@@ -117,7 +112,7 @@ const fetchDatabaseData = async () => {
     })
   } catch (err) {
     console.error('Error fetching data:', err)
-    errorMsg.value = 'Gagal memuat kategori dari database. Coba lagi nanti.'
+    errorMsg.value = err.message || 'Gagal memuat kategori dari database. Coba lagi nanti.'
   } finally {
     isLoading.value = false
   }

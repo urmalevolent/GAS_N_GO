@@ -3,8 +3,10 @@ import { reactive, ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const form = reactive({
   name: '',
@@ -33,11 +35,10 @@ const categories = ref([])
 
 const fetchCategories = async () => {
   try {
-    const { data, error } = await supabase
-      .from('car_categories')
-      .select('name')
-    if (error) throw error
-    categories.value = data.map(c => c.name)
+    const response = await fetch('http://localhost:5000/api/categories')
+    const resData = await response.json()
+    if (!response.ok || !resData.success) throw new Error(resData.message)
+    categories.value = (resData.data || []).map(c => c.name)
   } catch (err) {
     console.error('Error fetching categories:', err)
   }
@@ -76,7 +77,7 @@ const uploadImage = async (file) => {
   return publicUrl
 }
 
-// Proses Pembuatan Kendaraan ke Supabase
+// Proses Pembuatan Kendaraan ke Supabase via Backend API
 const createCar = async () => {
   if (!form.name || !form.price || !form.brand || !form.category || !files.image_1) {
     Swal.fire({
@@ -94,24 +95,30 @@ const createCar = async () => {
     // 1. Upload main image to storage
     const mainImageUrl = await uploadImage(files.image_1)
     
-    // 2. Insert into cars table
-    const { error } = await supabase
-      .from('cars')
-      .insert({
+    // 2. Insert into cars table via backend API
+    const token = authStore.session?.access_token
+    const response = await fetch('http://localhost:5000/api/admin/cars', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
         name: form.name,
         brand: form.brand,
         category: form.category,
-        transmission: form.type, // Map transmission
+        transmission: form.type,
         seats: parseInt(form.seats) || 4,
-        price_per_day: parseInt(form.price), // Map price
+        price_per_day: parseInt(form.price),
         description: form.description || '',
-        image_url: mainImageUrl,
-        status: 'available', // Default status
-        year: new Date().getFullYear(), // Default year
-        fuel: 'Gasoline' // Default fuel type
+        image_url: mainImageUrl
       })
-      
-    if (error) throw error
+    })
+
+    const resData = await response.json()
+    if (!response.ok || !resData.success) {
+      throw new Error(resData.message || 'Gagal menambahkan kendaraan.')
+    }
 
     Swal.fire({
       icon: 'success',
