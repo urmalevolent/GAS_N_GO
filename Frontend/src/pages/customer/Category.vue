@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
-import BookingModal from '@/pages/Booking.vue'
+import BookingModal from '@/pages/customer/Booking.vue'
 
 // --- VISUAL DETAILS MAP FOR CATEGORIES ---
 const categoryDetailsMap = {

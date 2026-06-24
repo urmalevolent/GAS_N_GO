@@ -7,17 +7,17 @@ import AdminLayout from '@/layouts/AdminLayout.vue'
 import UserLayout from '@/layouts/UserLayout.vue'
 
 // ================= PAGES PUBLIC =================
-import HomePage from '../pages/Home.vue'
-import CategoryPage from '../pages/Category.vue'
-import AboutPage from '../pages/About.vue'
-import CarsPage from '../pages/Cars.vue'
-import CarDetailPage from '../pages/CarDetail.vue'
-import BookingPage from '@/pages/Booking.vue'
+import HomePage from '../pages/customer/Home.vue'
+import CategoryPage from '../pages/customer/Category.vue'
+import AboutPage from '../pages/customer/About.vue'
+import CarsPage from '../pages/customer/Cars.vue'
+import CarDetailPage from '../pages/customer/CarDetail.vue'
+import BookingPage from '@/pages/customer/Booking.vue'
 
 // ================= PAGES USER PROFILE =================
-import ProfilePage from '@/pages/profile/Profile.vue'
-import ReviewPage from '@/pages/profile/Review.vue'
-import MyOrdersPage from '@/pages/profile/MyOrders.vue'
+import ProfilePage from '@/pages/customer/profile/Profile.vue'
+import ReviewPage from '@/pages/customer/profile/Review.vue'
+import MyOrdersPage from '@/pages/customer/profile/MyOrders.vue'
 
 // ================= PAGES ADMIN =================
 import Dashboard from '@/pages/admin/Dashboard.vue'
@@ -51,7 +51,7 @@ const router = createRouter({
         { path: 'cars', name: 'cars', component: CarsPage },
         { path: 'car/:id', name: 'car-detail', component: CarDetailPage },
         { path: 'booking', name: 'booking', component: BookingPage },
-        { path: 'services', name: 'services', component: () => import('@/pages/Services.vue') },
+        { path: 'services', name: 'services', component: () => import('@/pages/customer/Services.vue') },
 
         // 1.B RUTE USER PROFILE
         {

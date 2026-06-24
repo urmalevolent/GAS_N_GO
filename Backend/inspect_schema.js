@@ -6,14 +6,13 @@ dotenv.config();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 async function run() {
-  console.log("Fetching detailed cars table structure...");
+  console.log("Listing all profiles in database...");
   
-  const { data: cars, error } = await supabase.from('cars').select('*').limit(1);
+  const { data: profiles, error } = await supabase.from('profiles').select('*');
   if (error) {
-    console.error("Error fetching cars:", error);
+    console.error("Error fetching profiles:", error);
   } else {
-    console.log("Car record:", JSON.stringify(cars[0], null, 2));
-    console.log("Car keys:", Object.keys(cars[0] || {}));
+    console.log("Profiles list:", JSON.stringify(profiles, null, 2));
   }
 }
 

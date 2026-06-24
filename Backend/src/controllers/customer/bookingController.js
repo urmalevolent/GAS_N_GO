@@ -1,4 +1,4 @@
-import { getSupabaseClient, supabase } from '../config/supabase.js';
+import { getSupabaseClient, supabase } from '../../config/supabase.js';
 import midtransClient from 'midtrans-client';
 
 // Inisialisasi Midtrans Snap SDK

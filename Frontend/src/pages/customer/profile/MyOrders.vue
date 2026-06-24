@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 
@@ -62,17 +62,66 @@ const fetchOrders = async () => {
   }
 };
 
+// Debounce helper to avoid multiple rapid fetches
+let fetchTimeout = null;
+const debouncedFetchOrders = () => {
+  if (fetchTimeout) clearTimeout(fetchTimeout);
+  fetchTimeout = setTimeout(() => {
+    fetchOrders();
+  }, 300);
+};
+
+let realtimeChannel = null;
+
+const setupRealtime = () => {
+  if (realtimeChannel) return;
+  
+  realtimeChannel = supabase
+    .channel('customer-orders-realtime')
+    .on('postgres_changes', { 
+      event: '*', 
+      schema: 'public', 
+      table: 'rentals', 
+      filter: `user_id=eq.${authStore.user.id}` 
+    }, () => {
+      debouncedFetchOrders();
+    })
+    .on('postgres_changes', { 
+      event: '*', 
+      schema: 'public', 
+      table: 'rental_payments' 
+    }, () => {
+      debouncedFetchOrders();
+    })
+    .on('postgres_changes', { 
+      event: '*', 
+      schema: 'public', 
+      table: 'rental_details' 
+    }, () => {
+      debouncedFetchOrders();
+    })
+    .subscribe();
+};
+
 onMounted(() => {
   if (authStore.initialized) {
     fetchOrders();
+    setupRealtime();
   } else {
     // Tunggu auth inisialisasi selesai jika dipanggil cepat
     const unwatch = authStore.$subscribe((mutation, state) => {
       if (state.initialized) {
         fetchOrders();
+        setupRealtime();
         unwatch();
       }
     });
+  }
+});
+
+onUnmounted(() => {
+  if (realtimeChannel) {
+    supabase.removeChannel(realtimeChannel);
   }
 });
 

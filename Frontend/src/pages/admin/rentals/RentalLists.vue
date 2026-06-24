@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Swal from 'sweetalert2'
 import { supabase } from '@/lib/supabase'
 import RentalDetails from './RentalDetails.vue'
@@ -74,8 +74,39 @@ const fetchRentals = async () => {
   }
 }
 
+// Debounce helper to avoid multiple rapid fetches
+let fetchTimeout = null
+const debouncedFetchRentals = () => {
+  if (fetchTimeout) clearTimeout(fetchTimeout)
+  fetchTimeout = setTimeout(() => {
+    fetchRentals()
+  }, 300)
+}
+
+let realtimeChannel = null
+
 onMounted(() => {
   fetchRentals()
+
+  // Setup realtime subscription
+  realtimeChannel = supabase
+    .channel('admin-rentals-realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'rentals' }, () => {
+      debouncedFetchRentals()
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'rental_payments' }, () => {
+      debouncedFetchRentals()
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'rental_details' }, () => {
+      debouncedFetchRentals()
+    })
+    .subscribe()
+})
+
+onUnmounted(() => {
+  if (realtimeChannel) {
+    supabase.removeChannel(realtimeChannel)
+  }
 })
 
 const getMappedStatus = (rental) => {

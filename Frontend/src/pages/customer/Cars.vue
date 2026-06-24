@@ -3,8 +3,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { supabase } from '@/lib/supabase'
 
 // IMPORT KOMPONEN MODAL
-import CarDetailModal from '@/pages/CarDetail.vue'
-import BookingModal from '@/pages/Booking.vue'
+import CarDetailModal from '@/pages/customer/CarDetail.vue'
+import BookingModal from '@/pages/customer/Booking.vue'
 
 // --- STATE ---
 const allCars = ref([])

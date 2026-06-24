@@ -4,7 +4,7 @@ import { RouterView } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
 // Asumsi: Anda akan membuat komponen Sidebar khusus untuk halaman User (bukan admin)
-import Sidebar from "@/components/Sidebar.vue";
+import Sidebar from "@/components/customer/Sidebar.vue";
 
 // Pastikan letak gambar default avatar Anda benar
 import defaultAvatar from "@/assets/images/user_profile/default-avatar.png";

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { supabase } from '@/lib/supabase';
@@ -59,16 +59,51 @@ const fetchActiveOrdersCount = async () => {
   }
 };
 
+// Debounce helper to avoid multiple rapid fetches
+let fetchTimeout = null;
+const debouncedFetchCount = () => {
+  if (fetchTimeout) clearTimeout(fetchTimeout);
+  fetchTimeout = setTimeout(() => {
+    fetchActiveOrdersCount();
+  }, 300);
+};
+
+let realtimeChannel = null;
+
+const setupRealtime = () => {
+  if (realtimeChannel) return;
+  
+  realtimeChannel = supabase
+    .channel('sidebar-orders-realtime')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'rentals',
+      filter: `user_id=eq.${authStore.user.id}`
+    }, () => {
+      debouncedFetchCount();
+    })
+    .subscribe();
+};
+
 onMounted(() => {
   if (authStore.initialized) {
     fetchActiveOrdersCount();
+    setupRealtime();
   } else {
     const unwatch = authStore.$subscribe((mutation, state) => {
       if (state.initialized) {
         fetchActiveOrdersCount();
+        setupRealtime();
         unwatch();
       }
     });
+  }
+});
+
+onUnmounted(() => {
+  if (realtimeChannel) {
+    supabase.removeChannel(realtimeChannel);
   }
 });
 

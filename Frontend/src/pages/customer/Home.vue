@@ -8,8 +8,8 @@ import Taycan from '@/assets/images/Taycan_TurboS.png'
 import BeverlyPNG from '@/assets/images/BeverlyHills.png'
 
 // IMPORT KOMPONEN MODAL
-import CarDetailModal from '@/pages/CarDetail.vue' // Sesuaikan jika ini ada di folder components
-import BookingModal from '@/pages/Booking.vue'     // Sesuaikan jika ini ada di folder components
+import CarDetailModal from '@/pages/customer/CarDetail.vue' // Sesuaikan jika ini ada di folder components
+import BookingModal from '@/pages/customer/Booking.vue'     // Sesuaikan jika ini ada di folder components
 
 const router = useRouter()
 

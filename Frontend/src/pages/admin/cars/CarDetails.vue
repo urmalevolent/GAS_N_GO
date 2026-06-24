@@ -102,7 +102,8 @@ const getConditionText = (num) => {
       <div class="p-6 md:p-8">
 
         <form @submit.prevent>
-          <div class="space-y-10"            <!-- ================= FOTO UTAMA ================= -->
+          <div class="space-y-10">
+            <!-- ================= FOTO UTAMA ================= -->
             <div>
               <label class="flex items-center gap-3 text-lg font-extrabold text-[#191c1e] mb-6">
                 <span class="material-symbols-outlined text-[#0050cb]">photo_library</span>
@@ -117,7 +118,7 @@ const getConditionText = (num) => {
               </div>
             </div>
 
-            <hr class="border-[#c2c6d8]/40">0">
+            <hr class="border-[#c2c6d8]/40">
 
             <!-- ================= SPESIFIKASI & HARGA ================= -->
             <div class="space-y-8">

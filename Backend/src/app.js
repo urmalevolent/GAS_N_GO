@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import authRoutes from './routes/auth.js';
-import bookingRoutes from './routes/booking.js';
+import authRoutes from './routes/customer/auth.js';
+import bookingRoutes from './routes/customer/booking.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();

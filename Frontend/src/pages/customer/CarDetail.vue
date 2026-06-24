@@ -1,6 +1,6 @@
 <script setup>
 // 1. IMPORT KOMPONEN BOOKING (Dari folder pages)
-import Booking from '@/pages/Booking.vue';
+import Booking from '@/pages/customer/Booking.vue';
 import { ref } from 'vue';
 
 const isBookingModalOpen = ref(false);
