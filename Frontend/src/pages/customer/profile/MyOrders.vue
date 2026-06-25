@@ -52,7 +52,7 @@ const fetchOrders = async () => {
         address: details.address || '',
         phone_number: details.phone_number || '',
         midtrans_order_id: payment.midtrans_order_id || '',
-        payment_status: payment.payment_status || 'unverified'
+        payment_status: payment.payment_status || 'pending'
       };
     });
   } catch (err) {
@@ -259,10 +259,7 @@ const progressWidth = (rental) => {
 const statusLabel = (rental) => {
   const s = rental.status;
   if (s === 'pending' || s === 'pending_dp') {
-    if (rental.payment_status === 'unverified') {
-      return 'Menunggu Verifikasi KTP';
-    }
-    return 'KTP Terverifikasi (Silakan Bayar)';
+    return 'Menunggu Pembayaran';
   }
   
   const mapped = getMappedStatus(rental);
@@ -280,9 +277,6 @@ const statusLabel = (rental) => {
 const statusClass = (rental) => {
   const s = rental.status;
   if (s === 'pending' || s === 'pending_dp') {
-    if (rental.payment_status === 'unverified') {
-      return 'bg-purple-100 text-purple-700 border-purple-200';
-    }
     return 'bg-orange-100 text-orange-700 border-orange-200';
   }
   
@@ -301,9 +295,6 @@ const statusClass = (rental) => {
 const dotClass = (rental) => {
   const s = rental.status;
   if (s === 'pending' || s === 'pending_dp') {
-    if (rental.payment_status === 'unverified') {
-      return 'bg-purple-500';
-    }
     return 'bg-orange-500';
   }
   
@@ -470,16 +461,9 @@ const currentTabRentals = computed(() => {
             </div>
           </div>
 
-          <!-- Alert Khusus: Selesaikan Pembayaran (Hanya muncul jika Pending DP dan KTP Terverifikasi) -->
+          <!-- Alert Khusus: Selesaikan Pembayaran -->
           <div v-if="rental.status === 'pending' || rental.status === 'pending_dp'" class="mt-8 border-t border-[#f2f4f6] pt-6">
-            <div v-if="rental.payment_status === 'unverified'" class="bg-purple-50 border border-purple-100 rounded-xl p-4 flex items-start gap-3">
-              <span class="material-symbols-outlined text-purple-600 text-2xl">info</span>
-              <div>
-                <p class="font-bold text-purple-850 text-sm">Menunggu Verifikasi KTP</p>
-                <p class="text-purple-700 text-xs mt-1">Foto KTP Anda sedang diverifikasi secara manual oleh admin. Tombol pembayaran akan aktif setelah KTP Anda dinyatakan valid oleh admin.</p>
-              </div>
-            </div>
-            <button v-else @click="retryPayment(rental)" :disabled="isProcessing" class="w-full bg-[#0050cb] hover:bg-[#0066ff] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50">
+            <button @click="retryPayment(rental)" :disabled="isProcessing" class="w-full bg-[#0050cb] hover:bg-[#0066ff] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50">
               <span v-if="isProcessing" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
               <span v-else class="material-symbols-outlined text-[18px]">credit_card</span>
               {{ isProcessing ? 'Memproses...' : 'Selesaikan Pembayaran Sekarang' }}

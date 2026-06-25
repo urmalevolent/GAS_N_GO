@@ -18,7 +18,7 @@ const currentUser = computed(() => {
   if (!authStore.user) return null
   return {
     username: authStore.user.full_name || authStore.user.email.split('@')[0],
-    role: authStore.user.role === 'admin' ? 'Administrator' : 'Customer',
+    role: authStore.isSuperAdmin ? 'Super Admin' : (authStore.isAdmin ? 'Administrator' : 'Customer'),
     email: authStore.user.email,
     avatar: authStore.user.avatar_url || ''
   }

@@ -62,8 +62,7 @@ const fetchRentals = async () => {
         total_price: payment.total_price || calcTotalPrice,
         dp_amount: payment.dp_amount || calcDpAmount,
         midtrans_order_id: payment.midtrans_order_id || '',
-        payment_status: payment.payment_status || 'unverified',
-        ktp_url: details.ktp_url || null
+        payment_status: payment.payment_status || 'pending'
       }
     })
   } catch (err) {
@@ -166,10 +165,7 @@ const formatPrice = (price) => {
 // Terjemahan & Warna Badge Status
 const getStatusLabel = (rental) => {
   if (rental.status === 'pending' || rental.status === 'pending_dp') {
-    if (rental.payment_status === 'unverified') {
-      return 'Menunggu Verifikasi KTP'
-    }
-    return 'KTP Terverifikasi (Menunggu Bayar)'
+    return 'Menunggu Pembayaran'
   }
   const mapped = getMappedStatus(rental);
   const labels = {
@@ -186,9 +182,6 @@ const getStatusLabel = (rental) => {
 const statusClass = (rental) => {
   const status = rental.status
   if (status === 'pending' || status === 'pending_dp') {
-    if (rental.payment_status === 'unverified') {
-      return 'bg-purple-100 text-purple-750 border-purple-300'
-    }
     return 'bg-orange-100 text-[#cc4204] border-[#cc4204]/30'
   }
   const mapped = getMappedStatus(rental);
@@ -359,36 +352,7 @@ const handleCancelRental = (id) => {
   })
 }
 
-// Verifikasi KTP Pelanggan secara manual
-const handleVerifyKtp = (id) => {
-  Swal.fire({
-    title: 'Verifikasi KTP Pelanggan?',
-    text: "KTP pelanggan akan ditandai sebagai Terverifikasi, dan pelanggan dapat melanjutkan pembayaran.",
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: '#0050cb',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Ya, Verifikasi',
-    cancelButtonText: 'Batal'
-  }).then(async (res) => {
-    if (res.isConfirmed) {
-      try {
-        const { error } = await supabase
-          .from('rental_payments')
-          .update({ payment_status: 'verified' })
-          .eq('rental_id', id)
 
-        if (error) throw error
-
-        const ord = rentals.value.find(o => o.id === id)
-        if (ord) ord.payment_status = 'verified'
-        Swal.fire({ icon: 'success', title: 'KTP Terverifikasi!', text: 'Pelanggan sekarang dapat melakukan pembayaran.', showConfirmButton: false, timer: 1500 })
-      } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Gagal memverifikasi KTP', text: err.message })
-      }
-    }
-  })
-}
 
 const openRentalDetail = (rental) => {
   selectedRental.value = rental
@@ -534,12 +498,6 @@ const openRentalDetail = (rental) => {
                       <span class="material-symbols-outlined text-[14px]">visibility</span> DETAIL
                     </button>
 
-                    <!-- Tombol Verifikasi KTP (Ungu) -->
-                    <button v-if="(rental.status === 'pending_dp' || rental.status === 'pending') && rental.payment_status === 'unverified'" 
-                      @click="handleVerifyKtp(rental.id)" title="Verifikasi KTP Pelanggan"
-                      class="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:border-purple-400 border border-purple-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[14px]">verified</span> VERIFIKASI KTP
-                    </button>
 
                     <!-- Tombol Approve (Hijau) -->
                     <button v-if="rental.status === 'dp_paid'" @click="handleApproveRental(rental.id)" title="ACC & Antar Mobil"

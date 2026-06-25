@@ -206,7 +206,7 @@ onUnmounted(() => {
                     </RouterLink>
 
                     <!-- Muncul jika role user adalah admin -->
-                    <RouterLink v-slot="{ href, navigate }" v-if="currentUser.role === 'admin'" to="/admin/dashboard" custom>
+                    <RouterLink v-slot="{ href, navigate }" v-if="authStore.isAdmin" to="/admin/dashboard" custom>
                       <a :href="href" @click="navigate(); isUserOpen=false" class="flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] transition-colors">
                         <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Dashboard Admin
                       </a>
@@ -284,7 +284,8 @@ onUnmounted(() => {
                   </RouterLink>
                 </div>
 
-                <RouterLink v-if="currentUser.role === 'admin'" @click="closeMobileMenu" to="/admin/dashboard" class="w-full flex items-center justify-center gap-2 mb-4 px-4 py-4 bg-indigo-50 hover:bg-indigo-100 rounded-xl text-xs font-bold text-indigo-700 transition-all uppercase tracking-widest">
+                <!-- Muncul jika role user adalah admin atau super_admin -->
+                <RouterLink v-if="authStore.isAdmin" @click="closeMobileMenu" to="/admin/dashboard" class="w-full flex items-center justify-center gap-2 mb-4 px-4 py-4 bg-indigo-50 hover:bg-indigo-100 rounded-xl text-xs font-bold text-indigo-700 transition-all uppercase tracking-widest">
                   <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Dashboard Admin
                 </RouterLink>
 

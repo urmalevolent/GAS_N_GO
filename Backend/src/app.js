@@ -6,6 +6,8 @@ import bookingRoutes from './routes/customer/booking.js';
 import carRoutes from './routes/customer/car.js';
 import categoryRoutes from './routes/customer/category.js';
 import carAdminRoutes from './routes/admin/car.js';
+import userAdminRoutes from './routes/admin/user.js';
+import dashboardAdminRoutes from './routes/admin/dashboard.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -37,6 +39,8 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/admin/cars', carAdminRoutes);
+app.use('/api/admin/users', userAdminRoutes);
+app.use('/api/admin/dashboard', dashboardAdminRoutes);
 
 // --- 404 NOT FOUND HANDLER ---
 app.use((req, res, next) => {

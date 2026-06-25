@@ -150,7 +150,6 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  // Pastikan store auth terinisialisasi
   if (!authStore.initialized) {
     await authStore.initialize()
   }
@@ -158,12 +157,15 @@ router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
 
+  console.log(`[Router Debug] Navigasi ke: ${to.path}`);
+  console.log(`[Router Debug] isAuthenticated: ${authStore.isAuthenticated}, isAdmin: ${authStore.isAdmin}, userRole: ${authStore.userRole}`);
+  console.log(`[Router Debug] user.value:`, authStore.user);
+
   if (requiresAuth && !authStore.isAuthenticated) {
-    // Pengguna belum login, arahkan ke beranda dan pemicu buka modal login global
     authStore.openAuthModal()
     next({ name: 'home', query: { redirect: to.fullPath } })
   } else if (requiresAdmin && !authStore.isAdmin) {
-    // Pengguna bukan admin tapi mencoba akses rute admin
+    console.warn(`[Router Debug] Akses Ditolak! userRole: ${authStore.userRole}, requiresAdmin: ${requiresAdmin}`);
     next({ name: 'home' })
   } else {
     next()

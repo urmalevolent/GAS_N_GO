@@ -146,15 +146,6 @@ watch(() => props.show, (isOpen) => {
             </div>
           </div>
 
-          <!-- Card Foto KTP Jaminan -->
-          <div v-if="orderData?.ktp_url" class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 class="font-extrabold text-[#191c1e] text-base mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#0050cb] text-[18px]">badge</span> Foto KTP Jaminan
-            </h3>
-            <div class="mt-3 border border-dashed border-[#c2c6d8]/60 rounded-2xl overflow-hidden p-2 bg-[#f7f9fb] flex justify-center">
-              <img :src="orderData.ktp_url" alt="Foto KTP Jaminan" class="max-w-full max-h-64 object-contain rounded-xl shadow-sm" />
-            </div>
-          </div>
 
           <!-- 2. Detail Armada yang Disewa -->
           <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">

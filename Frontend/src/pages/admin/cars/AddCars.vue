@@ -29,7 +29,7 @@ const previews = reactive({
 
 const isLoading = ref(false)
 
-// Data Merek & Kategori dari Database
+// Data Brand& Kategori dari Database
 const brands = ref(['Porsche', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Ferrari', 'Toyota', 'Honda', 'Mitsubishi'])
 const categories = ref([])
 
@@ -189,19 +189,11 @@ const createCar = async () => {
                   <input v-model="form.name" type="text" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="Cth: Porsche 911 Carrera">
                 </div>
 
-                <!-- Merek dan Kategori -->
+                <!-- Branddan Kategori -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-bold text-[#191c1e] mb-2">Merek <span class="text-[#ba1a1a]">*</span></label>
-                        <div class="relative">
-                            <select v-model="form.brand" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white appearance-none focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm text-[#424656]">
-                                <option value="" disabled selected>Pilih Merek Kendaraan</option>
-                                <option v-for="(brand, i) in brands" :key="i" :value="brand">{{ brand }}</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#727687]">
-                              <span class="material-symbols-outlined text-xl">expand_more</span>
-                            </div>
-                        </div>
+                        <label class="block text-sm font-bold text-[#191c1e] mb-2">Brand <span class="text-[#ba1a1a]">*</span></label>
+                        <input v-model="form.brand" type="text" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="Contoh: Porsche">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-[#191c1e] mb-2">Kategori <span class="text-[#ba1a1a]">*</span></label>

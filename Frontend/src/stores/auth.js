@@ -10,7 +10,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!user.value)
   const userRole = computed(() => user.value?.role || 'customer')
-  const isAdmin = computed(() => userRole.value === 'admin')
+  const isAdmin = computed(() => userRole.value === 'admin' || userRole.value === 'super_admin')
+  const isSuperAdmin = computed(() => userRole.value === 'super_admin')
 
   const isAuthModalOpen = ref(false)
 
@@ -183,6 +184,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     userRole,
     isAdmin,
+    isSuperAdmin,
     isAuthModalOpen,
     openAuthModal,
     closeAuthModal,

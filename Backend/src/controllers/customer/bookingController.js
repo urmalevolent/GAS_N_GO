@@ -55,8 +55,8 @@ export const createBooking = async (req, res, next) => {
     // 4. Buat Order ID unik untuk Midtrans
     const midtransOrderId = `GNG-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    // 5. Inisiasi transaksi ke Midtrans Snap (Dilewati, verifikasi manual KTP terlebih dahulu)
-    console.log(`Booking created for order ${midtransOrderId}. Awaiting manual KTP verification.`);
+    // 5. Inisiasi transaksi ke Midtrans Snap (Dilewati, dibayar di halaman pesanan)
+    console.log(`Booking created for order ${midtransOrderId}.`);
 
     // 6. Simpan transaksi ke Supabase menggunakan JWT user (agar memenuhi RLS)
     const userSupabase = getSupabaseClient(req);
@@ -90,8 +90,7 @@ export const createBooking = async (req, res, next) => {
       .insert({
         rental_id: rental.id,
         address,
-        phone_number,
-        ktp_url: req.body.ktp_image || null
+        phone_number
       });
 
     if (detailsError) {
@@ -107,7 +106,7 @@ export const createBooking = async (req, res, next) => {
         payment_method,
         total_price: totalPrice,
         dp_amount: dpAmount,
-        payment_status: 'unverified', // Menggunakan status custom 'unverified'
+        payment_status: 'pending', // Status awal langsung bisa bayar
         midtrans_order_id: midtransOrderId
       });
 
@@ -119,7 +118,7 @@ export const createBooking = async (req, res, next) => {
     // 7. Kembalikan response Sukses ke Frontend (Tanpa Snap Token)
     res.status(201).json({
       success: true,
-      message: 'Pemesanan berhasil dibuat. Menunggu verifikasi KTP oleh admin.',
+      message: 'Pemesanan berhasil dibuat. Silakan lakukan pembayaran.',
       data: {
         rental_id: rental.id,
         midtrans_order_id: midtransOrderId,

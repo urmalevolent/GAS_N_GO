@@ -1,122 +1,138 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Swal from 'sweetalert2'
-import Show from '@/components/icons/Show.vue' // Komponen untuk menampilkan data detail transaksi (opsional)
-import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
-import Edit from '@/components/icons/Edit.vue' // Komponen untuk mengedit data transaksi (opsional)
+import Show from '@/components/icons/Show.vue' 
+import Trash from '@/components/icons/TrashCan.vue' 
+import Edit from '@/components/icons/Edit.vue' 
+import { useAuthStore } from '@/stores/auth'
 
-
-// --- MOCKUP STATE (Tanpa Backend) ---
+const authStore = useAuthStore()
 const searchQuery = ref("")
-const currentUserId = ref(1) // Asumsi ID admin yang sedang login adalah 1
+const currentUserId = computed(() => authStore.user?.id)
+const isSuperAdmin = computed(() => authStore.isSuperAdmin)
 
-// Data Dummy Pengguna GASNGO
-const users = ref([
-  {
-    id: 1,
-    username: 'Julian Vance',
-    email: 'admin@gasngo.com',
-    phone: '081234567890',
-    role: 'admin',
-    is_active: true,
-  },
-  {
-    id: 2,
-    username: 'Elena Rostova',
-    email: 'elena.rostova@gmail.com',
-    phone: '081987654321',
-    role: 'customer',
-    is_active: true,
-  },
-  {
-    id: 3,
-    username: 'Marcus Thorne',
-    email: 'marcus.t@outlook.com',
-    phone: '082211223344',
-    role: 'customer',
-    is_active: false,
-  },
-  {
-    id: 4,
-    username: 'Sophia Chen',
-    email: 'sophia.c@yahoo.com',
-    phone: '-',
-    role: 'admin',
-    is_active: true,
+const users = ref([])
+const isLoading = ref(false)
+
+const fetchUsers = async () => {
+  isLoading.value = true
+  try {
+    const token = authStore.session?.access_token;
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.message || 'Gagal mengambil data pengguna');
+    
+    users.value = result.data || [];
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    Swal.fire({ icon: 'error', title: 'Gagal Memuat Data', text: error.message });
+  } finally {
+    isLoading.value = false;
   }
-])
+}
 
-// --- MOCKUP FUNCTIONS ---
+onMounted(() => {
+  fetchUsers()
+})
 
-// Logika Searching Lokal (Frontend)
+// Logika Searching Lokal
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return users.value;
   const query = searchQuery.value.toLowerCase();
   return users.value.filter(user => {
     return (
-      (user.username && user.username.toLowerCase().includes(query)) ||
+      (user.full_name && user.full_name.toLowerCase().includes(query)) ||
       (user.email && user.email.toLowerCase().includes(query))
     );
   });
 });
 
-// Simulasi Ubah Role (Admin <=> Customer)
+// Ubah Role (Admin <=> Customer) Khusus Super Admin
 const toggleUserRole = (user) => {
+  if (!isSuperAdmin.value) {
+    Swal.fire('Akses Ditolak', 'Hanya Super Admin yang dapat mengubah peran.', 'error');
+    return;
+  }
+
   const newRole = user.role === 'admin' ? 'customer' : 'admin';
 
   Swal.fire({
     title: 'Ubah Peran?',
-    text: `Ubah akun ${user.username} menjadi ${newRole.toUpperCase()}?`,
+    text: `Ubah akun ${user.full_name || user.email} menjadi ${newRole.toUpperCase()}?`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#0050cb',
     cancelButtonColor: '#d33',
     confirmButtonText: 'Ya, Ubah!',
     cancelButtonText: 'Batal'
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      // Ubah data di array lokal
-      const usr = users.value.find(u => u.id === user.id)
-      if (usr) usr.role = newRole
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: `Peran ${user.username} berhasil diperbarui.`,
-        timer: 1500,
-        showConfirmButton: false
-      });
+      try {
+        const token = authStore.session?.access_token;
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${user.id}/role`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ role: newRole })
+        });
+        
+        const resData = await response.json();
+        if (!response.ok) throw new Error(resData.message || 'Gagal mengubah peran');
+        
+        user.role = newRole;
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: resData.message, timer: 1500, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+      }
     }
   })
 }
 
-// Simulasi Toggle Status
+// Toggle Status Aktif/Nonaktif
 const toggleUserStatus = (user) => {
-  const isActive = user.is_active;
+  // Hanya admin/superadmin yang bisa nonaktifkan, tp krn ini admin panel sdh aman
+  // Default kolom is_active jika null berarti true
+  const isActive = user.is_active === false ? false : true;
   const actionText = isActive ? "Menonaktifkan" : "Mengaktifkan";
+  const newStatus = !isActive;
 
   Swal.fire({
     title: 'Konfirmasi Status',
-    text: `Anda akan ${actionText.toLowerCase()} akun ${user.username}. Lanjutkan?`,
+    text: `Anda akan ${actionText.toLowerCase()} akun ${user.full_name || user.email}. Lanjutkan?`,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: isActive ? '#d33' : '#16a34a',
     cancelButtonColor: '#0050cb',
     confirmButtonText: `Ya, ${actionText}!`,
     cancelButtonText: 'Batal'
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      // Ubah data di array lokal
-      const usr = users.value.find(u => u.id === user.id)
-      if (usr) usr.is_active = !isActive
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Status Diperbarui',
-        text: `Akun ${user.username} telah di-${actionText.toLowerCase()}.`,
-        timer: 1500,
-        showConfirmButton: false
-      });
+      try {
+        const token = authStore.session?.access_token;
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${user.id}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ is_active: newStatus })
+        });
+        
+        const resData = await response.json();
+        if (!response.ok) throw new Error(resData.message || 'Gagal mengubah status');
+        
+        user.is_active = newStatus;
+        Swal.fire({ icon: 'success', title: 'Status Diperbarui', text: resData.message, timer: 1500, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+      }
     }
   })
 }
@@ -132,9 +148,9 @@ const toggleUserStatus = (user) => {
         <p class="text-sm text-[#727687]">Kelola peran dan status dari seluruh pelanggan serta admin GASNGO.</p>
       </div>
 
-      <!-- Tombol Tambah User (Akan ke /admin/users/add) -->
-      <!-- Jika diperlukan fitur ini nantinya -->
+      <!-- Tombol Tambah User (Hanya Super Admin) -->
       <router-link
+        v-if="isSuperAdmin"
         to="/admin/users/add"
         class="flex items-center justify-center gap-2 px-6 py-3 bg-[#0050cb] hover:bg-[#0066ff] text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95"
       >
@@ -175,15 +191,21 @@ const toggleUserStatus = (user) => {
           </thead>
 
           <tbody class="divide-y divide-gray-100">
+            <tr v-if="isLoading">
+              <td colspan="7" class="p-8 text-center text-[#727687]">
+                <span class="material-symbols-outlined animate-spin text-3xl text-[#0050cb] mb-2">sync</span>
+                <p class="text-xs font-bold uppercase tracking-widest">Memuat data pengguna...</p>
+              </td>
+            </tr>
+
             <!-- Jika tidak ada user -->
-            <tr v-if="filteredUsers.length === 0">
+            <tr v-else-if="filteredUsers.length === 0">
               <td colspan="7" class="p-8 text-center text-[#727687] italic font-medium">Data akun tidak ditemukan.</td>
             </tr>
 
-            <!-- Looping Data User -->
             <tr v-else v-for="(user, index) in filteredUsers" :key="user.id"
                 class="transition-colors hover:bg-blue-50/30"
-                :class="{'opacity-60 bg-gray-50': !user.is_active}"
+                :class="{'opacity-60 bg-gray-50': user.is_active === false}"
             >
               <!-- 1. Nomor -->
               <td class="px-6 py-5 text-center text-[#727687] font-bold text-sm">{{ index + 1 }}</td>
@@ -191,16 +213,16 @@ const toggleUserStatus = (user) => {
               <!-- 2. Nama & Inisial Avatar -->
               <td class="px-6 py-5 text-[#191c1e] font-extrabold flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-[#e6eeff] flex items-center justify-center text-xs font-black text-[#0050cb] uppercase border border-[#b3c5ff]/50">
-                  {{ (user.username || 'U').substring(0,2) }}
+                  {{ (user.full_name || user.email || 'U').substring(0,2) }}
                 </div>
-                {{ user.username || 'Tanpa Nama' }}
+                {{ user.full_name || 'Tanpa Nama' }}
               </td>
 
               <!-- 3. Email -->
               <td class="px-6 py-5 text-[#424656]">{{ user.email }}</td>
 
               <!-- 4. Telepon -->
-              <td class="px-6 py-5 text-[#424656]">{{ user.phone || '-' }}</td>
+              <td class="px-6 py-5 text-[#424656]">{{ user.phone_number || '-' }}</td>
 
               <!-- 5. Peran (Role) -->
               <td class="px-6 py-5">
@@ -213,8 +235,8 @@ const toggleUserStatus = (user) => {
               <!-- 6. Status -->
               <td class="px-6 py-5 text-center">
                 <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                      :class="user.is_active ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'">
-                  {{ user.is_active ? 'AKTIF' : 'NONAKTIF' }}
+                      :class="user.is_active !== false ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'">
+                  {{ user.is_active !== false ? 'AKTIF' : 'NONAKTIF' }}
                 </span>
               </td>
 
@@ -230,13 +252,13 @@ const toggleUserStatus = (user) => {
                   </button>
 
                   <template v-if="user.id !== currentUserId">
-                    <!-- Tombol Ubah Role (Kuning) -->
-                    <button @click="toggleUserRole(user)" class="w-8 h-8 rounded bg-[#eab308] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Ubah Peran">
+                    <!-- Tombol Ubah Role (Kuning) hanya untuk Super Admin -->
+                    <button v-if="isSuperAdmin" @click="toggleUserRole(user)" class="w-8 h-8 rounded bg-[#eab308] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Ubah Peran">
                       <Edit class="size-6 text-white" />
                     </button>
 
                     <!-- Tombol Nonaktifkan (Merah) -->
-                    <button v-if="user.is_active" @click="toggleUserStatus(user)" class="w-8 h-8 rounded bg-[#d32f2f] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Nonaktifkan Akun">
+                    <button v-if="user.is_active !== false" @click="toggleUserStatus(user)" class="w-8 h-8 rounded bg-[#d32f2f] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Nonaktifkan Akun">
                       <Trash class="size-6 text-white" />
                     </button>
 

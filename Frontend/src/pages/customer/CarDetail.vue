@@ -96,7 +96,7 @@ const formatPrice = (price) => {
                 {{ carDetail?.name || 'Nama Kendaraan' }}
               </h2>
               <p class="text-white/80 text-sm sm:text-base font-bold uppercase tracking-widest">
-                {{ carDetail?.brand_name || 'Merek Kendaraan' }}
+                {{ carDetail?.brand_name || 'BrandKendaraan' }}
               </p>
             </div>
           </div>

@@ -35,23 +35,47 @@ export const requireAuth = async (req, res, next) => {
 };
 
 /**
- * Middleware untuk validasi hak akses admin
+ * Middleware untuk validasi hak akses admin atau super_admin
  */
-export const requireAdmin = (req, res, next) => {
+export const requireAdmin = async (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      message: 'Autentikasi diperlukan.'
-    });
+    return res.status(401).json({ success: false, message: 'Autentikasi diperlukan.' });
   }
 
-  // Supabase user metadata biasanya menyimpan data tambahan
-  const role = req.user.user_metadata?.role || 'customer';
+  // Cek role terbaru dari database (agar real-time jika ada perubahan oleh super_admin)
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', req.user.id).single();
+  const role = profile?.role || req.user.user_metadata?.role || 'customer';
   
-  if (role !== 'admin') {
+  // Set role terbaru di req.user.currentRole agar bisa dipakai di controller
+  req.user.currentRole = role;
+
+  if (role !== 'admin' && role !== 'super_admin') {
     return res.status(403).json({
       success: false,
       message: 'Akses ditolak. Endpoint ini memerlukan hak akses Administrator.'
+    });
+  }
+
+  next();
+};
+
+/**
+ * Middleware untuk validasi hak akses khusus Super Admin
+ */
+export const requireSuperAdmin = async (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Autentikasi diperlukan.' });
+  }
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', req.user.id).single();
+  const role = profile?.role || req.user.user_metadata?.role || 'customer';
+  
+  req.user.currentRole = role;
+
+  if (role !== 'super_admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Akses ditolak. Endpoint ini memerlukan hak akses Super Admin.'
     });
   }
 

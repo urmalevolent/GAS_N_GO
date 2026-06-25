@@ -37,8 +37,6 @@ const bookingForm = ref({
   paymentMethod: 'cash_with_dp'
 });
 
-// Jaminan KTP State
-const ktpBase64 = ref(null);
 
 // --- COMPUTED (Logika Visual) ---
 const totalDays = computed(() => {
@@ -71,35 +69,15 @@ const formatPrice = (price) => {
 
 const close = () => {
   emit('close');
-  // Reset Form & KTP
+  // Reset Form
   bookingForm.value = { startDate: '', endDate: '', address: '', paymentMethod: 'cash_with_dp' };
-  ktpBase64.value = null;
 };
 
-// Handle KTP Upload & Read as Base64 Data URL
-const handleKtpFileChange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    ktpBase64.value = reader.result;
-  };
-  reader.onerror = (error) => {
-    console.error('Error reading file:', error);
-    alert('Gagal membaca file gambar.');
-  };
-  reader.readAsDataURL(file);
-};
 
 const processPayment = async () => {
   if (totalDays.value <= 0) return;
   if (!bookingForm.value.address.trim()) {
     alert('Mohon isi alamat pengiriman/penjemputan kendaraan terlebih dahulu.');
-    return;
-  }
-  if (!ktpBase64.value) {
-    alert('Wajib mengunggah foto KTP sebagai jaminan sebelum memesan.');
     return;
   }
 
@@ -151,8 +129,7 @@ const processPayment = async () => {
         end_date: bookingForm.value.endDate,
         address: bookingForm.value.address,
         phone_number: phone,
-        payment_method: bookingForm.value.paymentMethod,
-        ktp_image: ktpBase64.value
+        payment_method: bookingForm.value.paymentMethod
       })
     });
 
@@ -263,35 +240,6 @@ const processPayment = async () => {
               </div>
             </div>
 
-            <!-- Input Jaminan KTP (Manual Verification) -->
-            <div class="bg-[#f7f9fb] border border-[#c2c6d8]/40 rounded-2xl p-5 space-y-4">
-              <div>
-                <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Jaminan KTP & Verifikasi Identitas</label>
-                <p class="text-[10px] text-[#727687] mb-3 leading-relaxed">Unggah foto KTP asli Anda sebagai jaminan sewa. Pemesanan akan diverifikasi secara manual oleh admin sebelum pembayaran dapat dilakukan.</p>
-                
-                <div class="flex items-center gap-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    @change="handleKtpFileChange"
-                    id="ktp-upload"
-                    class="hidden"
-                  />
-                  <label
-                    for="ktp-upload"
-                    class="cursor-pointer bg-white border border-[#c2c6d8]/60 hover:border-[#0050cb] hover:text-[#0050cb] text-[#424656] font-bold text-xs px-4 py-3 rounded-xl transition-all flex items-center gap-2"
-                  >
-                    <span class="material-symbols-outlined text-[18px]">upload_file</span>
-                    {{ ktpBase64 ? 'Ubah Foto KTP' : 'Pilih Foto KTP' }}
-                  </label>
-                </div>
-              </div>
-
-              <!-- Preview Gambar KTP -->
-              <div v-if="ktpBase64" class="h-28 rounded-xl overflow-hidden border border-[#c2c6d8]/40 relative group bg-white shrink-0">
-                <img :src="ktpBase64" class="w-full h-full object-cover" />
-              </div>
-            </div>
 
             <!-- Kalkulasi Harga (Muncul hanya jika durasi > 0) -->
             <transition name="modal-fade">
@@ -338,7 +286,7 @@ const processPayment = async () => {
           <button @click="close" class="px-6 py-3.5 text-[#424656] hover:bg-[#e0e3e5] rounded-xl transition-colors font-bold text-xs uppercase tracking-widest border border-transparent">
             Batal
           </button>
-          <button @click="processPayment" :disabled="isProcessing || totalDays <= 0 || !ktpBase64" class="signature-gradient text-white px-8 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-[#0050cb]/30 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 group active:scale-95">
+          <button @click="processPayment" :disabled="isProcessing || totalDays <= 0" class="signature-gradient text-white px-8 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-[#0050cb]/30 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 group active:scale-95">
             <!-- Spinner -->
             <span v-if="isProcessing" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
             <!-- Ikon Biasa -->

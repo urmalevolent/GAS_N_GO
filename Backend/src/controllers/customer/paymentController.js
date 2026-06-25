@@ -45,12 +45,6 @@ export const getRetryPaymentToken = async (req, res, next) => {
       });
     }
 
-    if (payment.payment_status === 'unverified') {
-      return res.status(400).json({
-        success: false,
-        message: 'KTP Anda belum diverifikasi oleh admin. Silakan tunggu verifikasi terlebih dahulu.'
-      });
-    }
 
     // Ambil nomor telepon dari detail sewa
     const { data: details } = await userSupabase
