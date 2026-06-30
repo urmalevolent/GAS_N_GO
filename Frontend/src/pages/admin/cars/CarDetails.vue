@@ -38,7 +38,7 @@ const fetchCarDetails = async () => {
       price: data.price_per_day,
       is_promotion: false,
       discount_price: null,
-      description: data.description || 'Kendaraan premium siap disewa. Kondisi prima dan terawat dengan baik.',
+      description: data.description || 'Premium vehicle ready to rent. In excellent and well-maintained condition.',
       image: data.image_url || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2083&auto=format&fit=crop',
       status: data.status || 'available'
     };
@@ -48,7 +48,7 @@ const fetchCarDetails = async () => {
     errorMsg.value = err.message || 'Gagal memuat detail kendaraan.';
     Swal.fire({
       icon: 'error',
-      title: 'Terjadi Kesalahan',
+      title: 'An Error Occurred',
       text: errorMsg.value,
       confirmButtonColor: '#0050cb'
     });
@@ -83,13 +83,13 @@ const goBack = () => {
       <div>
         <nav class="flex items-center gap-2 text-xs font-bold text-[#727687] uppercase tracking-widest mb-3">
           <button @click="goBack" class="hover:text-[#0050cb] transition-colors flex items-center gap-1">
-            <span class="material-symbols-outlined text-[14px]">arrow_back</span> Kembali
+            <span class="material-symbols-outlined text-[14px]">arrow_back</span> Back
           </button>
           <span class="w-1 h-1 rounded-full bg-[#c2c6d8]"></span>
-          <span>Manajemen Armada</span>
+          <span>Fleet Management</span>
         </nav>
         <h1 class="text-3xl md:text-4xl font-black tracking-tight text-[#191c1e] flex items-center gap-3">
-          Detail Kendaraan
+          Vehicle Details
         </h1>
       </div>
     </div>
@@ -117,10 +117,10 @@ const goBack = () => {
       <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
         <span class="material-symbols-outlined text-4xl text-[#ba1a1a]">car_crash</span>
       </div>
-      <h2 class="text-2xl font-black text-[#191c1e] mb-2">Kendaraan Tidak Ditemukan</h2>
-      <p class="text-[#727687] mb-8 max-w-md">{{ errorMsg || 'Data kendaraan tidak tersedia. Mungkin data telah dihapus atau Anda mengakses ID yang salah.' }}</p>
+      <h2 class="text-2xl font-black text-[#191c1e] mb-2">Vehicle Not Found</h2>
+      <p class="text-[#727687] mb-8 max-w-md">{{ errorMsg || 'Vehicle data is unavailable. The data may have been deleted or you are accessing an invalid ID.' }}</p>
       <button @click="goBack" class="signature-gradient text-white px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:shadow-lg hover:shadow-blue-600/30 transition-all flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px]">list</span> Daftar Armada
+        <span class="material-symbols-outlined text-[16px]">list</span> Fleet List
       </button>
     </div>
 
@@ -138,7 +138,7 @@ const goBack = () => {
         <div class="absolute top-6 left-6 flex flex-col gap-2">
           <span class="bg-white/90 backdrop-blur-md text-[#191c1e] text-[10px] font-black px-4 py-2 rounded-2xl shadow-sm uppercase tracking-widest flex items-center gap-1.5 w-max">
             <span class="w-2 h-2 rounded-full" :class="product.status === 'available' ? 'bg-[#16a34a]' : 'bg-[#ba1a1a]'"></span>
-            {{ product.status === 'available' ? 'Tersedia' : 'Disewa' }}
+            {{ product.status === 'available' ? 'Available' : 'Rented' }}
           </span>
           <span class="bg-[#0050cb]/90 backdrop-blur-md text-white text-[10px] font-black px-4 py-2 rounded-2xl shadow-sm uppercase tracking-widest w-max border border-white/10">
             {{ product.category_name }}
@@ -164,7 +164,7 @@ const goBack = () => {
               <div class="w-10 h-10 rounded-full bg-[#f2f4f6] flex items-center justify-center mb-3">
                 <span class="material-symbols-outlined text-[#0050cb] text-[20px]">calendar_today</span>
               </div>
-              <span class="text-[#727687] text-[9px] font-bold uppercase tracking-widest mb-1">Tahun</span>
+              <span class="text-[#727687] text-[9px] font-bold uppercase tracking-widest mb-1">Year</span>
               <span class="text-[#191c1e] font-black text-sm">{{ product.year }}</span>
             </div>
             
@@ -172,7 +172,7 @@ const goBack = () => {
               <div class="w-10 h-10 rounded-full bg-[#f2f4f6] flex items-center justify-center mb-3">
                 <span class="material-symbols-outlined text-[#0050cb] text-[20px]">settings</span>
               </div>
-              <span class="text-[#727687] text-[9px] font-bold uppercase tracking-widest mb-1">Transmisi</span>
+              <span class="text-[#727687] text-[9px] font-bold uppercase tracking-widest mb-1">Transmission</span>
               <span class="text-[#191c1e] font-black text-sm">{{ product.transmission }}</span>
             </div>
 
@@ -180,7 +180,7 @@ const goBack = () => {
               <div class="w-10 h-10 rounded-full bg-[#f2f4f6] flex items-center justify-center mb-3">
                 <span class="material-symbols-outlined text-[#0050cb] text-[20px]">airline_seat_recline_extra</span>
               </div>
-              <span class="text-[#727687] text-[9px] font-bold uppercase tracking-widest mb-1">Kapasitas</span>
+              <span class="text-[#727687] text-[9px] font-bold uppercase tracking-widest mb-1">Capacity</span>
               <span class="text-[#191c1e] font-black text-sm">{{ product.seats }} Seat</span>
             </div>
 
@@ -188,7 +188,7 @@ const goBack = () => {
               <div class="w-10 h-10 rounded-full bg-[#f2f4f6] flex items-center justify-center mb-3">
                 <span class="material-symbols-outlined text-[#0050cb] text-[20px]">local_gas_station</span>
               </div>
-              <span class="text-[#727687] text-[9px] font-bold uppercase tracking-widest mb-1">Bahan Bakar</span>
+              <span class="text-[#727687] text-[9px] font-bold uppercase tracking-widest mb-1">Fuel</span>
               <span class="text-[#191c1e] font-black text-sm">{{ product.fuel }}</span>
             </div>
           </div>
@@ -196,7 +196,7 @@ const goBack = () => {
           <!-- Description Box -->
           <div class="bg-white rounded-[2rem] p-8 border border-[#c2c6d8]/40 shadow-sm">
             <h3 class="text-sm font-black uppercase tracking-widest text-[#191c1e] mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#0050cb]">description</span> Deskripsi Kendaraan
+              <span class="material-symbols-outlined text-[#0050cb]">description</span> Vehicle Description
             </h3>
             <p class="text-[#424656] leading-relaxed text-sm">
               {{ product.description }}
@@ -208,19 +208,19 @@ const goBack = () => {
         <div class="lg:col-span-1">
           <div class="bg-[#f7f9fb] rounded-[2rem] p-8 border border-[#c2c6d8]/50 shadow-sm sticky top-28">
             <div class="mb-8">
-              <span class="text-[#727687] text-[10px] font-bold uppercase tracking-widest block mb-2">Tarif Sewa Harian</span>
+              <span class="text-[#727687] text-[10px] font-bold uppercase tracking-widest block mb-2">Daily Rental Rate</span>
               <div class="flex items-baseline gap-1">
                 <span class="text-4xl font-black text-[#191c1e]">{{ formatPrice(product.price) }}</span>
-                <span class="text-[#727687] text-xs font-bold uppercase tracking-widest">/Hari</span>
+                <span class="text-[#727687] text-xs font-bold uppercase tracking-widest">/Day</span>
               </div>
             </div>
 
             <div class="flex flex-col gap-4">
               <router-link :to="`/admin/cars/edit/${product.id}`" class="w-full signature-gradient text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-blue-600/30 hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">edit</span> Edit Kendaraan
+                <span class="material-symbols-outlined text-[18px]">edit</span> Edit Vehicle
               </router-link>
               <button @click="goBack" class="w-full bg-white text-[#191c1e] border border-[#c2c6d8]/60 font-bold text-xs uppercase tracking-widest py-4 rounded-xl hover:bg-[#f2f4f6] hover:border-[#191c1e] transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">close</span> Tutup
+                <span class="material-symbols-outlined text-[18px]">close</span> Close
               </button>
             </div>
           </div>

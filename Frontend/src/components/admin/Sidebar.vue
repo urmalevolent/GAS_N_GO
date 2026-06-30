@@ -1,12 +1,13 @@
 <script setup>
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-// Pastikan file gambar ini ada di folder Anda
 import logocars from "@/assets/images/racingcar.png"
 
 const route = useRoute()
+const authStore = useAuthStore()
 
-// Menerima props dari AdminLayout untuk kontrol buka-tutup di HP
+// Props to control open/close on mobile
 defineProps({
   isSidebarOpen: {
     type: Boolean,
@@ -14,7 +15,7 @@ defineProps({
   }
 })
 
-// Mendefinisikan event untuk menutup sidebar saat link diklik (di HP)
+// Emit event to close sidebar when a link is clicked (mobile)
 const emit = defineEmits(['close'])
 
 const closeSidebar = () => {
@@ -46,7 +47,7 @@ const closeSidebar = () => {
 
       <!-- Section: DASHBOARD -->
       <div class="space-y-2">
-        <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Utama</h3>
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Main</h3>
 
         <RouterLink
           to="/admin/dashboard"
@@ -60,8 +61,8 @@ const closeSidebar = () => {
       </div>
 
       <!-- Section: ACCOUNTS -->
-      <div class="space-y-2">
-        <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Pengguna</h3>
+      <div class="space-y-2" v-if="authStore.isSuperAdmin">
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Accounts</h3>
 
         <RouterLink
           to="/admin/users"
@@ -76,7 +77,7 @@ const closeSidebar = () => {
 
       <!-- Section: PRODUCT & TRANSACTION -->
       <div class="space-y-2">
-        <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Armada & Transaksi</h3>
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Fleet & Transactions</h3>
 
         <RouterLink
           to="/admin/cars"
@@ -110,6 +111,7 @@ const closeSidebar = () => {
 
         <RouterLink
           to="/admin/transactions"
+          v-if="authStore.isSuperAdmin"
           @click="closeSidebar"
           class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all"
           :class="route.path.startsWith('/admin/transactions') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
@@ -121,7 +123,7 @@ const closeSidebar = () => {
 
       <!-- Section: TESTIMONIALS -->
       <div class="space-y-2">
-        <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Tanggapan</h3>
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-[#727687] px-3 mb-3">Feedback</h3>
 
         <RouterLink
           to="/admin/ratings"
@@ -139,12 +141,12 @@ const closeSidebar = () => {
 </template>
 
 <style scoped>
-/* Pengaturan Ikon Material */
+/* Material Icon Settings */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-/* Custom Scrollbar agar tidak terlihat kaku */
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

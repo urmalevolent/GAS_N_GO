@@ -53,7 +53,7 @@ const popularCars = ref([
     id: 1,
     name: 'Porsche Taycan',
     brand: 'Porsche',
-    category_name: 'Elektrik Mewah', // Sesuaikan key category_name agar sesuai props modal detail
+    category_name: 'Luxury Electric', // Sesuaikan key category_name agar sesuai props modal detail
     year: '2024',
     price: 2000000, // Sesuaikan dengan key 'price' yang dibaca modal
     discount_price: 1800000,
@@ -62,14 +62,14 @@ const popularCars = ref([
     seats: 4,
     speed: '2.8s',
     engine: '750 HP',
-    description: 'Tenaga listrik tanpa kompromi berpadu dengan kemewahan artisanal. Mahakarya otomotif masa depan.',
+    description: 'Uncompromising electric power meets artisanal luxury. The automotive masterpiece of the future.',
     image: Taycan // Sesuaikan key 'image' agar terbaca oleh modal
   },
   {
     id: 2,
     name: 'BMW M8 Gran Coupe',
     brand_name: 'BMW', // Sesuaikan key brand_name
-    category_name: 'Sedan Eksekutif',
+    category_name: 'Executive Sedan',
     year: '2023',
     price: 2000000,
     is_promotion: 0,
@@ -77,14 +77,14 @@ const popularCars = ref([
     seats: 4,
     speed: '3.0s',
     engine: '617 HP',
-    description: 'Perpaduan sempurna antara performa sport dan kenyamanan sedan mewah untuk perjalanan bisnis maupun liburan Anda.',
+    description: 'The perfect blend of sport performance and luxury sedan comfort for your business or vacation trips.',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE'
   },
   {
     id: 3,
     name: 'Ferrari F8 Tributo',
     brand_name: 'Ferrari',
-    category_name: 'Supercar Eksotis',
+    category_name: 'Exotic Supercar',
     year: '2024',
     price: 24500000,
     is_promotion: 0,
@@ -92,7 +92,7 @@ const popularCars = ref([
     seats: 2,
     speed: '2.9s',
     engine: '710 HP',
-    description: 'Mesin V8 terkuat dalam sejarah. Rasakan sensasi berkendara mendebarkan tiada tara dengan performa tanpa batas.',
+    description: 'The most powerful V8 engine in history. Experience thrilling driving sensation with unlimited performance.',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp'
   }
 ])
@@ -115,16 +115,16 @@ const popularCars = ref([
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <div class="inline-block bg-white/80 backdrop-blur-md text-blue-700 font-bold text-xs px-5 py-2.5 rounded-full uppercase tracking-widest mb-6 shadow-sm border border-blue-200/50">
-          Tingkatkan Pengalaman Anda
+          Elevate Your Experience
         </div>
 
         <h1 class="text-4xl md:text-6xl lg:text-[5.5rem] font-black text-[#111827] mb-6 tracking-tight leading-[1.1] uppercase drop-shadow-sm">
-          Kendarai <br />
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0050cb] to-[#00b4d8]">Kemewahan Sempurna</span>
+          Drive <br />
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0050cb] to-[#00b4d8]">Perfect Luxury</span>
         </h1>
 
         <p class="text-base md:text-xl text-slate-700 max-w-2xl mx-auto mb-10 font-bold leading-relaxed drop-shadow-sm">
-          Rasakan puncak mahakarya otomotif melalui koleksi eksklusif supercar kelas dunia dan sedan mewah kami.
+          Experience the pinnacle of automotive masterpieces through our exclusive collection of world-class supercars and luxury sedans.
         </p>
 
         <div class="flex flex-col sm:flex-row justify-center gap-4 relative z-20">
@@ -132,13 +132,13 @@ const popularCars = ref([
             to="/cars"
             class="bg-[#0d6efd] hover:bg-blue-700 text-white font-bold px-10 py-4 rounded-full shadow-[0_10px_30px_rgba(13,110,253,0.3)] transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1 inline-block text-center"
           >
-            Jelajahi Mobil
+            Explore Cars
           </RouterLink>
           <RouterLink
             to="/services"
             class="bg-white/90 backdrop-blur-md text-[#0d6efd] border border-white hover:bg-white font-bold px-10 py-4 rounded-full transition-all uppercase tracking-widest text-sm transform hover:-translate-y-1 inline-block text-center shadow-lg"
           >
-            Layanan
+            Services
           </RouterLink>
         </div>
       </div>
@@ -154,11 +154,11 @@ const popularCars = ref([
         <div class="flex flex-col sm:flex-row justify-between items-center sm:items-end mb-12 text-center sm:text-left">
           <div class="relative">
             <div class="absolute -inset-1 bg-blue-100 blur-2xl rounded-full opacity-50"></div>
-            <h2 class="text-3xl md:text-4xl font-black text-slate-900 uppercase relative z-10">Mobil <span class="text-[#0d6efd]">Populer</span></h2>
-            <p class="text-slate-500 mt-3 text-lg font-medium relative z-10">Pilihan kendaraan terbaik untuk menemani perjalanan eksklusif Anda.</p>
+            <h2 class="text-3xl md:text-4xl font-black text-slate-900 uppercase relative z-10">Popular <span class="text-[#0d6efd]">Cars</span></h2>
+            <p class="text-slate-500 mt-3 text-lg font-medium relative z-10">The best vehicle selection to accompany your exclusive journey.</p>
           </div>
           <RouterLink to="/cars" class="mt-6 sm:mt-0 font-bold text-[#0d6efd] hover:text-blue-700 flex items-center gap-1 transition-colors uppercase tracking-widest text-sm">
-            Lihat Semua <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            See All <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
           </RouterLink>
         </div>
 
@@ -202,10 +202,10 @@ const popularCars = ref([
               <div class="pt-6 border-t border-slate-100 flex flex-col gap-5 mt-auto">
                 <div class="flex items-end justify-between">
                   <div>
-                    <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Tarif Sewa</span>
+                    <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Rental Rate</span>
                     <div class="flex items-baseline gap-1">
                       <span class="text-2xl font-black text-slate-900">{{ formatPrice(car.price) }}</span>
-                      <span class="text-slate-400 text-sm font-medium">/hari</span>
+                      <span class="text-slate-400 text-sm font-medium">/day</span>
                     </div>
                   </div>
                 </div>
@@ -216,7 +216,7 @@ const popularCars = ref([
                     Detail
                   </button>
                   <button @click="openBooking(car)" class="flex-1 bg-[#111827] text-white hover:bg-[#0d6efd] hover:shadow-lg hover:shadow-blue-500/40 font-bold text-sm py-3 rounded-xl transition-all duration-300 shadow-sm active:scale-95">
-                    Sewa Sekarang
+                    Rent Now
                   </button>
                 </div>
               </div>
@@ -230,8 +230,8 @@ const popularCars = ref([
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-32">
         <div class="text-center mb-16 relative">
           <div class="absolute -inset-1 bg-blue-100 blur-2xl rounded-full w-40 h-40 mx-auto opacity-50"></div>
-          <h2 class="text-3xl md:text-4xl font-black text-[#111827] uppercase relative z-10">Langkah <span class="text-[#0d6efd]">Mudah</span></h2>
-          <p class="text-slate-500 mt-3 text-lg font-medium relative z-10">Proses penyewaan yang cepat dalam 3 tahap sederhana.</p>
+          <h2 class="text-3xl md:text-4xl font-black text-[#111827] uppercase relative z-10">Easy <span class="text-[#0d6efd]">Steps</span></h2>
+          <p class="text-slate-500 mt-3 text-lg font-medium relative z-10">A fast rental process in 3 simple steps.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
@@ -245,8 +245,8 @@ const popularCars = ref([
                 <span class="material-symbols-outlined text-3xl">key</span>
               </div>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-2">1. Pilih Mobil</h3>
-            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Jelajahi katalog kami dan temukan kendaraan yang paling sesuai untuk perjalanan Anda.</p>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">1. Choose a Car</h3>
+            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Explore our catalog and find the most suitable vehicle for your journey.</p>
           </div>
 
           <!-- Step 2 -->
@@ -256,8 +256,8 @@ const popularCars = ref([
                 <span class="material-symbols-outlined text-3xl">calendar_month</span>
               </div>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-2">2. Tentukan Tanggal</h3>
-            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Pilih jadwal pengambilan dan pengembalian sesuai dengan rencana liburan Anda.</p>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">2. Set the Date</h3>
+            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Select your pickup and return schedule according to your vacation plans.</p>
           </div>
 
           <!-- Step 3 -->
@@ -267,8 +267,8 @@ const popularCars = ref([
                 <span class="material-symbols-outlined text-3xl">verified</span>
               </div>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-2">3. Selesai & Nikmati</h3>
-            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Konfirmasi pesanan dengan aman, dan mobil impian Anda siap menunggu kedatangan Anda!</p>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">3. Finish & Enjoy</h3>
+            <p class="text-slate-500 font-medium px-4 text-sm leading-relaxed">Securely confirm your order, and your dream car will be waiting for your arrival!</p>
           </div>
         </div>
       </section>
@@ -282,17 +282,17 @@ const popularCars = ref([
 
           <div class="relative z-10 max-w-3xl mx-auto">
             <h2 class="text-3xl md:text-5xl font-black text-[#111827] uppercase leading-tight mb-6 tracking-tight">
-              Siap Mengubah <br class="hidden sm:block" />
-              Perspektif Perjalanan Anda?
+              Ready to Change <br class="hidden sm:block" />
+              Your Travel Perspective?
             </h2>
             <p class="text-slate-500 text-lg mb-10 font-medium">
-              Bergabunglah dengan klub eksklusif GASNGO untuk mendapatkan akses prioritas ke unit terbaru dan penawaran khusus member.
+              Join the exclusive GASNGO club for priority access to our latest units and special member offers.
             </p>
 
             <form @submit.prevent class="flex flex-col sm:flex-row justify-center gap-3 w-full max-w-xl mx-auto bg-slate-50 p-2 rounded-full border border-gray-200">
               <input
                 type="email"
-                placeholder="Alamat email Anda"
+                placeholder="Your email address"
                 required
                 class="w-full sm:flex-1 bg-transparent px-6 py-4 outline-none text-slate-800 placeholder-slate-400 font-bold"
               />
@@ -300,7 +300,7 @@ const popularCars = ref([
                 type="submit"
                 class="bg-[#0d6efd] hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-full uppercase text-xs tracking-widest transition-all shadow-md shadow-blue-500/20 active:scale-95 shrink-0"
               >
-                Gabung Sekarang
+                Join Now
               </button>
             </form>
           </div>

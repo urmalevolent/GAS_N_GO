@@ -7,7 +7,7 @@ import Swal from 'sweetalert2'
 // Default Avatar jika user tidak memiliki foto profil
 import defaultAvatar from '@/assets/images/user_profile/default-avatar.png'
 
-// -- STATE (Hubungan ke Supabase Store & Router) --
+// -- STATE --
 const isUserOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
@@ -34,58 +34,58 @@ defineProps({
 // -- DYNAMIC TITLE & SUBTITLE BASED ON ROUTE --
 const pageTitle = computed(() => {
   const path = route.path
-  if (path.startsWith('/admin/dashboard')) return 'Dashboard Utama'
-  if (path.startsWith('/admin/users')) return 'Kelola Pengguna'
-  if (path.startsWith('/admin/cars')) return 'Daftar Mobil'
-  if (path.startsWith('/admin/rentals')) return 'Manajemen Sewa'
-  if (path.startsWith('/admin/category')) return 'Kategori Kelas'
-  if (path.startsWith('/admin/transactions')) return 'Transaksi Keuangan'
-  if (path.startsWith('/admin/ratings')) return 'Ulasan & Rating'
+  if (path.startsWith('/admin/dashboard')) return 'Main Dashboard'
+  if (path.startsWith('/admin/users')) return 'Manage Users'
+  if (path.startsWith('/admin/cars')) return 'Car Fleet'
+  if (path.startsWith('/admin/rentals')) return 'Rental Management'
+  if (path.startsWith('/admin/category')) return 'Car Categories'
+  if (path.startsWith('/admin/transactions')) return 'Financial Transactions'
+  if (path.startsWith('/admin/ratings')) return 'Reviews & Ratings'
   return 'Admin Panel'
 })
 
 const pageSubtitle = computed(() => {
   const path = route.path
-  if (path.startsWith('/admin/dashboard')) return 'Ringkasan Sistem GASNGO'
-  if (path.startsWith('/admin/users')) return 'Daftar Akun dan Peran Pengguna'
-  if (path.startsWith('/admin/cars')) return 'Kelola Data Mobil dan Status Ketersediaan'
-  if (path.startsWith('/admin/rentals')) return 'Daftar Penyewaan Kendaraan Masuk'
-  if (path.startsWith('/admin/category')) return 'Kelola Kategori Kelas Mobil'
-  if (path.startsWith('/admin/transactions')) return 'Riwayat Transaksi Keuangan dan Pembayaran'
-  if (path.startsWith('/admin/ratings')) return 'Daftar Penilaian dan Testimoni Pelanggan'
-  return 'Sistem Informasi GASNGO'
+  if (path.startsWith('/admin/dashboard')) return 'GASNGO System Overview'
+  if (path.startsWith('/admin/users')) return 'Manage Accounts & User Roles'
+  if (path.startsWith('/admin/cars')) return 'Manage Car Data & Availability'
+  if (path.startsWith('/admin/rentals')) return 'Incoming Vehicle Rental Orders'
+  if (path.startsWith('/admin/category')) return 'Manage Car Class Categories'
+  if (path.startsWith('/admin/transactions')) return 'Financial Transaction & Payment History'
+  if (path.startsWith('/admin/ratings')) return 'Customer Ratings & Testimonials'
+  return 'GASNGO Information System'
 })
 
 // -- METHODS --
-// Fungsi untuk memicu Sidebar buka/tutup di layout induk
+// Toggle sidebar on mobile
 const handleSidebar = () => {
   emit('sidebar-open')
 }
 
-// Toggle Dropdown Profil User
+// Toggle user profile dropdown
 const toggleUserDropdown = () => {
   isUserOpen.value = !isUserOpen.value
 }
 
-// Fungsi Logout asli dengan konfirmasi UI SweetAlert2
+// Logout with SweetAlert2 confirmation
 const handleLogout = () => {
   isUserOpen.value = false
   Swal.fire({
-    title: 'Keluar Akun?',
-    text: 'Apakah Anda yakin ingin keluar dari portal admin?',
+    title: 'Sign Out?',
+    text: 'Are you sure you want to sign out of the admin portal?',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ba1a1a',
     cancelButtonColor: '#727687',
-    confirmButtonText: 'Ya, Keluar',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Sign Out',
+    cancelButtonText: 'Cancel'
   }).then(async (result) => {
     if (result.isConfirmed) {
       const { error } = await authStore.signOut()
       if (!error) {
         Swal.fire({
-          title: 'Berhasil',
-          text: 'Anda telah keluar dari akun.',
+          title: 'Signed Out',
+          text: 'You have been successfully signed out.',
           icon: 'success',
           showConfirmButton: false,
           timer: 1500
@@ -93,8 +93,8 @@ const handleLogout = () => {
         router.push('/')
       } else {
         Swal.fire({
-          title: 'Gagal',
-          text: 'Gagal keluar: ' + error.message,
+          title: 'Failed',
+          text: 'Sign out failed: ' + error.message,
           icon: 'error',
           confirmButtonColor: '#0050cb'
         })
@@ -103,7 +103,7 @@ const handleLogout = () => {
   })
 }
 
-// Tutup dropdown saat klik di luar area
+// Close dropdown when clicking outside
 const closeOnClickOutside = (event) => {
   if (!event.target.closest('.user-dropdown-container')) {
     isUserOpen.value = false
@@ -177,23 +177,23 @@ onUnmounted(() => {
 
             <!-- Info Email Detail -->
             <div class="px-5 py-3 border-b border-[#f2f4f6] mb-1 bg-[#f7f9fb]/60 backdrop-blur-sm">
-              <p class="text-[10px] uppercase tracking-widest text-[#727687] font-bold mb-0.5">Masuk sebagai</p>
+              <p class="text-[10px] uppercase tracking-widest text-[#727687] font-bold mb-0.5">Signed in as</p>
               <p class="text-xs font-bold text-[#191c1e] truncate">{{ currentUser.email }}</p>
             </div>
 
             <!-- List Menu Dropdown -->
             <RouterLink to="/" class="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-[#424656] hover:bg-[#0050cb]/5 hover:text-[#0050cb] transition-colors">
-              <span class="material-symbols-outlined text-lg">language</span> Kembali ke Website
+              <span class="material-symbols-outlined text-lg">language</span> Back to Website
             </RouterLink>
 
             <RouterLink to="/user/profile" class="flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-[#424656] hover:bg-[#0050cb]/5 hover:text-[#0050cb] transition-colors">
-              <span class="material-symbols-outlined text-lg">person</span> Profil Saya
+              <span class="material-symbols-outlined text-lg">person</span> My Profile
             </RouterLink>
 
             <hr class="my-1 border-[#f2f4f6]" />
 
             <button @click="handleLogout" class="w-full flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#ba1a1a] hover:bg-red-50 transition-colors">
-              <span class="material-symbols-outlined text-lg">logout</span> Keluar
+              <span class="material-symbols-outlined text-lg">logout</span> Sign Out
             </button>
           </div>
         </transition>

@@ -36,7 +36,7 @@ const formatPrice = (price) => {
 
 const formatDate = (dateString) => {
   const options = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
-  return new Date(dateString).toLocaleDateString('id-ID', options)
+  return new Date(dateString).toLocaleDateString('en-US', options)
 }
 
 const totalRevenue = computed(() => {
@@ -54,7 +54,7 @@ const analyzeSales = () => {
   aiResultRaw.value = ''
 
   setTimeout(() => {
-    const fakeText = "Berdasarkan data 30 hari terakhir, penyewaan armada mengalami lonjakan sebesar 15% dibandingkan bulan lalu.\n\nPorsche Taycan memimpin pendapatan. Disarankan untuk menambah unit armada elektrik mewah untuk memenuhi lonjakan minat dari segmen pelanggan premium.\n\nTarif sewa tetap stabil, namun potensi pendapatan tambahan bisa diraih melalui layanan pramutamu jarak jauh."
+    const fakeText = "Based on the last 30 days of data, fleet rentals have surged by 15% compared to the previous month.\n\nPorsche Taycan leads in revenue. It is recommended to add more luxury electric vehicle units to meet the growing interest from premium customer segments.\n\nRental rates remain stable, but additional revenue potential can be captured through extended remote concierge services."
 
     let i = 0
     const typeWriter = setInterval(() => {
@@ -79,14 +79,14 @@ const analyzeSales = () => {
 <template>
   <div class="space-y-8 font-['Manrope'] text-[#191c1e] pb-10">
 
-    <!-- Bagian Header Judul -->
+    <!-- Header Section -->
     <div class="flex flex-col gap-1 mb-6">
-      <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Laporan Penyewaan & Analisis</h1>
-      <p class="text-sm text-[#727687]">Tinjau pendapatan armada dan manfaatkan AI untuk wawasan bisnis otomatis.</p>
+      <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Rental Report & Analysis</h1>
+      <p class="text-sm text-[#727687]">Review fleet revenue and leverage AI for automated business insights.</p>
     </div>
 
     <!-- ==========================================
-         BAGIAN 1: AI BUSINESS INTELLIGENCE
+         SECTION 1: AI BUSINESS INTELLIGENCE
          ========================================== -->
     <div class="flex flex-col rounded-3xl border border-[#c2c6d8]/40 bg-white shadow-sm overflow-hidden">
 
@@ -96,9 +96,9 @@ const analyzeSales = () => {
           <div>
             <h2 class="font-extrabold text-xl text-[#191c1e] flex items-center gap-3">
               <span class="material-symbols-outlined text-[#0050cb] text-3xl">psychology</span>
-              Intelijen Bisnis Buatan (AI)
+              AI Business Intelligence
             </h2>
-            <p class="text-sm text-[#727687] mt-1 font-medium">Analisis performa & rekomendasi strategis penyewaan *real-time*.</p>
+            <p class="text-sm text-[#727687] mt-1 font-medium">Analyze performance & strategic rental recommendations *real-time*.</p>
           </div>
 
           <button
@@ -108,7 +108,7 @@ const analyzeSales = () => {
           >
             <span v-if="isAnalyzing" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
             <span v-else class="material-symbols-outlined text-[18px]">magic_button</span>
-            {{ isAnalyzing ? 'Menganalisis Data...' : 'Buat Laporan Baru' }}
+            {{ isAnalyzing ? 'Analyzing Data...' : 'Generate New Report' }}
           </button>
         </div>
 
@@ -118,9 +118,9 @@ const analyzeSales = () => {
           <!-- Teks Hasil (Mesin Tik) -->
           <div class="flex-1 order-2 lg:order-1">
             <div class="bg-white p-6 rounded-2xl border border-[#c2c6d8]/30 shadow-sm min-h-[150px]">
-              <p class="text-xs font-bold uppercase tracking-widest text-[#0050cb] mb-3">Ringkasan AI</p>
+              <p class="text-xs font-bold uppercase tracking-widest text-[#0050cb] mb-3">AI Summary</p>
               <p class="text-[#424656] text-sm md:text-base leading-relaxed whitespace-pre-wrap font-medium">
-                {{ aiResultRaw || 'Memuat analisis pola penyewaan...' }}
+                {{ aiResultRaw || 'Loading rental pattern analysis...' }}
                 <span v-if="isAnalyzing" class="inline-block w-1.5 h-4 bg-[#0050cb] ml-1 animate-pulse"></span>
               </p>
             </div>
@@ -128,7 +128,7 @@ const analyzeSales = () => {
 
           <!-- Kendaraan Terlaris -->
           <div v-if="topCars.length > 0" class="lg:w-1/3 order-1 lg:order-2">
-            <h3 class="font-bold text-[10px] uppercase tracking-widest text-[#727687] mb-3">🏆 Armada Terlaris</h3>
+            <h3 class="font-bold text-[10px] uppercase tracking-widest text-[#727687] mb-3">🏆 Best Sellers</h3>
             <div class="space-y-3">
               <div v-for="(car, idx) in topCars" :key="idx" class="flex items-center gap-4 p-3 bg-white rounded-xl border border-[#c2c6d8]/30 shadow-sm hover:border-[#0050cb]/30 transition-colors">
                 <div class="relative flex-shrink-0">
@@ -141,7 +141,7 @@ const analyzeSales = () => {
                 </div>
                 <div>
                   <h4 class="font-extrabold text-[#191c1e] text-sm leading-none">{{ car.name }}</h4>
-                  <p class="text-[#0050cb] text-[10px] font-bold uppercase tracking-widest mt-1.5">Disewa: {{ car.rented }} Kali</p>
+                  <p class="text-[#0050cb] text-[10px] font-bold uppercase tracking-widest mt-1.5">Rented: {{ car.rented }} Times</p>
                 </div>
               </div>
             </div>
@@ -151,13 +151,13 @@ const analyzeSales = () => {
         <!-- State Kosong jika belum Generate -->
         <div v-else-if="!isAnalyzing" class="text-center py-12 bg-white rounded-2xl border border-dashed border-[#c2c6d8]">
           <span class="material-symbols-outlined text-4xl text-[#c2c6d8] mb-2">auto_graph</span>
-          <p class="text-[#727687] text-sm font-medium">Klik tombol "Buat Laporan Baru" untuk melihat analisis saat ini.</p>
+          <p class="text-[#727687] text-sm font-medium">Click "Generate New Report" to see the current analysis.</p>
         </div>
       </div>
 
       <!-- Panel Bawah (Tabel Transaksi Masuk) -->
       <div class="p-6 md:p-8">
-        <h3 class="font-extrabold text-[#191c1e] text-lg mb-6">Rincian Transaksi Selesai & Aktif</h3>
+        <h3 class="font-extrabold text-[#191c1e] text-lg mb-6">Completed & Active Transaction Details</h3>
 
         <div class="overflow-hidden border border-[#c2c6d8]/40 rounded-2xl">
           <div class="max-w-full overflow-x-auto">
@@ -165,14 +165,14 @@ const analyzeSales = () => {
               <thead class="bg-[#003161] text-[10px] text-white uppercase tracking-widest font-bold">
                 <tr>
                   <th class="px-6 py-4 w-12 text-center">NO</th>
-                  <th class="px-6 py-4">INFO RESERVASI</th>
+                  <th class="px-6 py-4">RESERVATION INFO</th>
                   <th class="px-6 py-4 text-center">STATUS</th>
-                  <th class="px-6 py-4 text-right">TOTAL TAGIHAN</th>
+                  <th class="px-6 py-4 text-right">TOTAL BILL</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="paidOrders.length === 0">
-                  <td colspan="4" class="px-6 py-10 text-center text-[#727687] italic font-medium">Belum ada transaksi tervalidasi.</td>
+                  <td colspan="4" class="px-6 py-10 text-center text-[#727687] italic font-medium">No validated transactions yet.</td>
                 </tr>
                 <tr v-for="(order, index) in paidOrders" :key="order.id" class="border-b border-[#f2f4f6] hover:bg-blue-50/30 transition-colors text-sm">
                   <td class="px-6 py-5 text-center text-[#727687] font-bold">{{ index + 1 }}</td>
@@ -190,8 +190,8 @@ const analyzeSales = () => {
                       }"
                     >
                       {{
-                        order.status === 'dp_paid' ? 'DP DIBAYAR' :
-                        order.status === 'completed' ? 'SELESAI' : 'DISEWA (LUNAS)'
+                        order.status === 'dp_paid' ? 'DP PAID' :
+                        order.status === 'completed' ? 'COMPLETED' : 'RENTED (FULL PAID)'
                       }}
                     </span>
                   </td>
@@ -200,7 +200,7 @@ const analyzeSales = () => {
               </tbody>
               <tfoot v-if="paidOrders.length > 0" class="bg-[#f7f9fb] border-t-2 border-[#c2c6d8]/40">
                 <tr>
-                  <td colspan="3" class="px-6 py-5 text-right font-bold text-[#727687] uppercase tracking-widest text-[10px]">Total Pendapatan Terkonfirmasi :</td>
+                  <td colspan="3" class="px-6 py-5 text-right font-bold text-[#727687] uppercase tracking-widest text-[10px]">Confirmed Total Revenue:</td>
                   <td class="px-6 py-5 text-right font-black text-2xl text-[#0050cb]">{{ formatPrice(totalRevenue) }}</td>
                 </tr>
               </tfoot>
@@ -216,10 +216,10 @@ const analyzeSales = () => {
     <div class="flex flex-col gap-4 mt-8 pt-8 border-t border-[#c2c6d8]/40">
       <h2 class="text-xl font-extrabold text-[#191c1e] flex items-center gap-2">
         <span class="material-symbols-outlined text-[#0050cb]">folder_open</span>
-        Arsip Laporan Analisis
+        Analysis Report Archive
       </h2>
 
-      <div v-if="reportHistory.length === 0" class="text-[#727687] text-sm font-medium italic">Belum ada riwayat tersimpan.</div>
+      <div v-if="reportHistory.length === 0" class="text-[#727687] text-sm font-medium italic">No saved history yet.</div>
 
       <div v-else class="grid gap-4 mt-2">
         <!-- Looping History -->
@@ -235,7 +235,7 @@ const analyzeSales = () => {
                 <span class="material-symbols-outlined text-xl block">calendar_month</span>
               </div>
               <div>
-                <h4 class="font-extrabold text-[#191c1e] text-sm md:text-base">Laporan Intelijen Bisnis</h4>
+                <h4 class="font-extrabold text-[#191c1e] text-sm md:text-base">Business Intelligence Report</h4>
                 <p class="text-[10px] text-[#727687] font-bold uppercase tracking-widest mt-0.5">{{ formatDate(report.created_at) }}</p>
               </div>
             </div>

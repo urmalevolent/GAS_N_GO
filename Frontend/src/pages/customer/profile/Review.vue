@@ -10,7 +10,7 @@ const reviews = ref([
   {
     id: 1,
     rating: 5,
-    text: "Websitenya ramah dan mudah untuk mencari sepatu thrift yang bagus disini, harganya juga ramah di kantong mahasiswa",
+    text: "The website is user-friendly and it's easy to find good thrift shoes here, the prices are also student-friendly",
     user: {
       name: "Fiky_KNJT_066",
       avatar: DefaultAvatar,
@@ -19,7 +19,7 @@ const reviews = ref([
   {
     id: 2,
     rating: 4,
-    text: "Pilihan barangnya banyak dan proses checkout-nya cepat. Pengirimannya juga tidak terlalu lama, packing aman.",
+    text: "There are many choices of items and the checkout process is fast. Delivery doesn't take too long, packing is safe.",
     user: {
       name: "Fiky_KNJT_066",
       avatar: DefaultAvatar,
@@ -37,7 +37,7 @@ const reviews = ref([
   {
     id: 4,
     rating: 3,
-    text: "Kualitasnya cukup baik untuk harga segitu, tapi sayang ukuran yang saya pesan sedikit kebesaran. Mungkin deskripsi ukuran bisa lebih detail lagi.",
+    text: "The quality is quite good for the price, but unfortunately the size I ordered is a bit too big. Maybe the size description could be more detailed.",
     user: {
       name: "Fiky_KNJT_066",
       avatar: DefaultAvatar,

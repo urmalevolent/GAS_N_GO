@@ -19,8 +19,8 @@ const updateAdmin = () => {
   if (!adminData.username || !adminData.email || !adminData.phoneNumber) {
     Swal.fire({
       icon: 'warning',
-      title: 'Data Tidak Lengkap',
-      text: 'Pastikan seluruh kolom informasi administrator telah terisi.',
+      title: 'Incomplete Data',
+      text: 'Please fill in all administrator information fields.',
       confirmButtonColor: '#0050cb'
     });
     return;
@@ -34,8 +34,8 @@ const updateAdmin = () => {
 
     Swal.fire({
       icon: 'success',
-      title: 'Tersimpan!',
-      text: 'Profil administrator berhasil diperbarui.',
+      title: 'Saved!',
+      text: 'Administrator profile has been updated.',
       confirmButtonColor: '#0050cb',
       showConfirmButton: false,
       timer: 1500
@@ -54,8 +54,8 @@ const updateAdmin = () => {
     <!-- Bagian Header Judul -->
     <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6">
       <div class="flex flex-col gap-1">
-        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Edit Profil Administrator</h1>
-        <p class="text-sm text-[#727687]">Perbarui informasi kontak dan data diri administrator sistem.</p>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Edit Administrator Profile</h1>
+        <p class="text-sm text-[#727687]">Update the contact information and personal data of the system administrator.</p>
       </div>
 
       <!-- Tombol Kembali -->
@@ -63,7 +63,7 @@ const updateAdmin = () => {
         to="/admin/accounts"
         class="flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-[#f2f4f6] border border-[#c2c6d8] text-[#424656] text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95"
       >
-        <span class="material-symbols-outlined text-lg">arrow_back</span> Kembali
+        <span class="material-symbols-outlined text-lg">arrow_back</span> Back
       </router-link>
     </div>
 
@@ -86,44 +86,44 @@ const updateAdmin = () => {
         <form @submit.prevent="updateAdmin" class="pt-12">
 
           <div class="mb-8">
-            <span class="inline-block px-3 py-1 bg-[#16a34a]/10 text-[#16a34a] border border-[#16a34a]/20 text-[10px] font-black uppercase tracking-widest rounded mb-2">Hak Akses: Penuh</span>
+            <span class="inline-block px-3 py-1 bg-[#16a34a]/10 text-[#16a34a] border border-[#16a34a]/20 text-[10px] font-black uppercase tracking-widest rounded mb-2">Access Level: Full</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
 
             <!-- Input Nama Lengkap (Username) -->
             <div>
-              <label for="username" class="block text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#727687] mb-2">Nama Lengkap</label>
+              <label for="username" class="block text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#727687] mb-2">Full Name</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#727687] text-[20px]">person</span>
                 <input
                   v-model="adminData.username"
                   type="text"
                   id="username"
-                  placeholder="Masukkan nama lengkap"
+                  placeholder="Enter full name"
                   class="w-full pl-11 pr-4 py-3.5 bg-[#f2f4f6] border border-transparent rounded-xl text-sm outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] focus:bg-white transition-all text-[#191c1e] font-bold"
                 >
               </div>
             </div>
 
-            <!-- Input Nomor Telepon -->
+            <!-- Phone Number Input -->
             <div>
-              <label for="phone-number" class="block text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#727687] mb-2">Nomor Telepon</label>
+              <label for="phone-number" class="block text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#727687] mb-2">Phone Number</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#727687] text-[20px]">call</span>
                 <input
                   v-model="adminData.phoneNumber"
                   type="tel"
                   id="phone-number"
-                  placeholder="Contoh: 08123456..."
+                  placeholder="e.g. 081234567..."
                   class="w-full pl-11 pr-4 py-3.5 bg-[#f2f4f6] border border-transparent rounded-xl text-sm outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] focus:bg-white transition-all text-[#191c1e] font-bold"
                 >
               </div>
             </div>
 
-            <!-- Input Email (Span 2 Kolom di Desktop) -->
+            <!-- Email Input (Span 2 Columns on Desktop) -->
             <div class="md:col-span-2">
-              <label for="email" class="block text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#727687] mb-2">Alamat Email Tautan</label>
+              <label for="email" class="block text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#727687] mb-2">Login Email Address</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#727687] text-[20px]">mail</span>
                 <input
@@ -134,7 +134,7 @@ const updateAdmin = () => {
                   class="w-full pl-11 pr-4 py-3.5 bg-[#f2f4f6] border border-transparent rounded-xl text-sm outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] focus:bg-white transition-all text-[#191c1e] font-bold"
                 >
               </div>
-              <p class="text-[10px] text-[#727687] mt-1.5 italic">*Email ini digunakan untuk login ke dalam sistem portal admin GASNGO.</p>
+              <p class="text-[10px] text-[#727687] mt-1.5 italic">*This email is used to log in to the GASNGO admin portal.</p>
             </div>
 
           </div>
@@ -146,7 +146,7 @@ const updateAdmin = () => {
               to="/admin/accounts"
               class="w-full sm:w-auto px-8 py-3.5 bg-white border border-[#c2c6d8] text-[#424656] text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-[#f2f4f6] transition-all shadow-sm text-center active:scale-95"
             >
-              Batal
+              Cancel
             </router-link>
 
             <button
@@ -156,7 +156,7 @@ const updateAdmin = () => {
             >
               <span v-if="isLoading" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
               <span v-else class="material-symbols-outlined text-[18px]">save</span>
-              {{ isLoading ? 'Menyimpan...' : 'Simpan Perubahan' }}
+              {{ isLoading ? 'Saving...' : 'Save Changes' }}
             </button>
 
           </div>

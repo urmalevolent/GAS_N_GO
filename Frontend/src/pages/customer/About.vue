@@ -5,26 +5,26 @@ const router = useRouter()
 
 // --- DUMMY DATA ---
 const stats = [
-  { value: '500+', label: 'Pelanggan Setia' },
-  { value: '50+', label: 'Armada Eksklusif' },
-  { value: '5★', label: 'Rata-rata Penilaian' },
-  { value: '24/7', label: 'Dukungan Pramutamu' },
+  { value: '500+', label: 'Loyal Customers' },
+  { value: '50+', label: 'Exclusive Fleet' },
+  { value: '5★', label: 'Average Rating' },
+  { value: '24/7', label: 'Concierge Support' },
 ]
 
 const values = [
   {
-    title: 'Transparansi Penuh',
-    description: 'Tanpa biaya tersembunyi, tanpa kejutan. Apa yang Anda lihat adalah komitmen harga yang kami berikan—selalu.',
+    title: 'Full Transparency',
+    description: 'No hidden fees, no surprises. What you see is the price commitment we provide—always.',
     icon: 'verified' // Menggunakan Material Symbols Outlined
   },
   {
-    title: 'Kualitas Utama',
-    description: 'Setiap armada kami melewati inspeksi ketat dan perawatan berkala demi memastikan keselamatan dan kenyamanan absolut Anda.',
+    title: 'Top Quality',
+    description: 'Each of our fleets undergoes strict inspection and regular maintenance to ensure your absolute safety and comfort.',
     icon: 'workspace_premium'
   },
   {
-    title: 'Layanan Eksekutif',
-    description: 'Tim pramutamu kami senantiasa siap sedia mendampingi Anda sebelum, selama, hingga sesudah masa penyewaan berakhir.',
+    title: 'Executive Service',
+    description: 'Our concierge team is always ready to assist you before, during, and after the rental period.',
     icon: 'support_agent'
   }
 ]
@@ -33,25 +33,25 @@ const team = [
   {
     name: 'Julian Vance',
     role: 'Chief Executive Officer',
-    bio: 'Berpengalaman 15+ tahun di industri hospitality mewah global, Julian mendirikan GASNGO untuk mendefinisikan ulang standar mobilitas elit.',
+    bio: 'With 15+ years of experience in the global luxury hospitality industry, Julian founded GASNGO to redefine the standards of elite mobility.',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop&facepad=2'
   },
   {
     name: 'Elena Rostova',
-    role: 'Direktur Kurasi Armada',
-    bio: 'Dengan insting tajamnya, Elena memastikan bahwa hanya model kendaraan terbaik dan terlangka yang layak masuk ke dalam garasi GASNGO.',
+    role: 'Fleet Curation Director',
+    bio: 'With her sharp instinct, Elena ensures that only the best and rarest vehicle models deserve to enter the GASNGO garage.',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop&facepad=2'
   },
   {
     name: 'Marcus Thorne',
-    role: 'Kepala Teknik Kendaraan',
-    bio: 'Marcus memimpin tim teknisi elit untuk menjaga performa jantung mekanis seluruh armada GASNGO selalu dalam kondisi prima.',
+    role: 'Head of Vehicle Engineering',
+    bio: 'Marcus leads an elite team of technicians to keep the mechanical heart performance of the entire GASNGO fleet always in prime condition.',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop&facepad=2'
   },
   {
     name: 'Sophia Chen',
-    role: 'VP Pengalaman Pelanggan',
-    bio: 'Sophia adalah otak di balik kelancaran dan kemewahan setiap perjalanan klien. Ia menjamin kepuasan pada setiap kilometer yang ditempuh.',
+    role: 'VP of Customer Experience',
+    bio: 'Sophia is the brain behind the smoothness and luxury of every client journey. She guarantees satisfaction on every kilometer traveled.',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop&facepad=2'
   }
 ]
@@ -69,12 +69,12 @@ const team = [
       <div class="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-[#0066ff] blur-[128px] opacity-20 pointer-events-none"></div>
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center mt-10">
-        <p class="text-[#0050cb] font-bold text-xs uppercase tracking-[0.3em] mb-4">Mengenal Kami</p>
+        <p class="text-[#0050cb] font-bold text-xs uppercase tracking-[0.3em] mb-4">Get to Know Us</p>
         <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-[#191c1e] mb-6 tracking-tighter leading-tight uppercase">
-          Kisah <span class="text-[#0050cb]">GASNGO</span>
+          The Story of <span class="text-[#0050cb]">GASNGO</span>
         </h1>
         <p class="text-lg md:text-xl text-[#424656] max-w-2xl mx-auto font-medium leading-relaxed">
-          Klub mobilitas eksklusif di Indonesia, dibangun atas dasar gairah untuk menciptakan perjalanan tanpa batas dan pengalaman pelanggan yang sempurna.
+          An exclusive mobility club in Indonesia, built on the passion to create boundless journeys and perfect customer experiences.
         </p>
       </div>
     </section>
@@ -88,15 +88,15 @@ const team = [
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div class="order-2 lg:order-1">
-            <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">Misi Kami</p>
+            <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">Our Mission</p>
             <h2 class="text-4xl sm:text-5xl font-black text-[#191c1e] mb-6 leading-tight tracking-tight">
-              Kebebasan Menjelajah, <span class="text-[#0050cb]">Tanpa Kompromi.</span>
+              Freedom to Explore, <span class="text-[#0050cb]">Without Compromise.</span>
             </h2>
             <p class="text-[#424656] text-base leading-relaxed mb-6 font-medium">
-              Di GASNGO, kami percaya bahwa mengeksplorasi destinasi harus terasa leluasa. Sejak awal pendirian kami, kami berkomitmen penuh untuk menyediakan kendaraan kelas atas dengan tarif transparan dan nol biaya tersembunyi — agar Anda bisa fokus sepenuhnya pada perjalanan Anda.
+              At GASNGO, we believe that exploring destinations should feel free. Since our inception, we have been fully committed to providing high-end vehicles with transparent rates and zero hidden fees — so you can focus entirely on your journey.
             </p>
             <p class="text-[#424656] text-base leading-relaxed font-medium">
-              Apakah Anda mencari sedan eksekutif yang elegan, SUV keluarga premium yang tangguh, atau *supercar* eksotis untuk tiba dengan penuh gaya, armada kami selalu dirawat sempurna dan siap menemani setiap petualangan Anda.
+              Whether you are looking for an elegant executive sedan, a tough premium family SUV, or an exotic supercar to arrive in style, our fleet is always perfectly maintained and ready to accompany your every adventure.
             </p>
           </div>
 
@@ -105,7 +105,7 @@ const team = [
             <!-- Gambar Suasana/Perjalanan Elegan -->
             <img
               src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=800&auto=format&fit=crop"
-              alt="Perjalanan Mewah"
+              alt="Luxury Journey"
               class="relative w-full h-80 sm:h-96 object-cover rounded-[2.5rem] shadow-2xl shadow-[#191c1e]/10 border border-[#c2c6d8]/20"
             />
           </div>
@@ -129,9 +129,9 @@ const team = [
       <!-- Nilai (Values) Section -->
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div class="text-center mb-16">
-          <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">Prinsip Fundamental Kami</p>
-          <h2 class="text-4xl font-black text-[#191c1e] tracking-tight">Nilai <span class="text-[#0050cb]">Utama</span></h2>
-          <p class="text-[#727687] mt-3 text-lg font-medium">Panduan utama kami dalam menyewakan armada dan melayani setiap pelanggan VIP.</p>
+          <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">Our Fundamental Principles</p>
+          <h2 class="text-4xl font-black text-[#191c1e] tracking-tight">Core <span class="text-[#0050cb]">Values</span></h2>
+          <p class="text-[#727687] mt-3 text-lg font-medium">Our main guide in renting the fleet and serving every VIP customer.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -156,9 +156,9 @@ const team = [
       <section class="bg-[#f2f4f6] py-24 border-t border-[#c2c6d8]/40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-16">
-            <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">Tokoh Di Balik GASNGO</p>
-            <h2 class="text-4xl font-black text-[#191c1e] tracking-tight">Jajaran <span class="text-[#0050cb]">Eksekutif</span></h2>
-            <p class="text-[#727687] mt-3 text-lg font-medium">Grup profesional yang berdedikasi menciptakan standar kemewahan tiada tara.</p>
+            <p class="text-[#0050cb] font-bold text-[10px] uppercase tracking-widest mb-3">The Figures Behind GASNGO</p>
+            <h2 class="text-4xl font-black text-[#191c1e] tracking-tight">Executive <span class="text-[#0050cb]">Board</span></h2>
+            <p class="text-[#727687] mt-3 text-lg font-medium">A dedicated group of professionals creating unparalleled standards of luxury.</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -195,18 +195,18 @@ const team = [
 
           <div class="relative z-10 max-w-3xl mx-auto">
             <h2 class="text-3xl md:text-5xl font-black text-[#111827] uppercase leading-tight mb-6 tracking-tight">
-              Siap Mengubah <br class="hidden sm:block" />
-              Perspektif Perjalanan Anda?
+              Ready to Change <br class="hidden sm:block" />
+              Your Travel Perspective?
             </h2>
             <p class="text-slate-500 text-lg mb-10 font-medium">
-              Eksplorasi langsung armada kelas satu kami dan pesan kendaraan sempurna untuk agenda Anda hari ini.
+              Explore our first-class fleet firsthand and book the perfect vehicle for your agenda today.
             </p>
 
             <button
               @click="router.push('/cars')"
               class="bg-[#0050cb] hover:bg-[#0066ff] text-white font-bold px-10 py-4.5 rounded-full uppercase text-sm tracking-widest transition-all shadow-lg shadow-blue-500/20 active:scale-95 inline-block text-center"
             >
-              Lihat Armada Kami
+              See Our Fleet
             </button>
           </div>
         </div>

@@ -26,7 +26,6 @@ import CarLists from '@/pages/admin/cars/CarLists.vue'
 import AddCar from '@/pages/admin/cars/AddCars.vue'
 import Users from '@/pages/admin/users/Users.vue'
 import UserLists from '@/pages/admin/users/UserLists.vue'
-import AddUsers from '@/pages/admin/users/CreateAdmin.vue'
 import CategoryLists from '@/pages/admin/category/CategoryLists.vue'
 import RatingLists from '@/pages/admin/Ratings/RatingLists.vue'
 import Rentals from '@/pages/admin/rentals/Rentals.vue'
@@ -99,9 +98,9 @@ const router = createRouter({
           // PERBAIKAN: Konfigurasi rute admin users
           path: "users",
           component: Users,
+          meta: { requiresSuperAdmin: true },
           children:[
             { path: "", name: "admin-users-list", component: UserLists },
-            { path: "add", name: "admin-user-add", component: AddUsers },
             { path: "edit/:id", name: "admin-user-edit", component: () => import('@/pages/admin/users/UserEdits.vue') },
             { path: "detail/:id", name: "admin-user-detail", component: () => import('@/pages/admin/users/UserDetails.vue') },
           ],
@@ -136,6 +135,7 @@ const router = createRouter({
         {
           path: "transactions",
           component: TransactionLists,
+          meta: { requiresSuperAdmin: true },
           children:[
             { path: "", name: "admin-transactions-list", component: TransactionLists },
             { path: "detail/:id", name: "admin-transaction-detail", component: () => import('@/pages/admin/transactions/TransactionDetails.vue') }
@@ -156,6 +156,7 @@ router.beforeEach(async (to, from, next) => {
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+  const requiresSuperAdmin = to.matched.some(record => record.meta.requiresSuperAdmin)
 
   console.log(`[Router Debug] Navigasi ke: ${to.path}`);
   console.log(`[Router Debug] isAuthenticated: ${authStore.isAuthenticated}, isAdmin: ${authStore.isAdmin}, userRole: ${authStore.userRole}`);
@@ -164,6 +165,9 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth && !authStore.isAuthenticated) {
     authStore.openAuthModal()
     next({ name: 'home', query: { redirect: to.fullPath } })
+  } else if (requiresSuperAdmin && !authStore.isSuperAdmin) {
+    console.warn(`[Router Debug] Akses SuperAdmin Ditolak! userRole: ${authStore.userRole}`);
+    next({ name: 'admin-dashboard' })
   } else if (requiresAdmin && !authStore.isAdmin) {
     console.warn(`[Router Debug] Akses Ditolak! userRole: ${authStore.userRole}, requiresAdmin: ${requiresAdmin}`);
     next({ name: 'home' })

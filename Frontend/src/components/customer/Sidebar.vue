@@ -55,7 +55,7 @@ const fetchActiveOrdersCount = async () => {
       activeOrdersCount.value = count || 0;
     }
   } catch (err) {
-    console.error('Gagal mengambil jumlah pesanan aktif:', err);
+    console.error('Failed to fetch active orders count:', err);
   }
 };
 
@@ -110,20 +110,20 @@ onUnmounted(() => {
 // Aksi keluar akun riil dengan konfirmasi SweetAlert
 const handleLogout = () => {
   Swal.fire({
-    title: 'Keluar Akun?',
-    text: 'Anda harus masuk kembali untuk dapat melacak dan menyewa armada.',
+    title: 'Logout?',
+    text: 'You must log in again to track and rent vehicles.',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ba1a1a',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: 'Ya, Keluar',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Logout',
+    cancelButtonText: 'Cancel'
   }).then(async (result) => {
     if (result.isConfirmed) {
       await authStore.signOut();
       Swal.fire({
         icon: 'success',
-        title: 'Berhasil Keluar!',
+        title: 'Successfully Logged Out!',
         showConfirmButton: false,
         timer: 1500
       });
@@ -153,7 +153,7 @@ const handleLogout = () => {
           {{ currentUser.username }}
         </p>
         <p class="text-xs text-[#727687] truncate mt-0.5" :title="currentUser.email">
-          {{ currentUser.email || 'Belum ada email' }}
+          {{ currentUser.email || 'No email provided' }}
         </p>
       </div>
     </div>
@@ -167,7 +167,7 @@ const handleLogout = () => {
         :class="route.path.includes('/user/profile') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
       >
         <span class="material-symbols-outlined text-[20px]" :class="route.path.includes('/user/profile') ? 'text-[#0050cb]' : 'text-[#727687]'">person</span>
-        <span>Profil Saya</span>
+        <span>My Profile</span>
       </RouterLink>
 
       <!-- PERUBAHAN: Link menuju /user/orders dan nama diubah menjadi My Orders -->
@@ -189,7 +189,7 @@ const handleLogout = () => {
         :class="route.path.includes('/user/review') ? 'bg-[#0050cb]/10 text-[#0050cb]' : 'text-[#424656] hover:bg-[#f2f4f6] hover:text-[#191c1e]'"
       >
         <span class="material-symbols-outlined text-[20px]" :class="route.path.includes('/user/review') ? 'text-[#0050cb]' : 'text-[#727687]'">star</span>
-        <span>Ulasan Saya</span>
+        <span>My Reviews</span>
       </RouterLink>
 
     </nav>
@@ -201,7 +201,7 @@ const handleLogout = () => {
         class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-[#ba1a1a] hover:bg-red-50 hover:text-red-700 transition-all duration-200 font-bold text-sm"
       >
         <span class="material-symbols-outlined text-[20px]">logout</span>
-        <span>Keluar Akun</span>
+        <span>Logout</span>
       </button>
     </div>
 

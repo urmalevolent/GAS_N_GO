@@ -37,7 +37,7 @@ const formatPrice = (price) => {
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const options = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-  return new Date(dateString).toLocaleDateString('id-ID', options);
+  return new Date(dateString).toLocaleDateString('en-US', options);
 };
 
 const mappedStatus = computed(() => {
@@ -107,7 +107,7 @@ watch(() => props.show, (isOpen) => {
               <span class="material-symbols-outlined text-xl">receipt_long</span>
             </div>
             <div>
-              <h2 class="text-xl md:text-2xl font-extrabold text-[#191c1e] tracking-tight leading-none">Detail Reservasi</h2>
+              <h2 class="text-xl md:text-2xl font-extrabold text-[#191c1e] tracking-tight leading-none">Reservation Detail</h2>
               <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mt-1">ID: {{ orderData.id }}</p>
             </div>
           </div>
@@ -122,25 +122,25 @@ watch(() => props.show, (isOpen) => {
           <!-- 1. Informasi Pemesan -->
           <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
             <h3 class="font-extrabold text-[#191c1e] text-base mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#0050cb] text-[18px]">person</span> Data Pelanggan
+              <span class="material-symbols-outlined text-[#0050cb] text-[18px]">person</span> Customer Data
             </h3>
 
             <div class="space-y-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-[#727687]">Nama Pemesan</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-[#727687]">Customer Name</span>
                 <span class="text-[#191c1e] font-extrabold text-sm">{{ orderData.recipient_name }}</span>
               </div>
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-[#727687]">No. Telepon</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-[#727687]">Phone Number</span>
                 <span class="text-[#191c1e] font-bold text-sm">{{ orderData.recipient_phone }}</span>
               </div>
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-[#727687]">Tanggal Reservasi</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-[#727687]">Reservation Date</span>
                 <span class="text-[#424656] font-medium text-sm">{{ formatDate(orderData.created_at) }}</span>
               </div>
 
               <div class="pt-3 border-t border-[#f2f4f6]">
-                 <span class="text-[10px] font-bold uppercase tracking-widest text-[#727687] mb-1.5 block">Alamat / Lokasi Pengantaran</span>
+                 <span class="text-[10px] font-bold uppercase tracking-widest text-[#727687] mb-1.5 block">Delivery Address</span>
                  <p class="text-[#191c1e] text-sm font-medium leading-relaxed bg-[#f2f4f6] p-3 rounded-lg">{{ orderData.shipping_address }}</p>
               </div>
             </div>
@@ -150,13 +150,13 @@ watch(() => props.show, (isOpen) => {
           <!-- 2. Detail Armada yang Disewa -->
           <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
             <h3 class="font-extrabold text-[#191c1e] text-base mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#0050cb] text-[18px]">directions_car</span> Armada Disewa
+              <span class="material-symbols-outlined text-[#0050cb] text-[18px]">directions_car</span> Rented Vehicle
             </h3>
 
             <!-- Loading State -->
             <div v-if="isLoading" class="flex flex-col items-center justify-center py-6 text-[#727687]">
               <span class="material-symbols-outlined animate-spin text-3xl text-[#0050cb] mb-2">sync</span>
-              <span class="text-[10px] font-bold uppercase tracking-widest">Memuat data armada...</span>
+              <span class="text-[10px] font-bold uppercase tracking-widest">Loading fleet data...</span>
             </div>
 
             <!-- List Kendaraan -->
@@ -176,9 +176,9 @@ watch(() => props.show, (isOpen) => {
                   <div class="flex flex-wrap items-center justify-between gap-2 mt-auto">
                     <div class="flex items-center gap-1.5 text-xs font-bold text-[#424656] bg-white px-2 py-1 rounded border border-[#c2c6d8]/30">
                       <span class="material-symbols-outlined text-[14px]">event_available</span>
-                      {{ item.duration }} Hari
+                      {{ item.duration }} Day(s)
                     </div>
-                    <span class="text-sm font-black text-[#191c1e]">{{ formatPrice(item.price_per_day) }}<span class="text-[10px] text-[#727687] uppercase tracking-widest">/Hari</span></span>
+                    <span class="text-sm font-black text-[#191c1e]">{{ formatPrice(item.price_per_day) }}<span class="text-[10px] text-[#727687] uppercase tracking-widest">/Day</span></span>
                   </div>
                 </div>
 
@@ -192,7 +192,7 @@ watch(() => props.show, (isOpen) => {
              <!-- Status Reservasi -->
              <div class="flex justify-between items-center mb-5">
                <h3 class="font-extrabold text-[#191c1e] text-base flex items-center gap-2">
-                 <span class="material-symbols-outlined text-[#0050cb] text-[18px]">payments</span> Status Pembayaran
+                 <span class="material-symbols-outlined text-[#0050cb] text-[18px]">payments</span> Payment Status
                </h3>
 
                <span v-if="orderData" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
@@ -205,18 +205,18 @@ watch(() => props.show, (isOpen) => {
                     'bg-red-100 text-red-700 border-red-200': ['rejected', 'cancelled'].includes(mappedStatus)
                   }">
                  {{
-                    mappedStatus === 'pending' ? 'MENUNGGU PEMBAYARAN' :
-                    mappedStatus === 'dp_paid' ? 'DP DIBAYAR (MENUNGGU PERSETUJUAN)' :
-                    mappedStatus === 'active' ? 'SEDANG DIANTAR' :
-                    mappedStatus === 'rented' ? 'SEDANG DISEWA' :
-                    mappedStatus === 'completed' ? 'SELESAI' : 'DIBATALKAN / DITOLAK'
+                    mappedStatus === 'pending' ? 'AWAITING PAYMENT' :
+                    mappedStatus === 'dp_paid' ? 'DP PAID (AWAITING APPROVAL)' :
+                    mappedStatus === 'active' ? 'ON THE WAY' :
+                    mappedStatus === 'rented' ? 'CURRENTLY RENTED' :
+                    mappedStatus === 'completed' ? 'COMPLETED' : 'CANCELLED / REJECTED'
                  }}
                </span>
              </div>
 
-             <!-- Total Tagihan Akhir -->
+             <!-- Total Bill -->
              <div class="bg-[#f7f9fb] p-4 rounded-xl border border-[#c2c6d8]/40 flex justify-between items-center">
-                <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Total Estimasi Tagihan</span>
+                <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Estimated Total Bill</span>
                 <span class="text-2xl md:text-3xl font-black tracking-tighter text-[#0050cb]">{{ formatPrice(orderData.total_price) }}</span>
              </div>
           </div>

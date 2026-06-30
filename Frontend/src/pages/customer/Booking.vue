@@ -77,13 +77,13 @@ const close = () => {
 const processPayment = async () => {
   if (totalDays.value <= 0) return;
   if (!bookingForm.value.address.trim()) {
-    alert('Mohon isi alamat pengiriman/penjemputan kendaraan terlebih dahulu.');
+    alert('Please enter the vehicle delivery/pickup address first.');
     return;
   }
 
   // 1. Pastikan pengguna sudah terautentikasi
   if (!authStore.isAuthenticated) {
-    alert('Silakan masuk (login) terlebih dahulu untuk melanjutkan pemesanan.');
+    alert('Please log in first to continue with your booking.');
     close();
     authStore.openAuthModal();
     return;
@@ -136,7 +136,7 @@ const processPayment = async () => {
     const resData = await response.json();
 
     if (!response.ok || !resData.success) {
-      throw new Error(resData.message || 'Gagal memproses pemesanan.');
+      throw new Error(resData.message || 'Failed to process the booking.');
     }
 
     // 3. Berhasil membuat pemesanan, langsung arahkan ke pesanan saya (pembayaran setelah verifikasi KTP)
@@ -146,7 +146,7 @@ const processPayment = async () => {
 
   } catch (error) {
     console.error('Booking Error:', error);
-    alert(error.message || 'Terjadi kesalahan sistem saat menghubungi backend.');
+    alert(error.message || 'A system error occurred while contacting the backend.');
     isProcessing.value = false;
   }
 };
@@ -172,8 +172,8 @@ const processPayment = async () => {
 
           <!-- Teks Kendaraan -->
           <div class="absolute bottom-5 left-6">
-            <p class="text-white/80 text-xs font-bold uppercase tracking-widest">{{ carData?.brand_name || 'Merek' }}</p>
-            <h2 class="text-2xl md:text-3xl font-extrabold text-white leading-tight mt-1">{{ carData?.name || 'Nama Kendaraan' }}</h2>
+            <p class="text-white/80 text-xs font-bold uppercase tracking-widest">{{ carData?.brand_name || 'Brand' }}</p>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-white leading-tight mt-1">{{ carData?.name || 'Vehicle Name' }}</h2>
           </div>
         </div>
 
@@ -184,7 +184,7 @@ const processPayment = async () => {
             <!-- Input Tanggal -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Tanggal Mulai</label>
+                <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Start Date</label>
                 <input
                   type="date"
                   v-model="bookingForm.startDate"
@@ -192,7 +192,7 @@ const processPayment = async () => {
                 />
               </div>
               <div>
-                <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Tanggal Selesai</label>
+                <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">End Date</label>
                 <input
                   type="date"
                   v-model="bookingForm.endDate"
@@ -203,18 +203,18 @@ const processPayment = async () => {
 
             <!-- Input Alamat -->
             <div>
-              <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Alamat Pengantaran / Penjemputan</label>
+              <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Delivery / Pickup Address</label>
               <textarea
                 v-model="bookingForm.address"
                 rows="2"
                 class="w-full bg-[#f2f4f6] border border-transparent focus:border-[#0050cb] focus:bg-white focus:ring-1 focus:ring-[#0050cb] rounded-xl px-4 py-3.5 text-sm font-medium text-[#191c1e] transition-all outline-none resize-none"
-                placeholder="Masukkan alamat lengkap (cth: Hotel, Villa, dll)..."
+                placeholder="Enter full address (e.g. Hotel, Villa, etc.)..."
               ></textarea>
             </div>
 
             <!-- Input Metode Pembayaran -->
             <div>
-              <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Opsi Pembayaran Muka</label>
+              <label class="block text-[10px] md:text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Payment Option</label>
               <div class="grid grid-cols-2 gap-3">
 
                 <button
@@ -223,8 +223,8 @@ const processPayment = async () => {
                   class="flex flex-col items-center justify-center gap-1.5 px-4 py-3.5 rounded-xl border-2 transition-all font-bold text-sm"
                   :class="bookingForm.paymentMethod === 'cash_with_dp' ? 'border-[#0050cb] bg-[#e6eeff] text-[#0050cb]' : 'border-[#c2c6d8]/40 bg-[#f7f9fb] text-[#424656] hover:border-[#c2c6d8]'"
                 >
-                  <span class="text-sm">Bayar DP (15%)</span>
-                  <span class="text-[9px] uppercase tracking-widest opacity-80">Sisa Saat Serah Terima</span>
+                  <span class="text-sm">Pay DP (15%)</span>
+                  <span class="text-[9px] uppercase tracking-widest opacity-80">Remaining at Handover</span>
                 </button>
 
                 <button
@@ -233,8 +233,8 @@ const processPayment = async () => {
                   class="flex flex-col items-center justify-center gap-1.5 px-4 py-3.5 rounded-xl border-2 transition-all font-bold text-sm"
                   :class="bookingForm.paymentMethod === 'full_transfer' ? 'border-[#0050cb] bg-[#e6eeff] text-[#0050cb]' : 'border-[#c2c6d8]/40 bg-[#f7f9fb] text-[#424656] hover:border-[#c2c6d8]'"
                 >
-                  <span class="text-sm">Bayar Penuh</span>
-                  <span class="text-[9px] uppercase tracking-widest opacity-80">Lunas 100% Sekarang</span>
+                  <span class="text-sm">Pay in Full</span>
+                  <span class="text-[9px] uppercase tracking-widest opacity-80">100% Paid Now</span>
                 </button>
 
               </div>
@@ -249,21 +249,21 @@ const processPayment = async () => {
 
                 <div class="relative z-10">
                   <div class="flex justify-between items-center mb-4">
-                    <span class="text-[#c2c6d8] text-sm font-medium">Durasi Sewa</span>
-                    <span class="bg-[#0050cb] px-3 py-1 rounded-lg text-white font-bold text-xs uppercase tracking-widest">{{ totalDays }} Hari</span>
+                    <span class="text-[#c2c6d8] text-sm font-medium">Rental Duration</span>
+                    <span class="bg-[#0050cb] px-3 py-1 rounded-lg text-white font-bold text-xs uppercase tracking-widest">{{ totalDays }} Day(s)</span>
                   </div>
 
                   <div class="flex justify-between items-center mb-5">
-                    <span class="text-[#c2c6d8] text-sm font-medium">Estimasi Biaya Total</span>
+                    <span class="text-[#c2c6d8] text-sm font-medium">Estimated Total Cost</span>
                     <span class="text-white font-bold text-lg">{{ formatPrice(totalPrice) }}</span>
                   </div>
 
                   <div class="pt-4 border-t border-gray-700 flex justify-between items-center">
                     <div>
                       <span class="block text-white font-bold text-sm">
-                        {{ bookingForm.paymentMethod === 'full_transfer' ? 'Total Pembayaran' : 'Uang Muka (DP 15%)' }}
+                        {{ bookingForm.paymentMethod === 'full_transfer' ? 'Total Payment' : 'Down Payment (DP 15%)' }}
                       </span>
-                      <span class="block text-[#c2c6d8] text-[10px] uppercase tracking-widest mt-1">Harus Dibayar Sekarang</span>
+                      <span class="block text-[#c2c6d8] text-[10px] uppercase tracking-widest mt-1">Must Be Paid Now</span>
                     </div>
                     <span class="font-black text-[#0066ff] text-3xl">{{ formatPrice(bookingForm.paymentMethod === 'full_transfer' ? totalPrice : dpAmount) }}</span>
                   </div>
@@ -271,7 +271,7 @@ const processPayment = async () => {
                   <!-- Teks Info Sisa Pembayaran (Muncul jika opsi DP) -->
                   <div v-if="bookingForm.paymentMethod === 'cash_with_dp'" class="mt-4 pt-4 border-t border-gray-700/50">
                     <p class="text-[10px] text-[#c2c6d8] leading-relaxed">
-                      Sisa pembayaran sebesar <strong class="text-white">{{ formatPrice(totalPrice - dpAmount) }}</strong> wajib dilunasi saat serah terima kendaraan.
+                      The remaining balance of <strong class="text-white">{{ formatPrice(totalPrice - dpAmount) }}</strong> must be paid in full at the time of vehicle handover.
                     </p>
                   </div>
                 </div>
@@ -284,7 +284,7 @@ const processPayment = async () => {
         <!-- ================= BAGIAN BAWAH: ACTION BUTTONS ================= -->
         <div class="p-6 bg-[#f7f9fb] border-t border-[#c2c6d8]/40 flex flex-col sm:flex-row justify-end gap-3 rounded-b-[2rem]">
           <button @click="close" class="px-6 py-3.5 text-[#424656] hover:bg-[#e0e3e5] rounded-xl transition-colors font-bold text-xs uppercase tracking-widest border border-transparent">
-            Batal
+            Cancel
           </button>
           <button @click="processPayment" :disabled="isProcessing || totalDays <= 0" class="signature-gradient text-white px-8 py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-[#0050cb]/30 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 group active:scale-95">
             <!-- Spinner -->
@@ -292,7 +292,7 @@ const processPayment = async () => {
             <!-- Ikon Biasa -->
             <span v-else class="material-symbols-outlined text-[18px]">send</span>
 
-            <span>{{ isProcessing ? 'Memproses...' : 'Kirim Pemesanan' }}</span>
+            <span>{{ isProcessing ? 'Processing...' : 'Submit Booking' }}</span>
 
             <!-- Ikon Panah (Muncul jika tidak loading) -->
             <span v-if="!isProcessing" class="material-symbols-outlined text-[18px] transform group-hover:translate-x-1 transition-transform">arrow_forward</span>

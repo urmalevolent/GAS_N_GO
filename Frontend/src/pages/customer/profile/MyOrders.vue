@@ -38,8 +38,8 @@ const fetchOrders = async () => {
       return {
         id: r.id,
         car: {
-          name: r.car?.name || 'Mobil',
-          brand: r.car?.brand || 'Armada',
+          name: r.car?.name || 'Car',
+          brand: r.car?.brand || 'Fleet',
           image_url: r.car?.image_url || ''
         },
         start_date: r.start_date,
@@ -141,7 +141,7 @@ const retryPayment = async (rental) => {
 
     const resData = await response.json();
     if (!response.ok || !resData.success) {
-      throw new Error(resData.message || 'Gagal memproses pembayaran ulang.');
+      throw new Error(resData.message || 'Failed to retry payment.');
     }
 
     const snapToken = resData.data.snap_token;
@@ -175,7 +175,7 @@ const retryPayment = async (rental) => {
         },
         onError: function(result) {
           console.error('Retry Error:', result);
-          alert('Pembayaran gagal, silakan coba lagi.');
+          alert('Payment failed, please try again.');
         },
         onClose: function() {
           console.log('Retry popup closed');
@@ -183,12 +183,12 @@ const retryPayment = async (rental) => {
         }
       });
     } else {
-      throw new Error('Midtrans Snap SDK tidak termuat.');
+      throw new Error('Midtrans Snap SDK is not loaded.');
     }
 
   } catch (err) {
     console.error('Retry payment error:', err);
-    alert(err.message || 'Terjadi kesalahan saat menghubungi server pembayaran.');
+    alert(err.message || 'An error occurred while contacting the payment server.');
   } finally {
     isProcessing.value = false;
   }
@@ -201,16 +201,16 @@ const formatPrice = (p) => {
 };
 
 const formatDate = (d) => {
-  return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 // --- LOGIKA PROGRESS TRACKER (HORIZONTAL TIMELINE) ---
 const STEPS = [
-  { key: 'pending',   label: 'Dipesan' },
-  { key: 'dp_paid',   label: 'Uang Muka/Lunas' },
-  { key: 'active',    label: 'Sedang Diantar' },
-  { key: 'rented',    label: 'Sedang Disewa' },
-  { key: 'completed', label: 'Selesai' },
+  { key: 'pending',   label: 'Ordered' },
+  { key: 'dp_paid',   label: 'DP / Full Paid' },
+  { key: 'active',    label: 'On the Way' },
+  { key: 'rented',    label: 'Currently Rented' },
+  { key: 'completed', label: 'Completed' },
 ];
 const FLOW = STEPS.map(s => s.key);
 
@@ -259,18 +259,18 @@ const progressWidth = (rental) => {
 const statusLabel = (rental) => {
   const s = rental.status;
   if (s === 'pending' || s === 'pending_dp') {
-    return 'Menunggu Pembayaran';
+    return 'Awaiting Payment';
   }
   
   const mapped = getMappedStatus(rental);
   return {
-    dp_paid:    'Menunggu Persetujuan',
-    active:     'Sedang Diantar',
-    rented:     'Sedang Disewa',
-    completed:  'Selesai',
-    rejected:   'Ditolak',
-    refunded:   'Dikembalikan',
-    cancelled:  'Dibatalkan'
+    dp_paid:    'Awaiting Approval',
+    active:     'On the Way',
+    rented:     'Currently Rented',
+    completed:  'Completed',
+    rejected:   'Rejected',
+    refunded:   'Refunded',
+    cancelled:  'Cancelled'
   }[mapped] || mapped;
 };
 
@@ -332,8 +332,8 @@ const currentTabRentals = computed(() => {
     <!-- Header Halaman -->
     <div class="mb-8 border-b border-[#c2c6d8]/40 pb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-[#191c1e]">Pemesanan Saya</h1>
-        <p class="text-[#727687] text-xs md:text-sm mt-1">Lacak status dan riwayat reservasi kendaraan Anda secara *real-time*.</p>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-[#191c1e]">My Orders</h1>
+        <p class="text-[#727687] text-xs md:text-sm mt-1">Track status and history of your vehicle reservations in *real-time*.</p>
       </div>
 
       <!-- Lencana Live Tracking -->
@@ -352,35 +352,35 @@ const currentTabRentals = computed(() => {
         @click="activeTab = 'active'"
         class="px-4 py-3 text-sm font-extrabold uppercase tracking-widest border-b-2 transition-colors whitespace-nowrap flex items-center gap-2"
         :class="activeTab === 'active' ? 'border-[#0050cb] text-[#0050cb]' : 'border-transparent text-[#727687] hover:text-[#191c1e]'">
-        <span class="material-symbols-outlined text-[18px]">progress_activity</span> Pesanan Aktif
+        <span class="material-symbols-outlined text-[18px]">progress_activity</span> Active Orders
       </button>
       <button
         @click="activeTab = 'history'"
         class="px-4 py-3 text-sm font-extrabold uppercase tracking-widest border-b-2 transition-colors whitespace-nowrap flex items-center gap-2"
         :class="activeTab === 'history' ? 'border-[#0050cb] text-[#0050cb]' : 'border-transparent text-[#727687] hover:text-[#191c1e]'">
-        <span class="material-symbols-outlined text-[18px]">history</span> Riwayat Pesanan
+        <span class="material-symbols-outlined text-[18px]">history</span> Order History
       </button>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="flex flex-col items-center justify-center py-32 text-center">
       <span class="material-symbols-outlined animate-spin text-4xl text-[#0050cb] mb-4">sync</span>
-      <h3 class="text-sm font-bold text-[#727687] uppercase tracking-widest">Memuat pesanan Anda...</h3>
+      <h3 class="text-sm font-bold text-[#727687] uppercase tracking-widest">Loading your orders...</h3>
     </div>
 
     <!-- Data Kosong -->
     <div v-else-if="currentTabRentals.length === 0" class="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-[#c2c6d8]/50 rounded-[2rem]">
       <span class="material-symbols-outlined text-6xl text-[#c2c6d8] mb-4">directions_car</span>
       <h3 class="text-xl font-bold text-[#191c1e]">
-        {{ activeTab === 'active' ? 'Belum Ada Pesanan Aktif' : 'Riwayat Pesanan Kosong' }}
+        {{ activeTab === 'active' ? 'No Active Orders' : 'Order History Empty' }}
       </h3>
       <p class="text-[#727687] mt-2 text-sm max-w-md">
         {{ activeTab === 'active' 
-            ? 'Anda tidak memiliki sewa kendaraan yang sedang berjalan saat ini. Mulai jelajahi armada kami!' 
-            : 'Anda belum menyelesaikan reservasi kendaraan apa pun di GASNGO.' }}
+            ? 'You have no ongoing vehicle rentals at the moment. Start exploring our fleet!' 
+            : 'You have not completed any vehicle reservations on GASNGO yet.' }}
       </p>
       <router-link v-if="activeTab === 'active'" to="/cars" class="mt-8 bg-[#0050cb] hover:bg-[#0066ff] text-white px-8 py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#0050cb]/20 uppercase tracking-widest active:scale-95">
-        Jelajahi Armada
+        Explore Fleet
       </router-link>
     </div>
 
@@ -424,7 +424,7 @@ const currentTabRentals = computed(() => {
 
         <!-- Progress Timeline (Alur Pesanan) -->
         <div class="p-5 md:p-6">
-          <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-6">Status Reservasi</p>
+          <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-6">Reservation Status</p>
 
           <div class="relative max-w-2xl mx-auto">
             <!-- Background garis abu -->
@@ -455,7 +455,7 @@ const currentTabRentals = computed(() => {
                      :class="step.done || step.active ? 'text-[#191c1e]' : 'text-[#727687]'">
                     {{ step.label }}
                   </p>
-                  <p v-if="step.active" class="text-[9px] text-[#0050cb] font-black uppercase tracking-widest animate-pulse mt-0.5">Saat Ini</p>
+                  <p v-if="step.active" class="text-[9px] text-[#0050cb] font-black uppercase tracking-widest animate-pulse mt-0.5">Current</p>
                 </div>
               </div>
             </div>
@@ -466,7 +466,7 @@ const currentTabRentals = computed(() => {
             <button @click="retryPayment(rental)" :disabled="isProcessing" class="w-full bg-[#0050cb] hover:bg-[#0066ff] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50">
               <span v-if="isProcessing" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
               <span v-else class="material-symbols-outlined text-[18px]">credit_card</span>
-              {{ isProcessing ? 'Memproses...' : 'Selesaikan Pembayaran Sekarang' }}
+              {{ isProcessing ? 'Processing...' : 'Complete Payment Now' }}
             </button>
           </div>
 
@@ -475,8 +475,8 @@ const currentTabRentals = computed(() => {
                class="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
             <span class="material-symbols-outlined text-[#0050cb] text-2xl">info</span>
             <div>
-              <p class="font-bold text-[#191c1e] text-sm">Persiapkan Sisa Tagihan</p>
-              <p class="text-[#424656] text-xs mt-1">Harap persiapkan sisa pelunasan sebesar <strong class="text-[#0050cb]">{{ formatPrice(rental.total_price - rental.dp_amount) }}</strong> yang wajib dibayarkan saat pengembalian kendaraan.</p>
+              <p class="font-bold text-[#191c1e] text-sm">Prepare Remaining Balance</p>
+              <p class="text-[#424656] text-xs mt-1">Please prepare the remaining balance of <strong class="text-[#0050cb]">{{ formatPrice(rental.total_price - rental.dp_amount) }}</strong> which must be paid upon vehicle return.</p>
             </div>
           </div>
 
@@ -485,8 +485,8 @@ const currentTabRentals = computed(() => {
                class="mt-8 bg-green-50 border border-green-100 rounded-xl p-4 flex items-start gap-3">
             <span class="material-symbols-outlined text-green-600 text-2xl">task_alt</span>
             <div>
-              <p class="font-bold text-green-800 text-sm">Penyewaan Selesai!</p>
-              <p class="text-green-700 text-xs mt-1">Terima kasih telah memilih GASNGO. Kami harap perjalanan Anda memuaskan.</p>
+              <p class="font-bold text-green-800 text-sm">Rental Completed!</p>
+              <p class="text-green-700 text-xs mt-1">Thank you for choosing GASNGO. We hope your trip was satisfying.</p>
             </div>
           </div>
 
@@ -495,23 +495,23 @@ const currentTabRentals = computed(() => {
                class="mt-8 bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3">
             <span class="material-symbols-outlined text-red-600 text-2xl">cancel</span>
             <div>
-              <p class="font-bold text-red-800 text-sm">Pemesanan Batal/Ditolak</p>
-              <p class="text-red-700 text-xs mt-1">Status pemesanan ini telah dibatalkan oleh pihak kami atau oleh Anda.</p>
+              <p class="font-bold text-red-800 text-sm">Order Cancelled/Rejected</p>
+              <p class="text-red-700 text-xs mt-1">This booking status has been cancelled by us or by you.</p>
             </div>
           </div>
 
           <!-- Ringkasan Finansial Bawah -->
           <div class="mt-6 grid grid-cols-3 gap-3 md:gap-4">
             <div class="bg-[#f2f4f6] rounded-xl p-3 text-center border border-[#c2c6d8]/30">
-              <p class="text-[9px] md:text-[10px] text-[#727687] font-bold uppercase tracking-widest">Total Tagihan</p>
+              <p class="text-[9px] md:text-[10px] text-[#727687] font-bold uppercase tracking-widest">Total Bill</p>
               <p class="text-sm md:text-base font-black text-[#191c1e] mt-1">{{ formatPrice(rental.total_price) }}</p>
             </div>
             <div class="bg-[#e6eeff] rounded-xl p-3 text-center border border-[#b3c5ff]/50">
-              <p class="text-[9px] md:text-[10px] text-[#0050cb] font-bold uppercase tracking-widest">{{ rental.payment_method === 'full_transfer' ? 'Lunas' : 'DP Dibayar' }}</p>
+              <p class="text-[9px] md:text-[10px] text-[#0050cb] font-bold uppercase tracking-widest">{{ rental.payment_method === 'full_transfer' ? 'Paid in Full' : 'DP Paid' }}</p>
               <p class="text-sm md:text-base font-black text-[#0050cb] mt-1">{{ formatPrice(rental.dp_amount) }}</p>
             </div>
             <div class="bg-[#f2f4f6] rounded-xl p-3 text-center border border-[#c2c6d8]/30">
-              <p class="text-[9px] md:text-[10px] text-[#727687] font-bold uppercase tracking-widest">Sisa Hutang</p>
+              <p class="text-[9px] md:text-[10px] text-[#727687] font-bold uppercase tracking-widest">Remaining Balance</p>
               <p class="text-sm md:text-base font-black text-[#191c1e] mt-1">{{ formatPrice(rental.total_price - rental.dp_amount) }}</p>
             </div>
           </div>

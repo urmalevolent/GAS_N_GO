@@ -10,36 +10,36 @@ const services = ref([
   {
     id: 1,
     icon: 'volunteer_activism',
-    title: 'Layanan Pramutamu Premium',
-    description: 'Kendaraan mewah Anda akan diantar langsung ke depan pintu rumah, hotel, atau bandara, dan dijemput kembali saat durasi sewa selesai.',
+    title: 'Premium Concierge Service',
+    description: 'Your luxury vehicle will be delivered right to your doorstep, hotel, or airport, and picked up again when the rental period ends.',
     badge: 'CONCIERGE'
   },
   {
     id: 2,
     icon: 'bolt',
-    title: 'Pemesanan Instan & Cepat',
-    description: 'Sistem pemesanan digital penuh tanpa dokumen fisik yang berbelit-belit. Selesai verifikasi dan siap mengemudi dalam waktu kurang dari 5 menit.',
+    title: 'Instant & Fast Booking',
+    description: 'Full digital booking system without complicated physical documents. Complete verification and ready to drive in less than 5 minutes.',
     badge: 'FAST PROCESS'
   },
   {
     id: 3,
     icon: 'diamond',
-    title: 'Armada Pilihan Elit',
-    description: 'Setiap unit kendaraan merupakan edisi terbaru dengan perawatan mekanik rutin berstandar pabrikan resmi untuk memastikan performa yang sempurna.',
+    title: 'Elite Choice Fleet',
+    description: 'Every vehicle unit is the latest edition with routine mechanical maintenance at official manufacturer standards to ensure perfect performance.',
     badge: 'ELITE FLEET'
   },
   {
     id: 4,
     icon: 'route',
-    title: 'Kebebasan Tanpa Batas',
-    description: 'Opsi jarak tempuh tanpa batas (unlimited mileage) serta fleksibilitas tinggi untuk pengembalian kendaraan antar-kota metropolitan.',
+    title: 'Limitless Freedom',
+    description: 'Unlimited mileage options and high flexibility for returning vehicles between metropolitan cities.',
     badge: 'FLEXIBLE'
   },
   {
     id: 5,
     icon: 'support_agent',
-    title: 'Dukungan Siaga 24/7',
-    description: 'Layanan darurat jalan raya dan bantuan pelanggan siaga penuh selama 24 jam sehari untuk memberikan rasa aman penuh sepanjang perjalanan Anda.',
+    title: '24/7 Standby Support',
+    description: 'Highway emergency service and full standby customer assistance 24 hours a day to provide full sense of security throughout your journey.',
     badge: 'SAFE JOURNEY'
   }
 
@@ -48,18 +48,18 @@ const services = ref([
 // Data FAQ
 const faqs = ref([
   {
-    question: 'Apa saja persyaratan utama untuk menyewa mobil?',
-    answer: 'Penyewa wajib mengunggah foto KTP dan SIM A yang masih aktif saat memesan. Untuk warga negara asing, wajib melampirkan paspor dan SIM Internasional.',
+    question: 'What are the main requirements for renting a car?',
+    answer: 'Renters must upload an active ID card and driving license when booking. For foreign nationals, a passport and International Driving Permit must be attached.',
     open: false
   },
   {
-    question: 'Bagaimana proses pengantaran dan penjemputan kendaraan?',
-    answer: 'Setelah pemesanan dikonfirmasi, tim pramutamu kami akan menghubungi Anda untuk mencocokkan titik koordinat lokasi pengantaran. Layanan ini mencakup area bandara, hotel, dan tempat tinggal.',
+    question: 'How is the vehicle delivery and pickup process?',
+    answer: 'Once the booking is confirmed, our concierge team will contact you to match the coordinates of the delivery location. This service covers airport, hotel, and residential areas.',
     open: false
   },
   {
-    question: 'Apakah harga yang tertera sudah termasuk asuransi?',
-    answer: 'Ya, seluruh armada kami dilindungi oleh asuransi all-risk komprehensif. Detail biaya pertanggungan mandiri jika terjadi insiden kecil tercantum pada formulir pemesanan.',
+    question: 'Are the listed prices inclusive of insurance?',
+    answer: 'Yes, our entire fleet is protected by comprehensive all-risk insurance. Details of self-insured costs in case of minor incidents are listed on the booking form.',
     open: false
   }
 ])
@@ -84,15 +84,15 @@ const toggleFaq = (index) => {
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <div class="inline-block bg-white/90 backdrop-blur-md text-[#0050cb] font-bold text-xs px-5 py-2.5 rounded-full uppercase tracking-widest mb-6 shadow-sm border border-blue-100">
-          Layanan Eksklusif Kami
+          Our Exclusive Services
         </div>
 
         <h1 class="text-4xl md:text-6xl font-black text-[#111827] mb-6 tracking-tight leading-[1.1] uppercase">
-          Layanan <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0050cb] to-[#00b4d8]">Tanpa Batas</span>
+          Limitless <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0050cb] to-[#00b4d8]">Services</span>
         </h1>
 
         <p class="text-base md:text-lg text-slate-700 max-w-2xl mx-auto font-medium leading-relaxed mb-6">
-          Kami mendefinisikan ulang standar mobilitas mewah melalui kenyamanan personalisasi, armada elit terawat, dan sistem terpadu berkecepatan tinggi.
+          We redefine luxury mobility standards through personalized comfort, well-maintained elite fleets, and high-speed integrated systems.
         </p>
       </div>
     </section>
@@ -104,9 +104,9 @@ const toggleFaq = (index) => {
       <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="text-center mb-16 max-w-3xl mx-auto">
-          <h2 class="text-3xl md:text-4xl font-black text-slate-900 uppercase">Standar Mobilitas <span class="text-[#0050cb]">GASNGO</span></h2>
+          <h2 class="text-3xl md:text-4xl font-black text-slate-900 uppercase">GASNGO Mobility <span class="text-[#0050cb]">Standard</span></h2>
           <p class="text-slate-500 mt-4 text-sm md:text-base leading-relaxed font-semibold">
-            Nikmati fasilitas bintang lima yang melengkapi kenyamanan perjalanan berkendara Anda dengan mobil impian Anda.
+            Enjoy five-star facilities that complement the comfort of your driving journey with your dream car.
           </p>
         </div>
 
@@ -142,8 +142,8 @@ const toggleFaq = (index) => {
            ========================================== -->
       <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-32">
         <div class="text-center mb-12">
-          <h2 class="text-2xl md:text-3xl font-black text-slate-900 uppercase">Pertanyaan <span class="text-[#0050cb]">Sering Diajukan</span></h2>
-          <p class="text-slate-500 mt-3 text-sm font-medium">Beberapa jawaban untuk mempermudah pemahaman alur layanan kami.</p>
+          <h2 class="text-2xl md:text-3xl font-black text-slate-900 uppercase">Frequently <span class="text-[#0050cb]">Asked Questions</span></h2>
+          <p class="text-slate-500 mt-3 text-sm font-medium">Some answers to simplify the understanding of our service flow.</p>
         </div>
 
         <div class="space-y-4">
@@ -184,17 +184,17 @@ const toggleFaq = (index) => {
 
           <div class="relative z-10 max-w-2xl mx-auto">
             <h2 class="text-2xl md:text-4xl font-black text-white uppercase leading-tight mb-4 tracking-tight">
-              Rasakan Sensasi Kenyamanan Berkendara Mewah
+              Experience the Sensation of Luxury Driving Comfort
             </h2>
             <p class="text-slate-400 text-xs md:text-sm mb-8 font-medium">
-              Katalog armada terbaik kami siap mengantar Anda pada perjalanan bisnis maupun rekreasi dengan prestise tertinggi.
+              Our best fleet catalog is ready to accompany you on business or leisure trips with the highest prestige.
             </p>
 
             <button
               @click="router.push('/cars')"
               class="bg-gradient-to-r from-[#0050cb] to-blue-600 hover:from-blue-600 hover:to-[#0050cb] text-white font-bold px-8 py-3.5 rounded-full uppercase text-xs tracking-widest transition-all shadow-lg shadow-blue-500/20 active:scale-95 cursor-pointer"
             >
-              Mulai Sewa Mobil
+              Start Renting a Car
             </button>
           </div>
         </div>

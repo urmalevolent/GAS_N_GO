@@ -5,6 +5,7 @@ import Show from '@/components/icons/Show.vue'
 import Trash from '@/components/icons/TrashCan.vue' 
 import Edit from '@/components/icons/Edit.vue' 
 import { useAuthStore } from '@/stores/auth'
+import UserDetailsModal from './UserDetailsModal.vue'
 
 const authStore = useAuthStore()
 const searchQuery = ref("")
@@ -13,6 +14,14 @@ const isSuperAdmin = computed(() => authStore.isSuperAdmin)
 
 const users = ref([])
 const isLoading = ref(false)
+
+const isDetailsModalOpen = ref(false)
+const selectedUser = ref(null)
+
+const openUserDetails = (user) => {
+  selectedUser.value = user
+  isDetailsModalOpen.value = true
+}
 
 const fetchUsers = async () => {
   isLoading.value = true
@@ -25,12 +34,12 @@ const fetchUsers = async () => {
     });
     
     const result = await response.json();
-    if (!response.ok) throw new Error(result.message || 'Gagal mengambil data pengguna');
+    if (!response.ok) throw new Error(result.message || 'Failed to fetch user data');
     
     users.value = result.data || [];
   } catch (error) {
     console.error('Error fetching users:', error);
-    Swal.fire({ icon: 'error', title: 'Gagal Memuat Data', text: error.message });
+    Swal.fire({ icon: 'error', title: 'Failed to Load Data', text: error.message });
   } finally {
     isLoading.value = false;
   }
@@ -55,21 +64,21 @@ const filteredUsers = computed(() => {
 // Ubah Role (Admin <=> Customer) Khusus Super Admin
 const toggleUserRole = (user) => {
   if (!isSuperAdmin.value) {
-    Swal.fire('Akses Ditolak', 'Hanya Super Admin yang dapat mengubah peran.', 'error');
+    Swal.fire('Access Denied', 'Only Super Admins can change roles.', 'error');
     return;
   }
 
   const newRole = user.role === 'admin' ? 'customer' : 'admin';
 
   Swal.fire({
-    title: 'Ubah Peran?',
-    text: `Ubah akun ${user.full_name || user.email} menjadi ${newRole.toUpperCase()}?`,
+    title: 'Change Role?',
+    text: `Change account ${user.full_name || user.email} to ${newRole.toUpperCase()}?`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#0050cb',
     cancelButtonColor: '#d33',
-    confirmButtonText: 'Ya, Ubah!',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Change!',
+    cancelButtonText: 'Cancel'
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
@@ -84,12 +93,12 @@ const toggleUserRole = (user) => {
         });
         
         const resData = await response.json();
-        if (!response.ok) throw new Error(resData.message || 'Gagal mengubah peran');
+        if (!response.ok) throw new Error(resData.message || 'Failed to change role');
         
         user.role = newRole;
-        Swal.fire({ icon: 'success', title: 'Berhasil!', text: resData.message, timer: 1500, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: 'Updated!', text: resData.message, timer: 1500, showConfirmButton: false });
       } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+        Swal.fire({ icon: 'error', title: 'Failed', text: err.message });
       }
     }
   })
@@ -100,18 +109,18 @@ const toggleUserStatus = (user) => {
   // Hanya admin/superadmin yang bisa nonaktifkan, tp krn ini admin panel sdh aman
   // Default kolom is_active jika null berarti true
   const isActive = user.is_active === false ? false : true;
-  const actionText = isActive ? "Menonaktifkan" : "Mengaktifkan";
+  const actionText = isActive ? "Deactivate" : "Activate";
   const newStatus = !isActive;
 
   Swal.fire({
-    title: 'Konfirmasi Status',
-    text: `Anda akan ${actionText.toLowerCase()} akun ${user.full_name || user.email}. Lanjutkan?`,
+    title: 'Confirm Status Change',
+    text: `You are about to ${actionText.toLowerCase()} account ${user.full_name || user.email}. Continue?`,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: isActive ? '#d33' : '#16a34a',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: `Ya, ${actionText}!`,
-    cancelButtonText: 'Batal'
+    confirmButtonText: `Yes, ${actionText}!`,
+    cancelButtonText: 'Cancel'
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
@@ -126,12 +135,12 @@ const toggleUserStatus = (user) => {
         });
         
         const resData = await response.json();
-        if (!response.ok) throw new Error(resData.message || 'Gagal mengubah status');
+        if (!response.ok) throw new Error(resData.message || 'Failed to change status');
         
         user.is_active = newStatus;
-        Swal.fire({ icon: 'success', title: 'Status Diperbarui', text: resData.message, timer: 1500, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: 'Status Updated', text: resData.message, timer: 1500, showConfirmButton: false });
       } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+        Swal.fire({ icon: 'error', title: 'Failed', text: err.message });
       }
     }
   })
@@ -144,18 +153,10 @@ const toggleUserStatus = (user) => {
     <!-- Bagian Header Judul -->
     <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6">
       <div class="flex flex-col gap-1">
-        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Manajemen Akun</h1>
-        <p class="text-sm text-[#727687]">Kelola peran dan status dari seluruh pelanggan serta admin GASNGO.</p>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Account Management</h1>
+        <p class="text-sm text-[#727687]">Manage roles and status of all GASNGO customers and admins.</p>
       </div>
 
-      <!-- Tombol Tambah User (Hanya Super Admin) -->
-      <router-link
-        v-if="isSuperAdmin"
-        to="/admin/users/add"
-        class="flex items-center justify-center gap-2 px-6 py-3 bg-[#0050cb] hover:bg-[#0066ff] text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95"
-      >
-        <span class="material-symbols-outlined text-lg">person_add</span> Tambah Akun
-      </router-link>
     </div>
 
     <!-- Kotak Utama Pembungkus -->
@@ -168,7 +169,7 @@ const toggleUserStatus = (user) => {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Cari berdasarkan nama atau email..."
+            placeholder="Search by name or email..."
             class="w-full pl-11 pr-4 py-3 bg-[#f2f4f6] border border-transparent rounded-full text-sm outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] focus:bg-white transition-all text-[#191c1e] font-medium"
           >
         </div>
@@ -181,12 +182,12 @@ const toggleUserStatus = (user) => {
           <thead class="bg-[#003161] text-white text-[11px] font-bold uppercase tracking-wider">
             <tr>
               <th class="px-6 py-4 w-12 text-center">NO</th>
-              <th class="px-6 py-4">NAMA LENGKAP</th>
+              <th class="px-6 py-4">FULL NAME</th>
               <th class="px-6 py-4">EMAIL</th>
-              <th class="px-6 py-4">NO. TELEPON</th>
-              <th class="px-6 py-4">PERAN</th>
+              <th class="px-6 py-4">PHONE NO.</th>
+              <th class="px-6 py-4">ROLE</th>
               <th class="px-6 py-4 text-center">STATUS</th>
-              <th class="px-6 py-4 text-center">AKSI</th>
+              <th class="px-6 py-4 text-center">ACTIONS</th>
             </tr>
           </thead>
 
@@ -194,13 +195,13 @@ const toggleUserStatus = (user) => {
             <tr v-if="isLoading">
               <td colspan="7" class="p-8 text-center text-[#727687]">
                 <span class="material-symbols-outlined animate-spin text-3xl text-[#0050cb] mb-2">sync</span>
-                <p class="text-xs font-bold uppercase tracking-widest">Memuat data pengguna...</p>
+                <p class="text-xs font-bold uppercase tracking-widest">Loading user data...</p>
               </td>
             </tr>
 
             <!-- Jika tidak ada user -->
             <tr v-else-if="filteredUsers.length === 0">
-              <td colspan="7" class="p-8 text-center text-[#727687] italic font-medium">Data akun tidak ditemukan.</td>
+              <td colspan="7" class="p-8 text-center text-[#727687] italic font-medium">No account data found.</td>
             </tr>
 
             <tr v-else v-for="(user, index) in filteredUsers" :key="user.id"
@@ -215,7 +216,7 @@ const toggleUserStatus = (user) => {
                 <div class="w-10 h-10 rounded-full bg-[#e6eeff] flex items-center justify-center text-xs font-black text-[#0050cb] uppercase border border-[#b3c5ff]/50">
                   {{ (user.full_name || user.email || 'U').substring(0,2) }}
                 </div>
-                {{ user.full_name || 'Tanpa Nama' }}
+                {{ user.full_name || 'No Name' }}
               </td>
 
               <!-- 3. Email -->
@@ -236,7 +237,7 @@ const toggleUserStatus = (user) => {
               <td class="px-6 py-5 text-center">
                 <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
                       :class="user.is_active !== false ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'">
-                  {{ user.is_active !== false ? 'AKTIF' : 'NONAKTIF' }}
+                  {{ user.is_active !== false ? 'ACTIVE' : 'INACTIVE' }}
                 </span>
               </td>
 
@@ -245,9 +246,7 @@ const toggleUserStatus = (user) => {
                 <div class="flex gap-2 items-center justify-center">
 
                   <!-- Tombol Detail (Biru) -->
-                  <!-- Jika nanti digunakan router-link: -->
-                  <!-- <router-link :to="`/admin/accounts/detail/${user.id}`" ...> -->
-                  <button class="w-8 h-8 rounded bg-[#295f98] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Lihat Profil">
+                  <button @click="openUserDetails(user)" class="w-8 h-8 rounded bg-[#295f98] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Lihat Profil">
                     <Show class="size-6 text-white" />
                   </button>
 
@@ -271,7 +270,7 @@ const toggleUserStatus = (user) => {
                   <template v-else>
                     <!-- Tanda Untuk Diri Sendiri -->
                     <span class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#727687] bg-[#f2f4f6] rounded border border-[#c2c6d8]/50 select-none">
-                      SAYA
+                      ME
                     </span>
                   </template>
 
@@ -285,18 +284,24 @@ const toggleUserStatus = (user) => {
 
       <!-- Footer Tabel (Summary Status) -->
       <div class="p-5 md:p-6 border-t border-[#f2f4f6] flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#f7f9fb]/50">
-          <p class="text-sm text-[#727687] font-medium">Menampilkan <span class="font-black text-[#191c1e] text-base">{{ filteredUsers.length }}</span> dari <span class="font-black text-[#191c1e] text-base">{{ users.length }}</span> Akun</p>
+          <p class="text-sm text-[#727687] font-medium">Showing <span class="font-black text-[#191c1e] text-base">{{ filteredUsers.length }}</span> of <span class="font-black text-[#191c1e] text-base">{{ users.length }}</span> Accounts</p>
           <div class="flex gap-6">
               <span class="flex items-center gap-2 text-xs font-bold text-[#424656] uppercase tracking-widest">
-                <span class="w-2.5 h-2.5 bg-[#16a34a] rounded-full"></span> Aktif
+                <span class="w-2.5 h-2.5 bg-[#16a34a] rounded-full"></span> Active
               </span>
               <span class="flex items-center gap-2 text-xs font-bold text-[#424656] uppercase tracking-widest">
-                <span class="w-2.5 h-2.5 bg-[#d32f2f] rounded-full"></span> Nonaktif
+                <span class="w-2.5 h-2.5 bg-[#d32f2f] rounded-full"></span> Inactive
               </span>
           </div>
       </div>
 
     </div>
+
+    <UserDetailsModal 
+      :show="isDetailsModalOpen" 
+      :user="selectedUser" 
+      @close="isDetailsModalOpen = false" 
+    />
   </div>
 </template>
 

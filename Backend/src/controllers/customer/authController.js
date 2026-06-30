@@ -10,7 +10,7 @@ export const register = async (req, res, next) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email dan password wajib diisi.'
+        message: 'Email and password are required.'
       });
     }
 
@@ -35,7 +35,7 @@ export const register = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Registrasi berhasil dilakukan.',
+      message: 'Registration successful.',
       data: {
         user: data.user,
         session: data.session
@@ -56,7 +56,7 @@ export const login = async (req, res, next) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email dan password wajib diisi.'
+        message: 'Email and password are required.'
       });
     }
 
@@ -74,7 +74,7 @@ export const login = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Login berhasil.',
+      message: 'Login successful.',
       data: {
         user: data.user,
         session: data.session
@@ -103,14 +103,14 @@ export const getProfile = async (req, res, next) => {
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
       return res.status(400).json({
         success: false,
-        message: 'Gagal memuat profil tambahan.',
+        message: 'Failed to load additional profile.',
         error: error.message
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Profil berhasil dimuat.',
+      message: 'Profile loaded successfully.',
       data: {
         id: req.user.id,
         email: req.user.email,

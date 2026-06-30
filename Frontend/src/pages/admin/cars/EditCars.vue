@@ -62,7 +62,7 @@ const fetchCarDetails = async () => {
     previews.image_1 = data.image_url;
   } catch (err) {
     console.error('Error fetching car:', err);
-    Swal.fire('Error', err.message || 'Gagal memuat detail kendaraan.', 'error');
+    Swal.fire('Error', err.message || 'Failed to load vehicle details.', 'error');
   } finally {
     isLoading.value = false;
   }
@@ -131,12 +131,12 @@ const updateCar = async () => {
     });
 
     const resData = await response.json();
-    if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal memperbarui data kendaraan.');
+    if (!response.ok || !resData.success) throw new Error(resData.message || 'Failed to update vehicle data.');
     
     Swal.fire({
       icon: 'success',
-      title: 'Sukses!',
-      text: 'Data armada berhasil diperbarui.',
+      title: 'Success!',
+      text: 'Vehicle data has been updated.',
       confirmButtonColor: '#0050cb',
       timer: 1500,
       showConfirmButton: false
@@ -145,7 +145,7 @@ const updateCar = async () => {
     router.push({ name: 'admin-cars-list' });
   } catch (err) {
     console.error('Error updating car:', err);
-    Swal.fire('Error', err.message || 'Gagal memperbarui data kendaraan.', 'error');
+    Swal.fire('Error', err.message || 'Failed to update vehicle data.', 'error');
   } finally {
     isSaving.value = false;
   }
@@ -164,13 +164,13 @@ const goBack = () => {
       <div>
         <nav class="flex items-center gap-2 text-xs font-bold text-[#727687] uppercase tracking-widest mb-3">
           <button @click="goBack" class="hover:text-[#0050cb] transition-colors flex items-center gap-1">
-            <span class="material-symbols-outlined text-[14px]">arrow_back</span> Kembali
+            <span class="material-symbols-outlined text-[14px]">arrow_back</span> Back
           </button>
           <span class="w-1 h-1 rounded-full bg-[#c2c6d8]"></span>
-          <span>Manajemen Armada</span>
+          <span>Fleet Management</span>
         </nav>
         <h1 class="text-3xl md:text-4xl font-black tracking-tight text-[#191c1e] flex items-center gap-3">
-          Edit Kendaraan
+          Edit Vehicle
         </h1>
       </div>
     </div>
@@ -203,13 +203,13 @@ const goBack = () => {
             
             <div class="bg-white rounded-[2rem] p-8 border border-[#c2c6d8]/40 shadow-sm space-y-8">
               <h3 class="text-sm font-black uppercase tracking-widest text-[#191c1e] flex items-center gap-2 border-b border-[#c2c6d8]/40 pb-4">
-                <span class="material-symbols-outlined text-[#0050cb]">info</span> Informasi Kendaraan
+                <span class="material-symbols-outlined text-[#0050cb]">info</span> Vehicle Information
               </h3>
 
               <div class="space-y-6">
                 <!-- Nama -->
                 <div>
-                  <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Nama Model Kendaraan <span class="text-[#ba1a1a]">*</span></label>
+                  <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Vehicle Model Name <span class="text-[#ba1a1a]">*</span></label>
                   <input v-model="form.name" required type="text" class="w-full px-5 py-4 bg-[#f7f9fb] border border-[#c2c6d8]/60 rounded-xl focus:bg-white focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-sm font-bold text-[#191c1e]">
                 </div>
 
@@ -220,10 +220,10 @@ const goBack = () => {
                     <input v-model="form.brand" required type="text" placeholder="Contoh: Porsche" class="w-full px-5 py-4 bg-[#f7f9fb] border border-[#c2c6d8]/60 rounded-xl focus:bg-white focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-sm font-bold text-[#191c1e]">
                   </div>
                   <div>
-                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Kategori <span class="text-[#ba1a1a]">*</span></label>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Category <span class="text-[#ba1a1a]">*</span></label>
                     <div class="relative">
                       <select v-model="form.category" required class="w-full px-5 py-4 bg-[#f7f9fb] border border-[#c2c6d8]/60 rounded-xl appearance-none cursor-pointer focus:bg-white focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-sm font-bold text-[#191c1e]">
-                        <option value="" disabled>Pilih Kategori</option>
+                        <option value="" disabled>Select Category</option>
                         <option v-for="(cat, i) in categories" :key="i" :value="cat">{{ cat }}</option>
                       </select>
                       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#727687]">
@@ -236,7 +236,7 @@ const goBack = () => {
                 <!-- Transmisi & Kapasitas -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Transmisi <span class="text-[#ba1a1a]">*</span></label>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Transmission <span class="text-[#ba1a1a]">*</span></label>
                     <div class="relative">
                       <select v-model="form.transmission" required class="w-full px-5 py-4 bg-[#f7f9fb] border border-[#c2c6d8]/60 rounded-xl appearance-none cursor-pointer focus:bg-white focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-sm font-bold text-[#191c1e]">
                         <option value="Matic (PDK)">Matic (PDK)</option>
@@ -250,14 +250,14 @@ const goBack = () => {
                     </div>
                   </div>
                   <div>
-                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Kapasitas Kursi <span class="text-[#ba1a1a]">*</span></label>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Seat Capacity <span class="text-[#ba1a1a]">*</span></label>
                     <input v-model="form.seats" type="number" required class="w-full px-5 py-4 bg-[#f7f9fb] border border-[#c2c6d8]/60 rounded-xl focus:bg-white focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-sm font-bold text-[#191c1e]">
                   </div>
                 </div>
 
                 <!-- Deskripsi -->
                 <div>
-                  <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Deskripsi & Keunggulan</label>
+                  <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Description & Highlights</label>
                   <textarea v-model="form.description" rows="5" class="w-full px-5 py-4 bg-[#f7f9fb] border border-[#c2c6d8]/60 rounded-xl resize-none focus:bg-white focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-sm font-medium text-[#424656] leading-relaxed"></textarea>
                 </div>
               </div>
@@ -270,7 +270,7 @@ const goBack = () => {
             <!-- UPLOAD FOTO -->
             <div class="bg-white rounded-[2rem] p-8 border border-[#c2c6d8]/40 shadow-sm">
               <h3 class="text-sm font-black uppercase tracking-widest text-[#191c1e] flex items-center gap-2 border-b border-[#c2c6d8]/40 pb-4 mb-6">
-                <span class="material-symbols-outlined text-[#0050cb]">image</span> Foto Utama
+                <span class="material-symbols-outlined text-[#0050cb]">image</span> Main Photo
               </h3>
               
               <div class="aspect-[4/3] w-full border-2 border-dashed border-[#c2c6d8] rounded-[1.5rem] bg-[#f7f9fb] flex flex-col items-center justify-center cursor-pointer overflow-hidden relative group hover:border-[#0050cb] transition-colors" @click="$refs.inputImage1.click()">
@@ -280,12 +280,12 @@ const goBack = () => {
                   <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-3">
                     <span class="material-symbols-outlined text-2xl text-[#0050cb]">add_a_photo</span>
                   </div>
-                  <span class="text-[10px] font-bold uppercase tracking-widest">Klik untuk Unggah</span>
+                  <span class="text-[10px] font-bold uppercase tracking-widest">Click to Upload</span>
                 </div>
                 
                 <div v-if="previews.image_1" class="absolute inset-0 bg-[#191c1e]/40 hidden group-hover:flex flex-col items-center justify-center text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 duration-300">
                   <span class="material-symbols-outlined text-3xl mb-2">edit</span>
-                  <span class="text-[10px] font-black uppercase tracking-widest">Ganti Foto</span>
+                  <span class="text-[10px] font-black uppercase tracking-widest">Change Photo</span>
                 </div>
               </div>
             </div>
@@ -293,7 +293,7 @@ const goBack = () => {
             <!-- HARGA & ACTION -->
             <div class="bg-[#f7f9fb] rounded-[2rem] p-8 border border-[#c2c6d8]/50 shadow-sm sticky top-28">
               <div class="mb-8">
-                <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-3">Tarif Sewa Harian (Rupiah) <span class="text-[#ba1a1a]">*</span></label>
+                <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-3">Daily Rental Rate (IDR) <span class="text-[#ba1a1a]">*</span></label>
                 <div class="relative">
                   <span class="absolute left-5 top-1/2 -translate-y-1/2 font-black text-[#727687]">Rp</span>
                   <input v-model="form.price" type="number" required class="w-full pl-14 pr-5 py-4 bg-white border border-[#c2c6d8]/60 rounded-xl focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-xl font-black text-[#191c1e]">
@@ -303,14 +303,14 @@ const goBack = () => {
               <div class="flex flex-col gap-4">
                 <button type="submit" :disabled="isSaving" class="w-full signature-gradient text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl shadow-lg shadow-blue-600/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                   <span v-if="isSaving" class="flex items-center gap-2">
-                    <span class="material-symbols-outlined animate-spin">sync</span> MENYIMPAN...
+                    <span class="material-symbols-outlined animate-spin">sync</span> SAVING...
                   </span>
                   <span v-else class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">save</span> Simpan Perubahan
+                    <span class="material-symbols-outlined text-[18px]">save</span> Save Changes
                   </span>
                 </button>
                 <button type="button" @click="goBack" class="w-full bg-white text-[#191c1e] border border-[#c2c6d8]/60 font-bold text-xs uppercase tracking-widest py-4 rounded-xl hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-2">
-                  <span class="material-symbols-outlined text-[18px]">close</span> Batal
+                  <span class="material-symbols-outlined text-[18px]">close</span> Cancel
                 </button>
               </div>
             </div>

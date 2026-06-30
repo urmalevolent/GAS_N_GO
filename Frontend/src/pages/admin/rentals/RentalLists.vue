@@ -13,13 +13,13 @@ const selectedRental = ref(null)
 
 // Pilihan Filter Berdasarkan Status
 const statusFilters = [
-  { value: 'all', label: 'Semua Status' },
-  { value: 'pending_dp', label: 'Menunggu DP' },
-  { value: 'dp_paid', label: 'DP Dibayar' },
-  { value: 'active', label: 'Sedang Diantar' },
-  { value: 'rented', label: 'Sedang Disewa' },
-  { value: 'completed', label: 'Selesai' },
-  { value: 'rejected', label: 'Ditolak/Batal' },
+  { value: 'all', label: 'All Status' },
+  { value: 'pending_dp', label: 'Waiting DP' },
+  { value: 'dp_paid', label: 'DP Paid' },
+  { value: 'active', label: 'On the Way' },
+  { value: 'rented', label: 'Currently Rented' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'rejected', label: 'Rejected/Cancelled' },
 ]
 
 // Fetch data sewa riil dari Supabase
@@ -67,7 +67,7 @@ const fetchRentals = async () => {
     })
   } catch (err) {
     console.error('Error fetching rentals:', err)
-    Swal.fire({ icon: 'error', title: 'Gagal memuat data', text: err.message })
+    Swal.fire({ icon: 'error', title: 'Failed to load data', text: err.message })
   } finally {
     isLoading.value = false
   }
@@ -165,16 +165,16 @@ const formatPrice = (price) => {
 // Terjemahan & Warna Badge Status
 const getStatusLabel = (rental) => {
   if (rental.status === 'pending' || rental.status === 'pending_dp') {
-    return 'Menunggu Pembayaran'
+    return 'Awaiting Payment'
   }
   const mapped = getMappedStatus(rental);
   const labels = {
-    'dp_paid': 'Menunggu Persetujuan (DP)',
-    'active': 'Sedang Diantar',
-    'rented': 'Sedang Disewa',
-    'completed': 'Selesai',
-    'rejected': 'Ditolak',
-    'cancelled': 'Dibatalkan'
+    'dp_paid': 'Awaiting Approval (DP)',
+    'active': 'On the Way',
+    'rented': 'Currently Rented',
+    'completed': 'Completed',
+    'rejected': 'Rejected',
+    'cancelled': 'Cancelled'
   }
   return labels[mapped] || mapped
 }
@@ -200,14 +200,14 @@ const statusClass = (rental) => {
 // Approve Rental (ACC & Antar)
 const handleApproveRental = (id) => {
   Swal.fire({
-    title: 'ACC & Antar Mobil?',
-    text: "Status akan diubah menjadi 'Sedang Diantar'.",
+    title: 'Approve & Deliver Car?',
+    text: "Status will be changed to 'On the Way'.",
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#0050cb',
     cancelButtonColor: '#d33',
-    confirmButtonText: 'Ya, ACC & Antar',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Approve & Deliver',
+    cancelButtonText: 'Cancel'
   }).then(async (res) => {
     if (res.isConfirmed) {
       try {
@@ -220,9 +220,9 @@ const handleApproveRental = (id) => {
 
         const ord = rentals.value.find(o => o.id === id)
         if (ord) ord.status = 'active'
-        Swal.fire({ icon: 'success', title: 'Berhasil di-ACC!', text: 'Status telah diubah menjadi Sedang Diantar.', showConfirmButton: false, timer: 1500 })
+        Swal.fire({ icon: 'success', title: 'Approved!', text: 'Status changed to On the Way.', showConfirmButton: false, timer: 1500 })
       } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
+        Swal.fire({ icon: 'error', title: 'Failed to update status', text: err.message })
       }
     }
   })
@@ -231,14 +231,14 @@ const handleApproveRental = (id) => {
 // Start Rental (Serahkan Mobil / Sedang Disewa)
 const handleStartRental = (rental) => {
   Swal.fire({
-    title: 'Serahkan Mobil?',
-    text: "Status akan diubah menjadi 'Sedang Disewa'.",
+    title: 'Hand Over Car?',
+    text: "Status will be changed to 'Currently Rented'.",
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#0050cb',
     cancelButtonColor: '#d33',
-    confirmButtonText: 'Ya, Serahkan',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Hand Over',
+    cancelButtonText: 'Cancel'
   }).then(async (res) => {
     if (res.isConfirmed) {
       try {
@@ -251,9 +251,9 @@ const handleStartRental = (rental) => {
         if (error) throw error
 
         rental.pickup_time = nowStr
-        Swal.fire({ icon: 'success', title: 'Berhasil Diserahkan!', text: 'Status telah diubah menjadi Sedang Disewa.', showConfirmButton: false, timer: 1500 })
+        Swal.fire({ icon: 'success', title: 'Car Handed Over!', text: 'Status changed to Currently Rented.', showConfirmButton: false, timer: 1500 })
       } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
+        Swal.fire({ icon: 'error', title: 'Failed to update status', text: err.message })
       }
     }
   })
@@ -262,14 +262,14 @@ const handleStartRental = (rental) => {
 // Complete Rental
 const handleCompleteRental = (id) => {
   Swal.fire({
-    title: 'Kendaraan Dikembalikan?',
-    text: "Tandai reservasi ini sebagai selesai.",
+    title: 'Vehicle Returned?',
+    text: "Mark this reservation as completed.",
     icon: 'info',
     showCancelButton: true,
     confirmButtonColor: '#16a34a',
     cancelButtonColor: '#d33',
-    confirmButtonText: 'Ya, Selesai',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Complete',
+    cancelButtonText: 'Cancel'
   }).then(async (res) => {
     if (res.isConfirmed) {
       try {
@@ -282,9 +282,9 @@ const handleCompleteRental = (id) => {
 
         const ord = rentals.value.find(o => o.id === id)
         if (ord) ord.status = 'completed'
-        Swal.fire({ icon: 'success', title: 'Selesai!', showConfirmButton: false, timer: 1500 })
+        Swal.fire({ icon: 'success', title: 'Completed!', showConfirmButton: false, timer: 1500 })
       } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
+        Swal.fire({ icon: 'error', title: 'Failed to update status', text: err.message })
       }
     }
   })
@@ -293,14 +293,14 @@ const handleCompleteRental = (id) => {
 // Reject Rental
 const handleRejectRental = (id) => {
   Swal.fire({
-    title: 'Tolak & Batalkan Pesanan?',
-    text: "Status akan diubah menjadi 'Ditolak'.",
+    title: 'Reject & Cancel Order?',
+    text: "Status will be changed to 'Rejected'.",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ba1a1a',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: 'Ya, Tolak',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Reject',
+    cancelButtonText: 'Cancel'
   }).then(async (res) => {
     if (res.isConfirmed) {
       try {
@@ -313,9 +313,9 @@ const handleRejectRental = (id) => {
 
         const ord = rentals.value.find(o => o.id === id)
         if (ord) ord.status = 'rejected'
-        Swal.fire({ icon: 'success', title: 'Ditolak!', text: 'Reservasi berhasil ditolak.', showConfirmButton: false, timer: 1500 })
+        Swal.fire({ icon: 'success', title: 'Rejected!', text: 'Reservation has been rejected.', showConfirmButton: false, timer: 1500 })
       } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Gagal memperbarui status', text: err.message })
+        Swal.fire({ icon: 'error', title: 'Failed to update status', text: err.message })
       }
     }
   })
@@ -324,14 +324,14 @@ const handleRejectRental = (id) => {
 // Cancel Rental (Pembatalan Pesanan oleh Admin)
 const handleCancelRental = (id) => {
   Swal.fire({
-    title: 'Batalkan Reservasi?',
-    text: "Status akan diubah menjadi 'Dibatalkan'.",
+    title: 'Cancel Reservation?',
+    text: "Status will be changed to 'Cancelled'.",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ba1a1a',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: 'Ya, Batalkan',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Cancel',
+    cancelButtonText: 'Back'
   }).then(async (res) => {
     if (res.isConfirmed) {
       try {
@@ -344,9 +344,9 @@ const handleCancelRental = (id) => {
 
         const ord = rentals.value.find(o => o.id === id)
         if (ord) ord.status = 'cancelled'
-        Swal.fire({ icon: 'success', title: 'Dibatalkan!', text: 'Reservasi berhasil dibatalkan.', showConfirmButton: false, timer: 1500 })
+        Swal.fire({ icon: 'success', title: 'Cancelled!', text: 'Reservation has been cancelled.', showConfirmButton: false, timer: 1500 })
       } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Gagal membatalkan reservasi', text: err.message })
+        Swal.fire({ icon: 'error', title: 'Failed to cancel reservation', text: err.message })
       }
     }
   })
@@ -366,8 +366,8 @@ const openRentalDetail = (rental) => {
     <!-- ================= HEADER OVERVIEW ================= -->
     <div class="mb-10 flex flex-col md:flex-row justify-between md:items-end gap-6 border-b border-[#c2c6d8]/40 pb-6">
       <div>
-        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Ringkasan Dashboard</h1>
-        <p class="text-[#727687] mt-1 text-sm">Kelola armada dan pantau laporan transaksi masuk Anda.</p>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Rental Overview</h1>
+        <p class="text-[#727687] mt-1 text-sm">Manage your fleet and monitor incoming rental transactions.</p>
       </div>
 
       <!-- Stats Summary (Highlight Pendapatan) -->
@@ -377,7 +377,7 @@ const openRentalDetail = (rental) => {
             <span class="material-symbols-outlined text-white text-2xl">account_balance_wallet</span>
           </div>
           <div>
-            <p class="text-[10px] font-bold uppercase tracking-widest text-[#b3c5ff] mb-0.5">Total Pendapatan</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-[#b3c5ff] mb-0.5">Total Revenue</p>
             <p class="text-2xl font-black tracking-tighter leading-none">{{ formatPrice(totalRevenue) }}</p>
           </div>
         </div>
@@ -391,7 +391,7 @@ const openRentalDetail = (rental) => {
         @click="activeTab = 'transactions'"
         class="px-4 py-3 text-sm font-extrabold uppercase tracking-widest border-b-2 transition-colors whitespace-nowrap flex items-center gap-2"
         :class="activeTab === 'transactions' ? 'border-[#0050cb] text-[#0050cb]' : 'border-transparent text-[#727687] hover:text-[#191c1e]'">
-        <span class="material-symbols-outlined text-[18px]">receipt_long</span> Reservasi
+        <span class="material-symbols-outlined text-[18px]">receipt_long</span> Reservations
       </button>
     </div>
 
@@ -414,11 +414,11 @@ const openRentalDetail = (rental) => {
         <!-- Header Tabel Box -->
         <div class="px-6 py-5 border-b border-[#f2f4f6] flex justify-between items-center bg-[#f7f9fb]/50">
           <h2 class="text-lg font-extrabold text-[#191c1e] flex items-center gap-2">
-            <span class="material-symbols-outlined text-[#0050cb]">list_alt</span> Daftar Transaksi Reservasi
+            <span class="material-symbols-outlined text-[#0050cb]">list_alt</span> Reservation Transaction List
           </h2>
           <!-- Refresh Button -->
           <button @click="fetchRentals" class="text-xs font-bold text-[#0050cb] hover:text-white bg-[#e6eeff] hover:bg-[#0050cb] px-4 py-2 rounded-lg transition-colors flex items-center gap-2 uppercase tracking-widest border border-[#b3c5ff]/50 active:scale-95">
-            <span class="material-symbols-outlined text-[16px]" :class="{ 'animate-spin': isLoading }">sync</span> Segarkan
+            <span class="material-symbols-outlined text-[16px]" :class="{ 'animate-spin': isLoading }">sync</span> Refresh
           </button>
         </div>
 
@@ -427,9 +427,9 @@ const openRentalDetail = (rental) => {
           <table class="w-full text-left whitespace-nowrap min-w-[900px]">
             <thead class="bg-[#003161] text-white text-[11px] font-bold uppercase tracking-wider">
               <tr>
-                <th class="py-4 px-6">PELANGGAN</th>
-                <th class="py-4 px-6">KENDARAAN</th>
-                <th class="py-4 px-6">STATUS & AKSI</th>
+                <th class="py-4 px-6">CUSTOMER</th>
+                <th class="py-4 px-6">VEHICLE</th>
+                <th class="py-4 px-6">STATUS & ACTIONS</th>
               </tr>
             </thead>
 
@@ -439,7 +439,7 @@ const openRentalDetail = (rental) => {
               <tr v-if="isLoading">
                 <td colspan="3" class="py-16 px-6 text-center text-[#727687]">
                   <span class="material-symbols-outlined animate-spin text-4xl block mb-2 text-[#0050cb]">sync</span>
-                  <p class="mt-1 text-xs font-bold uppercase tracking-widest">Memuat data transaksi dari database...</p>
+                  <p class="mt-1 text-xs font-bold uppercase tracking-widest">Loading transaction data from database...</p>
                 </td>
               </tr>
 
@@ -447,8 +447,8 @@ const openRentalDetail = (rental) => {
               <tr v-else-if="filteredRentals.length === 0">
                 <td colspan="3" class="py-16 px-6 text-center text-[#727687]">
                   <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">receipt_long</span>
-                  <h3 class="text-base font-bold text-[#191c1e]">Tidak Ada Reservasi</h3>
-                  <p class="mt-1 text-xs">Belum ada pesanan yang cocok dengan filter status tersebut.</p>
+                  <h3 class="text-base font-bold text-[#191c1e]">No Reservations</h3>
+                  <p class="mt-1 text-xs">No orders match the selected status filter.</p>
                 </td>
               </tr>
 
@@ -487,7 +487,7 @@ const openRentalDetail = (rental) => {
                     <!-- Lencana Metode Pembayaran -->
                     <span class="px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-widest border"
                       :class="rental.payment_method === 'cash_with_dp' ? 'bg-[#f2f4f6] text-[#424656] border-[#c2c6d8]/50' : 'bg-[#e6eeff] text-[#0050cb] border-[#b3c5ff]/50'">
-                      {{ rental.payment_method === 'cash_with_dp' ? 'BAYAR DP' : 'LUNAS (TRANSFER)' }}
+                      {{ rental.payment_method === 'cash_with_dp' ? 'PAY DP' : 'PAID (TRANSFER)' }}
                     </span>
 
                     <div class="w-px h-5 bg-[#c2c6d8]/50 mx-1"></div> <!-- Pembatas Garis -->
@@ -502,31 +502,31 @@ const openRentalDetail = (rental) => {
                     <!-- Tombol Approve (Hijau) -->
                     <button v-if="rental.status === 'dp_paid'" @click="handleApproveRental(rental.id)" title="ACC & Antar Mobil"
                       class="px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-400 border border-green-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[14px]">check</span> ACC & ANTAR
+                      <span class="material-symbols-outlined text-[14px]">check</span> APPROVE & DELIVER
                     </button>
 
                     <!-- Tombol Serahkan Mobil (Mulai Sewa) -->
                     <button v-if="getMappedStatus(rental) === 'active'" @click="handleStartRental(rental)" title="Serahkan Mobil ke Pelanggan"
                       class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:border-indigo-400 border border-indigo-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[14px]">handshake</span> SERAHKAN
+                      <span class="material-symbols-outlined text-[14px]">handshake</span> HAND OVER
                     </button>
 
                     <!-- Tombol Selesai (Biru Tua) -->
                     <button v-if="getMappedStatus(rental) === 'rented'" @click="handleCompleteRental(rental.id)" title="Tandai Dikembalikan"
                       class="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-400 border border-blue-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[14px]">done_all</span> SELESAI
+                      <span class="material-symbols-outlined text-[14px]">done_all</span> COMPLETE
                     </button>
 
                     <!-- Tombol Reject/Tolak (Merah) -->
                     <button v-if="rental.status === 'dp_paid'" @click="handleRejectRental(rental.id)" title="Tolak Pesanan"
                       class="px-3 py-1.5 bg-red-50 text-[#ba1a1a] hover:bg-red-100 hover:border-red-400 border border-red-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[14px]">close</span> TOLAK
+                      <span class="material-symbols-outlined text-[14px]">close</span> REJECT
                     </button>
 
                     <!-- Tombol Cancel/Batalkan (Merah) -->
                     <button v-if="['pending', 'pending_dp', 'active'].includes(rental.status)" @click="handleCancelRental(rental.id)" title="Batalkan Pesanan"
                       class="px-3 py-1.5 bg-red-50 text-[#ba1a1a] hover:bg-red-100 hover:border-red-400 border border-red-200 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-colors flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[14px]">close</span> BATALKAN
+                      <span class="material-symbols-outlined text-[14px]">close</span> CANCEL
                     </button>
 
                   </div>

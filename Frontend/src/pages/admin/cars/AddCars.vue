@@ -82,8 +82,8 @@ const createCar = async () => {
   if (!form.name || !form.price || !form.brand || !form.category || !files.image_1) {
     Swal.fire({
       icon: 'warning',
-      title: 'Data Belum Lengkap',
-      text: 'Pastikan nama mobil, harga, merek, kategori, dan foto utama sudah terisi.',
+      title: 'Incomplete Data',
+      text: 'Please fill in the car name, price, brand, category, and main photo.',
       confirmButtonColor: '#0050cb'
     })
     return
@@ -117,13 +117,13 @@ const createCar = async () => {
 
     const resData = await response.json()
     if (!response.ok || !resData.success) {
-      throw new Error(resData.message || 'Gagal menambahkan kendaraan.')
+      throw new Error(resData.message || 'Failed to add vehicle.')
     }
 
     Swal.fire({
       icon: 'success',
-      title: 'Berhasil!',
-      text: 'Armada kendaraan baru telah ditambahkan ke katalog.',
+      title: 'Success!',
+      text: 'New vehicle has been added to the catalog.',
       confirmButtonColor: '#0050cb',
       showConfirmButton: false,
       timer: 1500
@@ -132,7 +132,7 @@ const createCar = async () => {
     router.push({ name: 'admin-cars-list' })
   } catch (err) {
     console.error('Error creating car:', err)
-    Swal.fire('Error', 'Gagal menambahkan kendaraan. ' + err.message, 'error')
+    Swal.fire('Error', 'Failed to add vehicle. ' + err.message, 'error')
   } finally {
     isLoading.value = false
   }
@@ -144,8 +144,8 @@ const createCar = async () => {
 
     <!-- Bagian Header Judul -->
     <div class="flex flex-col gap-2 mb-6">
-      <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Tambah Armada Kendaraan</h1>
-      <p class="text-sm text-[#727687]">Tambahkan unit kendaraan baru ke dalam katalog penyewaan GASNGO.</p>
+      <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Add New Vehicle</h1>
+      <p class="text-sm text-[#727687]">Add a new vehicle unit to the GASNGO rental catalog.</p>
     </div>
 
     <!-- Kotak Formulir -->
@@ -156,13 +156,13 @@ const createCar = async () => {
 
             <!-- SECTION: UNGGAH FOTO -->
             <div>
-              <label class="block text-base font-bold text-[#191c1e] mb-4">Foto Kendaraan <span class="text-[#ba1a1a]">*</span></label>
+              <label class="block text-base font-bold text-[#191c1e] mb-4">Vehicle Photo <span class="text-[#ba1a1a]">*</span></label>
 
               <div class="flex flex-wrap gap-6">
 
                 <!-- Foto 1 (Utama) -->
                 <div class="flex flex-col gap-2">
-                   <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Foto Utama *</span>
+                   <span class="text-[10px] font-bold text-[#727687] uppercase tracking-widest">Main Photo *</span>
                    <div
                     class="w-32 h-32 md:w-40 md:h-40 border-2 border-dashed border-[#0050cb]/40 rounded-2xl bg-[#f2f4f6] flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors overflow-hidden relative group"
                     @click="$refs.inputImage1.click()"
@@ -171,7 +171,7 @@ const createCar = async () => {
                     <img v-if="previews.image_1" :src="previews.image_1" class="absolute inset-0 w-full h-full object-cover" />
                     <div v-else class="flex flex-col items-center p-2 text-center group-hover:scale-105 transition-transform">
                         <span class="material-symbols-outlined text-2xl text-[#0050cb] mb-1">add_a_photo</span>
-                        <span class="text-[10px] font-bold text-[#0050cb]">Unggah<br>Utama</span>
+                        <span class="text-[10px] font-bold text-[#0050cb]">Upload<br>Photo</span>
                     </div>
                   </div>
                 </div>
@@ -185,8 +185,8 @@ const createCar = async () => {
             <div class="space-y-6">
                 <!-- Nama Kendaraan -->
                 <div>
-                  <label class="block text-sm font-bold text-[#191c1e] mb-2">Nama Model Kendaraan <span class="text-[#ba1a1a]">*</span></label>
-                  <input v-model="form.name" type="text" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="Cth: Porsche 911 Carrera">
+                  <label class="block text-sm font-bold text-[#191c1e] mb-2">Vehicle Model Name <span class="text-[#ba1a1a]">*</span></label>
+                  <input v-model="form.name" type="text" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="e.g. Porsche 911 Carrera">
                 </div>
 
                 <!-- Branddan Kategori -->
@@ -199,7 +199,7 @@ const createCar = async () => {
                         <label class="block text-sm font-bold text-[#191c1e] mb-2">Kategori <span class="text-[#ba1a1a]">*</span></label>
                         <div class="relative">
                             <select v-model="form.category" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white appearance-none focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm text-[#424656]">
-                                <option value="" disabled selected>Pilih Kategori</option>
+                                <option value="" disabled selected>Select Category</option>
                                 <option v-for="(cat, i) in categories" :key="i" :value="cat">{{ cat }}</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#727687]">
@@ -215,7 +215,7 @@ const createCar = async () => {
                       <label class="block text-sm font-bold text-[#191c1e] mb-2">Tipe Penggerak / Transmisi <span class="text-[#ba1a1a]">*</span></label>
                       <div class="relative">
                           <select v-model="form.type" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white appearance-none focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm text-[#424656]">
-                              <option value="" disabled selected>Pilih Tipe</option>
+                              <option value="" disabled selected>Select Type</option>
                               <option value="Matic (PDK)">Matic (PDK)</option>
                               <option value="Manual">Manual</option>
                               <option value="Full Electric">Full Electric (EV)</option>
@@ -227,14 +227,14 @@ const createCar = async () => {
                       </div>
                     </div>
                     <div>
-                      <label class="block text-sm font-bold text-[#191c1e] mb-2">Jumlah Kursi <span class="text-[#ba1a1a]">*</span></label>
-                      <input v-model="form.seats" type="number" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="Cth: 2 atau 4">
+                      <label class="block text-sm font-bold text-[#191c1e] mb-2">Number of Seats <span class="text-[#ba1a1a]">*</span></label>
+                      <input v-model="form.seats" type="number" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="e.g. 2 or 4">
                     </div>
                 </div>
 
                 <!-- Harga Sewa Harian -->
                 <div>
-                  <label class="block text-sm font-bold text-[#191c1e] mb-2">Tarif Sewa Harian (Rupiah) <span class="text-[#ba1a1a]">*</span></label>
+                  <label class="block text-sm font-bold text-[#191c1e] mb-2">Daily Rental Rate (IDR) <span class="text-[#ba1a1a]">*</span></label>
                   <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#727687]">Rp</span>
                     <input v-model="form.price" type="number" class="w-full pl-10 pr-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="Cth: 500000">
@@ -243,8 +243,8 @@ const createCar = async () => {
 
                 <!-- Deskripsi Kendaraan -->
                 <div>
-                  <label class="block text-sm font-bold text-[#191c1e] mb-2">Deskripsi & Keunggulan</label>
-                  <textarea v-model="form.description" rows="5" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm resize-none" placeholder="Tuliskan deskripsi mewah tentang kendaraan ini..."></textarea>
+                  <label class="block text-sm font-bold text-[#191c1e] mb-2">Description & Highlights</label>
+                  <textarea v-model="form.description" rows="5" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm resize-none" placeholder="Write a compelling description about this vehicle..."></textarea>
                 </div>
             </div>
 
@@ -252,14 +252,14 @@ const createCar = async () => {
             <div class="mt-10 flex flex-col sm:flex-row items-center gap-4">
               <button type="submit" :disabled="isLoading" class="w-full sm:w-auto bg-gradient-to-br from-[#0050cb] to-[#0066ff] text-white font-bold text-sm uppercase tracking-widest px-8 py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-[#0050cb]/20 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center">
                 <span v-if="isLoading" class="flex items-center gap-2">
-                  <span class="material-symbols-outlined animate-spin">sync</span> Menyimpan...
+                  <span class="material-symbols-outlined animate-spin">sync</span> Saving...
                 </span>
-                <span v-else>Simpan Kendaraan</span>
+                <span v-else>Save Vehicle</span>
               </button>
 
-              <!-- Pastikan router-link ini mengarah kembali ke tabel armada -->
+              <!-- Ensure this router-link points back to the fleet table -->
               <router-link to="/admin/cars" class="w-full sm:w-auto bg-white text-[#424656] font-bold text-sm uppercase tracking-widest px-8 py-4 border border-[#c2c6d8] rounded-xl hover:bg-[#f2f4f6] transition-all text-center">
-                Batal
+                Cancel
               </router-link>
             </div>
 

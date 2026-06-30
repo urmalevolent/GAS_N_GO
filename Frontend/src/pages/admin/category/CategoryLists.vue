@@ -31,17 +31,17 @@ const filteredCategories = computed(() => {
 // Simulasi Tambah Kategori (Menggunakan SweetAlert Input)
 const handleNewCategory = async () => {
   const { value: categoryName } = await Swal.fire({
-    title: 'Kategori Baru',
+    title: 'New Category',
     input: 'text',
-    inputLabel: 'Masukkan nama kategori armada',
-    inputPlaceholder: 'Contoh: Convertible...',
+    inputLabel: 'Enter the name of the new fleet category',
+    inputPlaceholder: 'e.g. Convertible...',
     showCancelButton: true,
     confirmButtonColor: '#0050cb',
     cancelButtonColor: '#d33',
-    confirmButtonText: 'Simpan',
-    cancelButtonText: 'Batal',
+    confirmButtonText: 'Save',
+    cancelButtonText: 'Cancel',
     inputValidator: (value) => {
-      if (!value) return 'Nama kategori tidak boleh kosong!'
+      if (!value) return 'Category name cannot be empty!'
     }
   });
 
@@ -55,8 +55,8 @@ const handleNewCategory = async () => {
 
     Swal.fire({
       icon: 'success',
-      title: 'Tersimpan!',
-      text: `Kategori "${categoryName}" berhasil ditambahkan.`,
+      title: 'Saved!',
+      text: `Category "${categoryName}" has been added.`,
       showConfirmButton: false,
       timer: 1500
     });
@@ -66,16 +66,16 @@ const handleNewCategory = async () => {
 // Simulasi Edit Kategori
 const openEditModal = async (category) => {
   const { value: newName } = await Swal.fire({
-    title: 'Edit Kategori',
+    title: 'Edit Category',
     input: 'text',
     inputValue: category.name,
     showCancelButton: true,
     confirmButtonColor: '#0050cb',
     cancelButtonColor: '#d33',
-    confirmButtonText: 'Perbarui',
-    cancelButtonText: 'Batal',
+    confirmButtonText: 'Update',
+    cancelButtonText: 'Cancel',
     inputValidator: (value) => {
-      if (!value) return 'Nama kategori tidak boleh kosong!'
+      if (!value) return 'Category name cannot be empty!'
     }
   });
 
@@ -87,8 +87,8 @@ const openEditModal = async (category) => {
 
     Swal.fire({
       icon: 'success',
-      title: 'Diperbarui!',
-      text: 'Nama kategori berhasil diubah.',
+      title: 'Updated!',
+      text: 'Category name has been changed.',
       showConfirmButton: false,
       timer: 1500
     });
@@ -98,23 +98,22 @@ const openEditModal = async (category) => {
 // Simulasi Hapus Kategori
 const deleteCategory = (id, name) => {
   Swal.fire({
-    title: `Hapus Kategori?`,
-    text: `Anda akan menghapus kategori "${name}". Tindakan ini tidak dapat dibatalkan!`,
+    title: `Delete Category?`,
+    text: `You are about to delete category "${name}". This action cannot be undone!`,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: 'Ya, Hapus!',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Delete!',
+    cancelButtonText: 'Cancel'
   }).then((result) => {
     if (result.isConfirmed) {
-      // Hapus data lokal (dummy)
       categories.value = categories.value.filter(c => c.id !== id);
 
       Swal.fire({
         icon: 'success',
-        title: 'Terhapus!',
-        text: 'Kategori berhasil dihapus.',
+        title: 'Deleted!',
+        text: 'Category has been deleted.',
         showConfirmButton: false,
         timer: 1500
       });
@@ -129,8 +128,8 @@ const deleteCategory = (id, name) => {
     <!-- Bagian Header Judul -->
     <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6">
       <div class="flex flex-col gap-1">
-        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Kategori Armada</h1>
-        <p class="text-sm text-[#727687]">Kelola tipe dan klasifikasi armada untuk mempermudah pencarian pelanggan.</p>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Fleet Categories</h1>
+        <p class="text-sm text-[#727687]">Manage fleet types and classifications to help customers search easily.</p>
       </div>
     </div>
 
@@ -147,7 +146,7 @@ const deleteCategory = (id, name) => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Cari kategori..."
+              placeholder="Search categories..."
               class="w-full pl-11 pr-4 py-3 bg-[#f2f4f6] border border-transparent rounded-full text-sm outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] focus:bg-white transition-all text-[#191c1e] font-medium"
             >
           </div>
@@ -157,7 +156,7 @@ const deleteCategory = (id, name) => {
             @click="handleNewCategory"
             class="flex items-center justify-center gap-2 px-6 py-3 bg-[#0050cb] hover:bg-[#0066ff] text-white text-xs md:text-sm font-bold uppercase tracking-widest rounded-full transition-all shadow-md shadow-blue-600/20 active:scale-95 order-1 sm:order-2 w-full sm:w-auto"
           >
-            <span class="material-symbols-outlined text-lg">add</span> Kategori Baru
+            <span class="material-symbols-outlined text-lg">add</span> New Category
           </button>
 
         </div>
@@ -170,9 +169,9 @@ const deleteCategory = (id, name) => {
           <thead class="bg-[#003161] text-white text-[11px] font-bold uppercase tracking-wider">
             <tr>
               <th class="px-6 py-4 w-16 text-center">NO</th>
-              <th class="px-6 py-4">NAMA KATEGORI</th>
-              <th class="px-6 py-4 text-center">TOTAL ARMADA</th>
-              <th class="px-6 py-4 text-center w-32">AKSI</th>
+              <th class="px-6 py-4">CATEGORY NAME</th>
+              <th class="px-6 py-4 text-center">TOTAL FLEET</th>
+              <th class="px-6 py-4 text-center w-32">ACTIONS</th>
             </tr>
           </thead>
 
@@ -181,7 +180,7 @@ const deleteCategory = (id, name) => {
             <tr v-if="isLoading">
               <td colspan="4" class="p-12 text-center text-[#727687] font-medium">
                 <span class="material-symbols-outlined animate-spin text-3xl text-[#0050cb] block mb-2">sync</span>
-                Memuat data...
+                Loading data...
               </td>
             </tr>
 
@@ -189,7 +188,7 @@ const deleteCategory = (id, name) => {
             <tr v-else-if="filteredCategories.length === 0">
               <td colspan="4" class="p-12 text-center text-[#727687] font-medium">
                 <span class="material-symbols-outlined text-4xl mb-2 opacity-50 block">category</span>
-                Kategori tidak ditemukan.
+                Category not found.
               </td>
             </tr>
 
@@ -233,7 +232,7 @@ const deleteCategory = (id, name) => {
 
       <!-- Footer Tabel (Summary) -->
       <div class="p-5 md:p-6 border-t border-[#f2f4f6] bg-[#f7f9fb]/50 flex justify-between items-center text-sm text-[#727687]">
-        <p class="font-medium">Menampilkan <span class="font-black text-[#191c1e]">{{ filteredCategories.length }}</span> kategori</p>
+        <p class="font-medium">Showing <span class="font-black text-[#191c1e]">{{ filteredCategories.length }}</span> categories</p>
       </div>
 
     </div>

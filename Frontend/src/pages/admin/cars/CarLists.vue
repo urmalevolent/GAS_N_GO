@@ -40,7 +40,7 @@ const fetchCars = async () => {
     products.value = (resData.data || []).map(normalizeCarForList)
   } catch (err) {
     console.error('Error fetching cars:', err)
-    Swal.fire('Error', err.message || 'Gagal memuat data armada.', 'error')
+    Swal.fire('Error', err.message || 'Failed to load fleet data.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -60,7 +60,7 @@ const filterProducts = async () => {
       }
     })
     const resData = await response.json()
-    if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal menyaring data.')
+    if (!response.ok || !resData.success) throw new Error(resData.message || 'Failed to filter data.')
     
     let list = resData.data || []
     if (searchQuery.value) {
@@ -73,7 +73,7 @@ const filterProducts = async () => {
     products.value = list.map(normalizeCarForList)
   } catch (err) {
     console.error('Error filtering cars:', err)
-    Swal.fire('Error', err.message || 'Gagal menyaring data.', 'error')
+    Swal.fire('Error', err.message || 'Failed to filter data.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -81,14 +81,14 @@ const filterProducts = async () => {
 
 const deleteProduct = (id, name) => {
   Swal.fire({
-    title: `Nonaktifkan ${name}?`,
-    text: "Kendaraan tidak akan muncul di halaman katalog pelanggan, tapi data tetap ada.",
+    title: `Deactivate ${name}?`,
+    text: "The vehicle will be hidden from the customer catalog, but the data will remain.",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: 'Ya, Nonaktifkan!',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Deactivate!',
+    cancelButtonText: 'Cancel'
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
@@ -100,15 +100,15 @@ const deleteProduct = (id, name) => {
           }
         })
         const resData = await response.json()
-        if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal menonaktifkan kendaraan.')
+        if (!response.ok || !resData.success) throw new Error(resData.message || 'Failed to deactivate vehicle.')
         
         const prod = products.value.find(p => p.id === id)
         if (prod) prod.status = 'inactive'
         
-        Swal.fire('Berhasil!', 'Kendaraan telah dinonaktifkan.', 'success')
+        Swal.fire('Success!', 'Vehicle has been deactivated.', 'success')
       } catch (err) {
         console.error('Error deactivating car:', err)
-        Swal.fire('Error', err.message || 'Gagal menonaktifkan kendaraan.', 'error')
+        Swal.fire('Error', err.message || 'Failed to deactivate vehicle.', 'error')
       }
     }
   })
@@ -116,14 +116,14 @@ const deleteProduct = (id, name) => {
 
 const restoreProduct = (id, name) => {
   Swal.fire({
-    title: `Aktifkan ${name}?`,
-    text: "Kendaraan akan muncul kembali di halaman katalog pelanggan.",
+    title: `Activate ${name}?`,
+    text: "The vehicle will reappear in the customer catalog.",
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#16a34a',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: 'Ya, Aktifkan!',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Activate!',
+    cancelButtonText: 'Cancel'
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
@@ -135,15 +135,15 @@ const restoreProduct = (id, name) => {
           }
         })
         const resData = await response.json()
-        if (!response.ok || !resData.success) throw new Error(resData.message || 'Gagal mengaktifkan kendaraan.')
+        if (!response.ok || !resData.success) throw new Error(resData.message || 'Failed to activate vehicle.')
         
         const prod = products.value.find(p => p.id === id)
         if (prod) prod.status = 'active'
         
-        Swal.fire('Berhasil!', 'Kendaraan sekarang aktif kembali.', 'success')
+        Swal.fire('Success!', 'Vehicle is now active again.', 'success')
       } catch (err) {
         console.error('Error activating car:', err)
-        Swal.fire('Error', err.message || 'Gagal mengaktifkan kendaraan.', 'error')
+        Swal.fire('Error', err.message || 'Failed to activate vehicle.', 'error')
       }
     }
   })
@@ -162,8 +162,8 @@ const formatPrice = (price) => {
     <!-- Bagian Header Judul -->
     <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6">
       <div class="flex flex-col gap-1">
-        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Daftar Armada</h1>
-        <p class="text-sm text-[#727687]">Kelola seluruh kendaraan yang tersedia untuk disewakan.</p>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Fleet List</h1>
+        <p class="text-sm text-[#727687]">Manage all vehicles available for rental.</p>
       </div>
 
       <!-- Tombol Tambah Produk (Akan ke /admin/cars/create) -->
@@ -171,7 +171,7 @@ const formatPrice = (price) => {
         to="/admin/cars/add"
         class="flex items-center justify-center gap-2 px-6 py-3 bg-[#0050cb] hover:bg-[#0066ff] text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-md shadow-blue-600/20 active:scale-95"
       >
-        <span class="material-symbols-outlined text-lg">add</span> Tambah Armada
+        <span class="material-symbols-outlined text-lg">add</span> Add Vehicle
       </router-link>
     </div>
 
@@ -186,7 +186,7 @@ const formatPrice = (price) => {
             v-model="searchQuery"
             @keyup.enter="filterProducts"
             type="text"
-            placeholder="Cari nama kendaraan atau merek..."
+            placeholder="Search vehicle name or brand..."
             class="w-full pl-11 pr-4 py-3 bg-[#f2f4f6] border border-transparent rounded-full text-sm outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] focus:bg-white transition-all text-[#191c1e] font-medium"
           >
         </div>
@@ -199,18 +199,18 @@ const formatPrice = (price) => {
           <thead class="bg-[#003161] text-white text-[11px] font-bold uppercase tracking-wider">
             <tr>
               <th class="px-6 py-4 w-12 text-center">NO</th>
-              <th class="px-6 py-4 w-28">FOTO</th>
-              <th class="px-6 py-4">DETAIL KENDARAAN</th>
+              <th class="px-6 py-4 w-28">PHOTO</th>
+              <th class="px-6 py-4">VEHICLE DETAIL</th>
               <th class="px-6 py-4">STATUS</th>
-              <th class="px-6 py-4 text-right">TARIF SEWA</th>
-              <th class="px-6 py-4 text-center">AKSI</th>
+              <th class="px-6 py-4 text-right">RENTAL RATE</th>
+              <th class="px-6 py-4 text-center">ACTIONS</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-gray-100">
             <!-- Jika tidak ada produk -->
             <tr v-if="products.length === 0">
-              <td colspan="6" class="p-8 text-center text-[#727687] italic font-medium">Tidak ada armada yang ditemukan.</td>
+              <td colspan="6" class="p-8 text-center text-[#727687] italic font-medium">No vehicles found.</td>
             </tr>
 
             <!-- Looping Data Produk -->
@@ -243,10 +243,10 @@ const formatPrice = (price) => {
               <td class="px-6 py-5">
                 <div class="flex flex-col gap-2 items-start">
                   <span v-if="product.status === 'active'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-green-100 text-green-700 border border-green-200">
-                      AKTIF
+                      ACTIVE
                   </span>
                   <span v-else class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-red-100 text-red-700 border border-red-200">
-                      NONAKTIF
+                      INACTIVE
                   </span>
 
                   <span v-if="product.is_promotion === 1 && product.status === 'active'"
@@ -274,7 +274,7 @@ const formatPrice = (price) => {
                     <span class="font-black text-[#191c1e] text-lg leading-none">
                       {{ formatPrice(product.price) }}
                     </span>
-                    <span class="text-[10px] text-[#727687] font-bold uppercase tracking-widest">/Hari</span>
+                    <span class="text-[10px] text-[#727687] font-bold uppercase tracking-widest">/Day</span>
                   </template>
                 </div>
               </td>
@@ -304,7 +304,7 @@ const formatPrice = (price) => {
                           <button @click="restoreProduct(product.id, product.name)"
                                   class="h-8 px-3 rounded bg-[#16a34a] text-white flex items-center justify-center gap-1.5 hover:opacity-80 transition-opacity" title="Aktifkan Kembali">
                               <span class="material-symbols-outlined text-[18px]">restore</span>
-                              <span class="text-[10px] font-black uppercase tracking-widest">PULIHKAN</span>
+                              <span class="text-[10px] font-black uppercase tracking-widest">RESTORE</span>
                           </button>
                       </template>
                   </div>
@@ -316,13 +316,13 @@ const formatPrice = (price) => {
 
       <!-- Footer Tabel (Summary Status) -->
       <div class="p-5 md:p-6 border-t border-[#f2f4f6] flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#f7f9fb]/50">
-          <p class="text-sm text-[#727687] font-medium">Total Armada: <span class="font-black text-[#191c1e] text-base">{{ products.length }}</span></p>
+          <p class="text-sm text-[#727687] font-medium">Total Vehicles: <span class="font-black text-[#191c1e] text-base">{{ products.length }}</span></p>
           <div class="flex gap-6">
               <span class="flex items-center gap-2 text-xs font-bold text-[#424656] uppercase tracking-widest">
-                <span class="w-2.5 h-2.5 bg-[#16a34a] rounded-full"></span> Aktif
+                <span class="w-2.5 h-2.5 bg-[#16a34a] rounded-full"></span> Active
               </span>
               <span class="flex items-center gap-2 text-xs font-bold text-[#424656] uppercase tracking-widest">
-                <span class="w-2.5 h-2.5 bg-[#d32f2f] rounded-full"></span> Nonaktif (Disembunyikan)
+                <span class="w-2.5 h-2.5 bg-[#d32f2f] rounded-full"></span> Inactive (Hidden)
               </span>
           </div>
       </div>

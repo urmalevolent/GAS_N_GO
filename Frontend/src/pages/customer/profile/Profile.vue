@@ -94,8 +94,8 @@ const handleAvatarChange = async (event) => {
 
     Swal.fire({
       icon: 'success',
-      title: 'Berhasil!',
-      text: 'Foto profil Anda telah diperbarui.',
+      title: 'Success!',
+      text: 'Your profile photo has been updated.',
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
@@ -107,7 +107,7 @@ const handleAvatarChange = async (event) => {
     profile.image = originalImage;
     Swal.fire({
       icon: 'error',
-      title: 'Gagal memperbarui foto profil',
+      title: 'Failed to update profile photo',
       text: err.message,
       confirmButtonColor: '#0050cb'
     });
@@ -120,8 +120,8 @@ const saveProfileSettings = async () => {
   if (!profile.username || !profile.username.trim()) {
     Swal.fire({
       icon: 'warning',
-      title: 'Data tidak lengkap',
-      text: 'Nama Lengkap wajib diisi.',
+      title: 'Incomplete data',
+      text: 'Full Name is required.',
       confirmButtonColor: '#0050cb'
     });
     return;
@@ -157,8 +157,8 @@ const saveProfileSettings = async () => {
 
     Swal.fire({
       icon: 'success',
-      title: 'Berhasil!',
-      text: 'Profil Anda telah diperbarui.',
+      title: 'Success!',
+      text: 'Your profile has been updated.',
       showConfirmButton: false,
       timer: 1500,
       iconColor: '#0050cb'
@@ -167,7 +167,7 @@ const saveProfileSettings = async () => {
     console.error('Error updating profile:', err);
     Swal.fire({
       icon: 'error',
-      title: 'Gagal memperbarui profil',
+      title: 'Failed to update profile',
       text: err.message,
       confirmButtonColor: '#0050cb'
     });
@@ -186,8 +186,8 @@ const updatePassword = async () => {
   if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
     Swal.fire({
       icon: 'warning',
-      title: 'Data tidak lengkap',
-      text: 'Semua kolom kata sandi wajib diisi.',
+      title: 'Incomplete data',
+      text: 'All password fields are required.',
       confirmButtonColor: '#0050cb'
     });
     return;
@@ -196,8 +196,8 @@ const updatePassword = async () => {
   if (passwordForm.newPassword.length < 6) {
     Swal.fire({
       icon: 'warning',
-      title: 'Kata sandi lemah',
-      text: 'Kata sandi minimal harus terdiri dari 6 karakter.',
+      title: 'Weak password',
+      text: 'Password must be at least 6 characters.',
       confirmButtonColor: '#0050cb'
     });
     return;
@@ -206,8 +206,8 @@ const updatePassword = async () => {
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
     Swal.fire({
       icon: 'error',
-      title: 'Kesalahan Konfirmasi',
-      text: 'Konfirmasi kata sandi baru tidak cocok.',
+      title: 'Confirmation Error',
+      text: 'New password confirmation does not match.',
       confirmButtonColor: '#0050cb'
     });
     return;
@@ -226,8 +226,8 @@ const updatePassword = async () => {
 
     Swal.fire({
       icon: 'success',
-      title: 'Berhasil!',
-      text: 'Kata sandi Anda telah diperbarui.',
+      title: 'Success!',
+      text: 'Your password has been updated.',
       showConfirmButton: false,
       timer: 1500,
       iconColor: '#0050cb'
@@ -236,7 +236,7 @@ const updatePassword = async () => {
     console.error('Error updating password:', err);
     Swal.fire({
       icon: 'error',
-      title: 'Gagal memperbarui kata sandi',
+      title: 'Failed to update password',
       text: err.message,
       confirmButtonColor: '#0050cb'
     });
@@ -271,7 +271,7 @@ onUpdated(() => {
       <div class="flex items-center gap-3 border-b border-[#c2c6d8]/40 pb-4" data-aos="fade-down">
         <span class="material-symbols-outlined text-[#0050cb] text-3xl">manage_accounts</span>
         <h1 class="text-2xl md:text-3xl font-extrabold text-[#191c1e] tracking-tight">
-          Profil Saya
+          My Profile
         </h1>
       </div>
 
@@ -303,7 +303,7 @@ onUpdated(() => {
         </div>
 
         <p class="mt-5 text-xs md:text-sm text-[#727687] font-bold uppercase tracking-widest" data-aos="fade-up" data-aos-delay="200">
-          Klik foto untuk mengganti
+          Click photo to change
         </p>
       </section>
 
@@ -315,15 +315,15 @@ onUpdated(() => {
       >
         <form @submit.prevent="saveProfileSettings">
           <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
-            <h2 class="text-lg md:text-xl font-extrabold text-[#191c1e]">Informasi Pribadi</h2>
-            <span class="bg-blue-50 text-[#0050cb] text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-blue-100">Status Aktif</span>
+            <h2 class="text-lg md:text-xl font-extrabold text-[#191c1e]">Personal Information</h2>
+            <span class="bg-blue-50 text-[#0050cb] text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-blue-100">Active Status</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
             <!-- Email (Disabled) -->
             <div class="md:col-span-2">
-              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Alamat Email</label>
+              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Email Address</label>
               <div class="relative">
                 <input
                   v-model="profile.email"
@@ -335,12 +335,12 @@ onUpdated(() => {
                   <span class="material-symbols-outlined text-[#727687]">lock</span>
                 </div>
               </div>
-              <p class="mt-1.5 text-[10px] text-[#727687]">*Email terhubung dengan identitas terverifikasi dan tidak dapat diubah secara manual.</p>
+              <p class="mt-1.5 text-[10px] text-[#727687]">*Email is linked to a verified identity and cannot be changed manually.</p>
             </div>
 
             <!-- Full Name -->
             <div>
-              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Nama Lengkap</label>
+              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Full Name</label>
               <input
                 v-model="profile.username"
                 type="text"
@@ -351,7 +351,7 @@ onUpdated(() => {
 
             <!-- Phone Number -->
             <div>
-              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Nomor Telepon</label>
+              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Phone Number</label>
               <input
                 v-model="profile.phone"
                 type="tel"
@@ -370,7 +370,7 @@ onUpdated(() => {
               :disabled="isLoading"
               class="w-full sm:w-auto rounded-xl bg-white border border-gray-200 px-8 py-3.5 md:py-4 text-xs md:text-sm font-bold text-[#424656] transition-all hover:bg-gray-50 active:scale-95 uppercase tracking-widest disabled:opacity-50"
             >
-              Batal
+              Cancel
             </button>
             <button
               type="submit"
@@ -378,7 +378,7 @@ onUpdated(() => {
               class="w-full sm:w-auto relative overflow-hidden rounded-xl signature-gradient px-8 py-3.5 md:py-4 text-xs md:text-sm font-bold text-white shadow-lg shadow-[#0050cb]/20 transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <span v-if="isLoading" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
-              {{ isLoading ? 'Menyimpan...' : 'Simpan Perubahan' }}
+              {{ isLoading ? 'Saving...' : 'Save Changes' }}
             </button>
           </div>
         </form>
@@ -392,14 +392,14 @@ onUpdated(() => {
       >
         <form @submit.prevent="updatePassword">
           <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
-            <h2 class="text-lg md:text-xl font-extrabold text-[#191c1e]">Ubah Kata Sandi</h2>
-            <span class="bg-[#ba1a1a]/10 text-[#ba1a1a] text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-[#ba1a1a]/20">Keamanan</span>
+            <h2 class="text-lg md:text-xl font-extrabold text-[#191c1e]">Change Password</h2>
+            <span class="bg-[#ba1a1a]/10 text-[#ba1a1a] text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-[#ba1a1a]/20">Security</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <!-- Password Baru -->
             <div>
-              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Kata Sandi Baru</label>
+              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">New Password</label>
               <input
                 v-model="passwordForm.newPassword"
                 type="password"
@@ -411,7 +411,7 @@ onUpdated(() => {
 
             <!-- Konfirmasi Password -->
             <div>
-              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Konfirmasi Kata Sandi Baru</label>
+              <label class="block mb-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">Confirm New Password</label>
               <input
                 v-model="passwordForm.confirmPassword"
                 type="password"
@@ -430,7 +430,7 @@ onUpdated(() => {
               class="w-full sm:w-auto relative overflow-hidden rounded-xl signature-gradient px-8 py-3.5 md:py-4 text-xs md:text-sm font-bold text-white shadow-lg shadow-[#0050cb]/20 transition-all hover:scale-[1.02] active:scale-95 uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <span v-if="isChangingPassword" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
-              {{ isChangingPassword ? 'Memperbarui...' : 'Perbarui Kata Sandi' }}
+              {{ isChangingPassword ? 'Updating...' : 'Update Password' }}
             </button>
           </div>
         </form>

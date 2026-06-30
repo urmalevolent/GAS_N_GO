@@ -33,7 +33,7 @@ const normalizeCar = (car) => {
     brand_name: car.brand,
     category_name: car.category,
     image: car.image_url || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2083&auto=format&fit=crop',
-    badge: car.status === 'available' ? 'Tersedia' : 'Tidak Tersedia',
+    badge: car.status === 'available' ? 'Available' : 'Unavailable',
     is_rare: car.category === 'Luxury Car' || car.category === 'Hypercar'
   }
 }
@@ -46,13 +46,13 @@ const fetchCarsAndCategories = async () => {
     // 1. Ambil kategori dari API backend
     const catResponse = await fetch('http://localhost:5000/api/categories')
     const catData = await catResponse.json()
-    if (!catResponse.ok || !catData.success) throw new Error(catData.message || 'Gagal memuat kategori.')
+    if (!catResponse.ok || !catData.success) throw new Error(catData.message || 'Failed to load categories.')
     categories.value = catData.data || []
 
     // 2. Ambil data mobil dari API backend
     const carsResponse = await fetch('http://localhost:5000/api/cars')
     const carsData = await carsResponse.json()
-    if (!carsResponse.ok || !carsData.success) throw new Error(carsData.message || 'Gagal memuat mobil.')
+    if (!carsResponse.ok || !carsData.success) throw new Error(carsData.message || 'Failed to load cars.')
     allCars.value = (carsData.data || []).map(normalizeCar)
 
     // Set slider harga maksimal berdasarkan harga tertinggi di database
@@ -63,7 +63,7 @@ const fetchCarsAndCategories = async () => {
     }
   } catch (err) {
     console.error('Error fetching cars page data:', err)
-    errorMsg.value = err.message || 'Gagal memuat data armada. Silakan coba lagi.'
+    errorMsg.value = err.message || 'Failed to load fleet data. Please try again.'
   } finally {
     isLoading.value = false
   }
@@ -175,10 +175,10 @@ const formatPrice = (price) => {
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-[#191c1e] mb-4 tracking-tighter uppercase leading-none">
-          Koleksi Mobil <br class="hidden md:block"/> <span class="text-[#0050cb]">Premium</span>
+          Premium Car <br class="hidden md:block"/> <span class="text-[#0050cb]">Collection</span>
         </h1>
         <p class="text-base md:text-lg text-[#424656] max-w-2xl mx-auto font-medium mt-4 md:mt-6 leading-relaxed">
-          Kendaraan performa tinggi yang dikurasi khusus bagi pengemudi berselera tinggi. Rasakan puncak mahakarya teknik otomotif dan kemewahan tanpa batas.
+          High-performance vehicles specially curated for discerning drivers. Experience the pinnacle of automotive engineering and boundless luxury.
         </p>
       </div>
     </section>
@@ -191,8 +191,8 @@ const formatPrice = (price) => {
 
         <!-- Category Filter -->
         <section>
-          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Kategori</h3>
-          <div v-if="categories.length === 0" class="text-xs text-[#727687]">Memuat kategori...</div>
+          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Category</h3>
+          <div v-if="categories.length === 0" class="text-xs text-[#727687]">Loading categories...</div>
           <div v-else class="space-y-3 md:space-y-4">
             <label v-for="cat in categories" :key="cat.id" class="flex items-center cursor-pointer group">
               <input 
@@ -208,7 +208,7 @@ const formatPrice = (price) => {
 
         <!-- Daily Rate Range -->
         <section>
-          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Tarif Maksimal</h3>
+          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Maximum Rate</h3>
           <div class="px-2">
             <input 
               type="range"
@@ -236,7 +236,7 @@ const formatPrice = (price) => {
               :class="selectedBrand === brand ? 'bg-[#0050cb] text-white shadow-md shadow-blue-600/20' : 'bg-white border border-[#c2c6d8]/50 text-[#424656] hover:bg-gray-50 hover:border-[#0050cb] hover:text-[#0050cb]'"
               class="py-2.5 px-4 rounded-md text-xs font-bold transition-all truncate"
             >
-              {{ brand === 'All' ? 'Semua' : brand }}
+              {{ brand === 'All' ? 'All' : brand }}
             </button>
           </div>
         </section>
@@ -248,30 +248,30 @@ const formatPrice = (price) => {
         <!-- Loading State -->
         <div v-if="isLoading" class="text-center py-20">
           <span class="material-symbols-outlined animate-spin text-4xl text-[#0050cb] mb-4 block">sync</span>
-          <p class="text-[#727687] font-bold text-sm uppercase tracking-widest">Memuat armada kendaraan...</p>
+          <p class="text-[#727687] font-bold text-sm uppercase tracking-widest">Loading vehicle fleet...</p>
         </div>
 
         <!-- Error State -->
         <div v-else-if="errorMsg" class="text-center py-20 max-w-md mx-auto">
           <span class="material-symbols-outlined text-4xl text-[#ba1a1a] mb-4 block">error</span>
           <p class="text-[#ba1a1a] font-extrabold text-lg mb-2">{{ errorMsg }}</p>
-          <button @click="fetchCarsAndCategories" class="px-6 py-2.5 bg-[#0050cb] text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#0066ff] transition-all active:scale-95">Coba Lagi</button>
+          <button @click="fetchCarsAndCategories" class="px-6 py-2.5 bg-[#0050cb] text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#0066ff] transition-all active:scale-95">Try Again</button>
         </div>
 
         <!-- Empty State -->
         <div v-else-if="paginatedCars.length === 0" class="text-center py-20 border-2 border-dashed border-[#c2c6d8]/50 rounded-[2.5rem]">
           <span class="material-symbols-outlined text-5xl text-[#727687] mb-4 block">directions_car</span>
-          <h3 class="text-xl font-bold text-[#191c1e] mb-1">Armada Tidak Ditemukan</h3>
-          <p class="text-[#727687] text-sm">Tidak ada kendaraan yang sesuai dengan kriteria filter Anda.</p>
+          <h3 class="text-xl font-bold text-[#191c1e] mb-1">Fleet Not Found</h3>
+          <p class="text-[#727687] text-sm">No vehicles match your filter criteria.</p>
         </div>
 
         <!-- --- SECTION: DAFTAR MOBIL (CARS GRID) --- -->
         <section v-else>
           <div class="flex justify-between items-end mb-8">
             <h2 class="text-2xl md:text-3xl font-black text-[#191c1e] uppercase relative z-10">
-              Semua <span class="text-[#0050cb]">Mobil</span>
+              All <span class="text-[#0050cb]">Cars</span>
             </h2>
-            <span class="text-xs font-bold text-[#727687] uppercase tracking-widest">{{ filteredCars.length }} armada cocok</span>
+            <span class="text-xs font-bold text-[#727687] uppercase tracking-widest">{{ filteredCars.length }} matching fleets</span>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 lg:gap-10">
@@ -313,10 +313,10 @@ const formatPrice = (price) => {
                 <div class="pt-6 border-t border-[#f2f4f6] flex flex-col gap-5 mt-auto">
                   <div class="flex items-end justify-between">
                     <div>
-                      <span class="text-[#727687] text-[10px] md:text-xs font-bold uppercase tracking-wider block mb-1">Tarif Sewa</span>
+                      <span class="text-[#727687] text-[10px] md:text-xs font-bold uppercase tracking-wider block mb-1">Rental Rate</span>
                       <div class="flex items-baseline gap-1">
                         <span class="text-2xl sm:text-3xl font-black text-[#191c1e]">{{ formatPrice(car.price) }}</span>
-                        <span class="text-[#727687] text-sm font-medium">/hari</span>
+                        <span class="text-[#727687] text-sm font-medium">/day</span>
                       </div>
                     </div>
                   </div>
@@ -331,7 +331,7 @@ const formatPrice = (price) => {
                       class="flex-1 signature-gradient text-white hover:shadow-lg hover:shadow-blue-600/30 font-bold text-xs sm:text-sm py-3 sm:py-3.5 rounded-xl transition-all duration-300 text-center flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                     >
                       <span class="material-symbols-outlined text-[16px]">{{ car.status === 'available' ? 'lock' : 'lock_open' }}</span>
-                      <span>{{ car.status === 'available' ? 'Sewa Sekarang' : 'Habis Dipesan' }}</span>
+                      <span>{{ car.status === 'available' ? 'Rent Now' : 'Fully Booked' }}</span>
                     </button>
                   </div>
                 </div>

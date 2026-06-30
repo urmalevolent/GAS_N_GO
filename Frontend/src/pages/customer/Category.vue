@@ -5,39 +5,39 @@ import BookingModal from '@/pages/customer/Booking.vue'
 // --- VISUAL DETAILS MAP FOR CATEGORIES ---
 const categoryDetailsMap = {
   'Luxury Car': {
-    description: 'Kenyamanan kelas satu dengan kemewahan dan performa tanpa kompromi.',
+    description: 'First-class comfort with uncompromising luxury and performance.',
     image_url: 'https://images.unsplash.com/photo-1503376760366-5a413e971510?q=80&w=2070&auto=format&fit=crop'
   },
   'Sedan Eksekutif': {
-    description: 'Kenyamanan kelas satu untuk perjalanan bisnis maupun liburan eksklusif Anda.',
+    description: 'First-class comfort for your exclusive business trips and vacations.',
     image_url: 'https://images.unsplash.com/photo-1503376760366-5a413e971510?q=80&w=2070&auto=format&fit=crop'
   },
   'SUV Premium': {
-    description: 'Ruang ekstra, ketangguhan, dan kemewahan yang berpadu tanpa kompromi.',
+    description: 'Extra space, toughness, and luxury combined without compromise.',
     image_url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop'
   },
   'SUV Performa': {
-    description: 'Ketangguhan SUV dengan performa mesin luar biasa untuk segala medan.',
+    description: 'SUV toughness with outstanding engine performance for all terrains.',
     image_url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop'
   },
   'Mobil Sport': {
-    description: 'Performa tingkat tinggi untuk Anda yang mendambakan adrenalin di jalan raya.',
+    description: 'High-level performance for those who crave adrenaline on the highway.',
     image_url: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop'
   },
   'Sport Car': {
-    description: 'Performa tingkat tinggi untuk Anda yang mendambakan adrenalin di jalan raya.',
+    description: 'High-level performance for those who crave adrenaline on the highway.',
     image_url: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop'
   },
   'Elektrik Mewah': {
-    description: 'Tenaga instan yang senyap dengan teknologi ramah lingkungan masa depan.',
+    description: 'Silent instant power with future eco-friendly technology.',
     image_url: 'https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop'
   },
   'Electric': {
-    description: 'Tenaga instan yang senyap dengan teknologi ramah lingkungan masa depan.',
+    description: 'Silent instant power with future eco-friendly technology.',
     image_url: 'https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop'
   },
   'Hypercar': {
-    description: 'Mahakarya otomotif langka dengan desain eksotis dan tenaga buas luar biasa.',
+    description: 'Rare automotive masterpiece with exotic design and incredible wild power.',
     image_url: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=2070&auto=format&fit=crop'
   }
 }
@@ -92,12 +92,12 @@ const fetchDatabaseData = async () => {
     // 1. Ambil data kategori dari API backend
     const catResponse = await fetch('http://localhost:5000/api/categories')
     const catData = await catResponse.json()
-    if (!catResponse.ok || !catData.success) throw new Error(catData.message || 'Gagal memuat kategori.')
+    if (!catResponse.ok || !catData.success) throw new Error(catData.message || 'Failed to load categories.')
     
     // 2. Ambil data semua mobil dari API backend
     const carsResponse = await fetch('http://localhost:5000/api/cars')
     const carsData = await carsResponse.json()
-    if (!carsResponse.ok || !carsData.success) throw new Error(carsData.message || 'Gagal memuat armada.')
+    if (!carsResponse.ok || !carsData.success) throw new Error(carsData.message || 'Failed to load fleet.')
     
     allCars.value = carsData.data || []
     
@@ -106,13 +106,13 @@ const fetchDatabaseData = async () => {
       return {
         id: cat.id || index + 1,
         name: cat.name,
-        description: cat.description || `Koleksi armada kelas ${cat.name} terbaik untuk kenyamanan perjalanan Anda.`,
+        description: cat.description || `The best ${cat.name} class fleet collection for your travel comfort.`,
         image_url: cat.image_url || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2083&auto=format&fit=crop'
       }
     })
   } catch (err) {
     console.error('Error fetching data:', err)
-    errorMsg.value = err.message || 'Gagal memuat kategori dari database. Coba lagi nanti.'
+    errorMsg.value = err.message || 'Failed to load categories from database. Try again later.'
   } finally {
     isLoading.value = false
   }
@@ -134,10 +134,10 @@ onMounted(() => {
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <h1 class="text-4xl md:text-6xl font-black text-[#191c1e] mb-4 tracking-tighter uppercase leading-none">
-          Jelajahi Berdasarkan <br class="hidden md:block"/> <span class="text-[#0050cb]">Kategori</span>
+          Explore By <br class="hidden md:block"/> <span class="text-[#0050cb]">Category</span>
         </h1>
         <p class="text-lg md:text-xl text-[#424656] max-w-2xl mx-auto font-medium mt-6">
-          Temukan tipe kendaraan yang paling sempurna untuk menyempurnakan perjalanan eksklusif Anda.
+          Find the most perfect vehicle type to perfect your exclusive journey.
         </p>
       </div>
     </section>
@@ -149,14 +149,14 @@ onMounted(() => {
         <!-- Loading State -->
         <div v-if="isLoading" class="text-center py-20">
           <span class="material-symbols-outlined animate-spin text-4xl text-[#0050cb] mb-4 block">sync</span>
-          <p class="text-[#727687] font-bold text-sm uppercase tracking-widest">Memuat kategori armada...</p>
+          <p class="text-[#727687] font-bold text-sm uppercase tracking-widest">Loading fleet categories...</p>
         </div>
 
         <!-- Error State -->
         <div v-else-if="errorMsg" class="text-center py-20 max-w-md mx-auto">
           <span class="material-symbols-outlined text-4xl text-[#ba1a1a] mb-4 block">error</span>
           <p class="text-[#ba1a1a] font-extrabold text-lg mb-2">{{ errorMsg }}</p>
-          <button @click="fetchDatabaseData" class="px-6 py-2.5 bg-[#0050cb] text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#0066ff] transition-all active:scale-95">Coba Lagi</button>
+          <button @click="fetchDatabaseData" class="px-6 py-2.5 bg-[#0050cb] text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-[#0066ff] transition-all active:scale-95">Try Again</button>
         </div>
 
         <!-- Grid -->
@@ -185,10 +185,10 @@ onMounted(() => {
               <div class="flex items-center justify-between mt-auto">
                 <span class="inline-flex items-center gap-1.5 bg-[#e6eeff] text-[#0050cb] border border-[#b3c5ff]/50 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-widest">
                   <span class="w-1.5 h-1.5 rounded-full bg-[#0050cb]"></span>
-                  {{ carCountByCategory(cat.name) }} Armada
+                  {{ carCountByCategory(cat.name) }} Fleet
                 </span>
                 <span class="text-[#0050cb] font-bold text-xs uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Eksplorasi
+                  Explore
                   <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </span>
               </div>
@@ -213,9 +213,9 @@ onMounted(() => {
           <div class="relative bg-gradient-to-br from-[#003161] to-[#0050cb] px-6 sm:px-8 py-8 shrink-0">
             <div class="relative z-10 flex items-center justify-between">
               <div>
-                <p class="text-[#b3c5ff] text-[10px] font-bold uppercase tracking-widest mb-1">Kategori Terpilih</p>
+                <p class="text-[#b3c5ff] text-[10px] font-bold uppercase tracking-widest mb-1">Selected Category</p>
                 <h2 class="text-3xl font-black text-white uppercase tracking-tight">{{ selectedCategory.name }}</h2>
-                <p class="text-[#e6eeff] text-sm mt-1 font-medium">{{ carsInCategory.length }} kendaraan tersedia</p>
+                <p class="text-[#e6eeff] text-sm mt-1 font-medium">{{ carsInCategory.length }} vehicles available</p>
               </div>
               <button @click="selectedCategory = null" class="w-10 h-10 bg-white/20 hover:bg-[#ba1a1a] backdrop-blur-md rounded-full flex items-center justify-center text-white transition-colors">
                 <span class="material-symbols-outlined text-[20px]">close</span>
@@ -231,7 +231,7 @@ onMounted(() => {
               <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-[#c2c6d8]/40">
                 <span class="material-symbols-outlined text-3xl text-[#727687]">car_crash</span>
               </div>
-              <h4 class="font-bold text-[#191c1e]">Belum ada mobil di kategori ini.</h4>
+              <h4 class="font-bold text-[#191c1e]">No cars in this category yet.</h4>
             </div>
 
             <!-- Jika Ada Mobil -->
@@ -248,7 +248,7 @@ onMounted(() => {
                   </div>
                   <div class="absolute top-5 left-5 z-10 bg-white/90 backdrop-blur-md text-[#191c1e] text-[10px] font-bold px-3 py-1 rounded-xl shadow-sm border border-gray-100 flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full" :class="car.status === 'available' ? 'bg-[#16a34a]' : 'bg-[#ba1a1a]'"></span>
-                    {{ car.status === 'available' ? 'Tersedia' : 'Tidak Tersedia' }}
+                    {{ car.status === 'available' ? 'Available' : 'Unavailable' }}
                   </div>
                 </div>
 
@@ -261,10 +261,10 @@ onMounted(() => {
                   <div class="pt-5 border-t border-[#f2f4f6] mt-auto flex flex-col gap-4">
                     <div class="flex items-end justify-between">
                       <div>
-                        <span class="text-[#727687] text-[10px] font-bold uppercase tracking-wider block mb-0.5">Tarif Sewa</span>
+                        <span class="text-[#727687] text-[10px] font-bold uppercase tracking-wider block mb-0.5">Rental Rate</span>
                         <div class="flex items-baseline gap-1">
                           <span class="text-xl font-black text-[#191c1e]">{{ formatPrice(car.price_per_day) }}</span>
-                          <span class="text-[#727687] text-xs font-medium">/hari</span>
+                          <span class="text-[#727687] text-xs font-medium">/day</span>
                         </div>
                       </div>
                     </div>
@@ -275,7 +275,7 @@ onMounted(() => {
                       class="signature-gradient text-white hover:shadow-lg hover:shadow-[#0050cb]/30 font-bold text-xs uppercase tracking-widest px-4 py-3.5 rounded-xl transition-all duration-300 w-full active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                     >
                       <span class="material-symbols-outlined text-[16px]">{{ car.status === 'available' ? 'lock' : 'lock_open' }}</span>
-                      {{ car.status === 'available' ? 'Sewa Sekarang' : 'Habis Dipesan' }}
+                      {{ car.status === 'available' ? 'Rent Now' : 'Fully Booked' }}
                     </button>
                   </div>
                 </div>

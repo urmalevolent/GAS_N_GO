@@ -62,7 +62,7 @@ const openDetail = (item) => {
   const stars = '⭐'.repeat(item.rating)
 
   Swal.fire({
-    title: `Ulasan Pelanggan`,
+    title: `Customer Review`,
     html: `
       <div class="text-left mt-4 space-y-4">
         <div class="flex items-center gap-3 pb-4 border-b border-[#c2c6d8]/40">
@@ -75,11 +75,11 @@ const openDetail = (item) => {
           </div>
         </div>
         <div>
-          <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1">Penilaian (Rating)</p>
+          <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1">Rating</p>
           <p class="text-xl">${stars}</p>
         </div>
         <div>
-          <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1">Komentar</p>
+          <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1">Comment</p>
           <p class="text-[#424656] text-sm bg-[#f2f4f6] p-4 rounded-xl border border-[#c2c6d8]/40 italic leading-relaxed">
             "${item.comment}"
           </p>
@@ -88,7 +88,7 @@ const openDetail = (item) => {
     `,
     showConfirmButton: true,
     confirmButtonColor: '#0050cb',
-    confirmButtonText: 'Tutup Detail',
+    confirmButtonText: 'Close Detail',
     customClass: {
       popup: 'rounded-3xl'
     }
@@ -98,21 +98,21 @@ const openDetail = (item) => {
 // Simulasi Hapus Ulasan
 const deleteReview = (id) => {
   Swal.fire({
-    title: 'Hapus Ulasan?',
-    text: "Ulasan ini akan dihapus secara permanen dari sistem.",
+    title: 'Delete Review?',
+    text: "This review will be permanently removed from the system.",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#0050cb',
-    confirmButtonText: 'Ya, Hapus!',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Delete!',
+    cancelButtonText: 'Cancel'
   }).then((result) => {
     if (result.isConfirmed) {
       reviews.value = reviews.value.filter(r => r.id !== id)
       Swal.fire({
         icon: 'success',
-        title: 'Terhapus!',
-        text: 'Ulasan berhasil dihapus.',
+        title: 'Deleted!',
+        text: 'Review has been deleted.',
         timer: 1500,
         showConfirmButton: false
       })
@@ -127,8 +127,8 @@ const deleteReview = (id) => {
     <!-- Bagian Header Judul -->
     <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6">
       <div class="flex flex-col gap-1">
-        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Ulasan Pelanggan</h1>
-        <p class="text-sm text-[#727687]">Kelola umpan balik, penilaian, dan pengalaman pelanggan GASNGO.</p>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#191c1e]">Customer Reviews</h1>
+        <p class="text-sm text-[#727687]">Manage GASNGO customer feedback, ratings, and experiences.</p>
       </div>
     </div>
 
@@ -143,7 +143,7 @@ const deleteReview = (id) => {
             v-model="searchQuery"
             type="text"
             class="w-full pl-11 pr-4 py-3 bg-[#f2f4f6] border border-transparent rounded-full text-sm outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] focus:bg-white transition-all text-[#191c1e] font-medium"
-            placeholder="Cari nama atau isi ulasan..."
+            placeholder="Search name or review content..."
           />
         </div>
       </div>
@@ -155,24 +155,24 @@ const deleteReview = (id) => {
           <thead class="bg-[#003161] text-white text-[11px] font-bold uppercase tracking-wider">
             <tr>
               <th class="px-6 py-4 w-12 text-center">NO</th>
-              <th class="px-6 py-4 w-64">PELANGGAN</th>
-              <th class="px-6 py-4">CUPLIKAN ULASAN</th>
-              <th class="px-6 py-4 w-32 text-center">PENILAIAN</th>
-              <th class="px-6 py-4 w-28 text-center">AKSI</th>
+              <th class="px-6 py-4 w-64">CUSTOMER</th>
+              <th class="px-6 py-4">REVIEW SNIPPET</th>
+              <th class="px-6 py-4 w-32 text-center">RATING</th>
+              <th class="px-6 py-4 w-28 text-center">ACTIONS</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-gray-100">
             <!-- Loading State -->
             <tr v-if="isLoading">
-              <td colspan="5" class="p-10 text-center text-[#727687] font-medium animate-pulse">Memuat ulasan...</td>
+              <td colspan="5" class="p-10 text-center text-[#727687] font-medium animate-pulse">Loading reviews...</td>
             </tr>
 
             <!-- Empty State -->
             <tr v-else-if="filteredReviews.length === 0">
               <td colspan="5" class="p-12 text-center text-[#727687] font-medium">
                 <span class="material-symbols-outlined text-4xl mb-2 opacity-50 block">comments_disabled</span>
-                Tidak ada ulasan ditemukan.
+                No reviews found.
               </td>
             </tr>
 
@@ -242,7 +242,7 @@ const deleteReview = (id) => {
       <!-- Footer Tabel (Summary) -->
       <div class="p-5 md:p-6 border-t border-[#f2f4f6] bg-[#f7f9fb]/50 flex justify-between items-center text-sm text-[#727687]">
         <div class="text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#424656]">
-          Total Ulasan Sistem: <span class="text-[#0050cb] font-black text-sm">{{ reviews.length }}</span>
+          Total System Reviews: <span class="text-[#0050cb] font-black text-sm">{{ reviews.length }}</span>
         </div>
       </div>
 

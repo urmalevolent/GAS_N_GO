@@ -78,37 +78,70 @@ export const updateStatus = async (req, res, next) => {
   }
 };
 
-export const createAdmin = async (req, res, next) => {
+export const getUserDetails = async (req, res, next) => {
   try {
-    const { email, password, fullName, phone } = req.body;
+    const { id } = req.params;
 
     if (!supabaseAdmin) {
       return res.status(500).json({ success: false, message: 'Fitur membutuhkan Service Role Key.' });
     }
 
-    const { data: userAuth, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: fullName || email.split('@')[0],
-        phone_number: phone || '',
-        role: 'admin'
+    // Ambil rentals dan gabungkan dengan tabel cars dan rental_payments
+    const { data: rentals, error: rentalsError } = await supabaseAdmin
+      .from('rentals')
+      .select(`
+        id,
+        start_date,
+        end_date,
+        status,
+        cars ( id, name ),
+        rental_payments ( total_price, payment_status )
+      `)
+      .eq('user_id', id)
+      .order('created_at', { ascending: false });
+
+    if (rentalsError) throw rentalsError;
+
+    // Hitung stats dan map orders
+    let total_orders = 0;
+    let total_spent = 0;
+    const orders = [];
+
+    if (rentals && rentals.length > 0) {
+      total_orders = rentals.length;
+      rentals.forEach(r => {
+        // Karena rental_payments bisa array (jika one-to-many) atau object tunggal
+        // Biasanya one-to-many, jadi kita ambil index 0
+        const payment = Array.isArray(r.rental_payments) ? r.rental_payments[0] : r.rental_payments;
+        const price = payment?.total_price || 0;
+        
+        // Status completed (selesai) atau active (sedang jalan) kita hitung spent-nya
+        if (r.status === 'completed' || r.status === 'active' || r.status === 'pending_dp' || r.status === 'paid') {
+          total_spent += price;
+        }
+        
+        const start = new Date(r.start_date);
+        const end = new Date(r.end_date);
+        const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 1;
+
+        orders.push({
+          id: `GNG-${r.id.substring(0, 8).toUpperCase()}`,
+          car_name: r.cars?.name || 'Unknown Car',
+          created_at: r.start_date,
+          duration: duration,
+          total_price: price,
+          status: r.status // 'completed', 'active', 'pending_dp', 'cancelled' dst
+        });
+      });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        stats: { total_orders, total_spent },
+        orders
       }
     });
-
-    if (authError) throw authError;
-
-    await new Promise(r => setTimeout(r, 1000)); 
-
-    const { error: dbError } = await supabaseAdmin
-      .from('profiles')
-      .update({ role: 'admin', is_active: true })
-      .eq('id', userAuth.user.id);
-
-    if (dbError) console.warn('Gagal update profile (mungkin trigger tidak ada/telat):', dbError);
-
-    res.status(201).json({ success: true, message: 'Admin baru berhasil dibuat.', data: userAuth.user });
   } catch (error) {
     next(error);
   }

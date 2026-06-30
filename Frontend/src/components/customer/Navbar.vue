@@ -77,22 +77,22 @@ const router = useRouter()
 const handleLogout = () => {
   isUserOpen.value = false
   Swal.fire({
-    title: 'Keluar Akun?',
-    text: 'Apakah Anda yakin ingin keluar dari akun Anda?',
+    title: 'Logout?',
+    text: 'Are you sure you want to log out of your account?',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ba1a1a',
     cancelButtonColor: '#727687',
-    confirmButtonText: 'Ya, Keluar',
-    cancelButtonText: 'Batal'
+    confirmButtonText: 'Yes, Logout',
+    cancelButtonText: 'Cancel'
   }).then(async (result) => {
     if (result.isConfirmed) {
       const { error } = await authStore.signOut()
       if (!error) {
-        triggerToast('Berhasil keluar dari akun.', 'success')
+        triggerToast('Successfully logged out.', 'success')
         router.push('/')
       } else {
-        triggerToast('Gagal keluar: ' + error.message, 'error')
+        triggerToast('Failed to logout: ' + error.message, 'error')
       }
     }
   })
@@ -163,7 +163,7 @@ onUnmounted(() => {
             <RouterLink
               to="/user/orders"
               class="relative p-2 rounded-full text-[#424656] hover:text-[#0050cb] hover:bg-[#f2f4f6] transition-all duration-300 focus:outline-none group"
-              title="Pesanan Saya"
+              title="My Orders"
             >
               <img :src="EnvelopeIcon" class="h-8 w-8 opacity-80 group-hover:opacity-100 transition-opacity" />
               <!-- Titik Notifikasi Merah/Biru -->
@@ -193,28 +193,28 @@ onUnmounted(() => {
                 <transition name="fade-slide">
                   <div v-if="isUserOpen" class="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl z-50 py-2 border border-gray-100 overflow-hidden">
                     <div class="px-5 py-3 border-b border-gray-50 mb-2 bg-[#f7f9fb]/50">
-                      <p class="text-[10px] uppercase tracking-widest text-[#727687] font-bold mb-0.5">Masuk sebagai</p>
+                      <p class="text-[10px] uppercase tracking-widest text-[#727687] font-bold mb-0.5">Logged in as</p>
                       <p class="text-xs font-bold text-[#191c1e] truncate">{{ currentUser.email }}</p>
                     </div>
 
                     <RouterLink @click="isUserOpen=false" to="/user/profile" class="flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] transition-colors">
-                      <span class="material-symbols-outlined text-[18px]">person</span> Profil Saya
+                      <span class="material-symbols-outlined text-[18px]">person</span> My Profile
                     </RouterLink>
 
                     <RouterLink @click="isUserOpen=false" to="/user/orders" class="flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] transition-colors">
-                      <span class="material-symbols-outlined text-[18px]">local_shipping</span> Pesanan Saya
+                      <span class="material-symbols-outlined text-[18px]">local_shipping</span> My Orders
                     </RouterLink>
 
                     <!-- Muncul jika role user adalah admin -->
                     <RouterLink v-slot="{ href, navigate }" v-if="authStore.isAdmin" to="/admin/dashboard" custom>
                       <a :href="href" @click="navigate(); isUserOpen=false" class="flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#424656] hover:bg-[#e6eeff] hover:text-[#0050cb] transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Dashboard Admin
+                        <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Dashboard
                       </a>
                     </RouterLink>
 
                     <div class="mt-2 border-t border-gray-100 pt-2">
                       <button @click="handleLogout" class="w-full flex items-center gap-3 px-5 py-2.5 text-sm font-bold text-[#ba1a1a] hover:bg-red-50 transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">logout</span> Keluar Akun
+                        <span class="material-symbols-outlined text-[18px]">logout</span> Logout
                       </button>
                     </div>
                   </div>
@@ -277,20 +277,20 @@ onUnmounted(() => {
 
                 <div class="grid grid-cols-2 gap-3 mb-4">
                   <RouterLink @click="closeMobileMenu" to="/user/profile" class="flex flex-col items-center justify-center gap-1.5 px-4 py-3.5 bg-gray-50 hover:bg-blue-50 rounded-xl text-xs font-bold text-[#424656] hover:text-[#0050cb] transition-all">
-                    <span class="material-symbols-outlined text-[20px]">person</span> Profil
+                    <span class="material-symbols-outlined text-[20px]">person</span> Profile
                   </RouterLink>
                   <RouterLink @click="closeMobileMenu" to="/user/orders" class="flex flex-col items-center justify-center gap-1.5 px-4 py-3.5 bg-gray-50 hover:bg-blue-50 rounded-xl text-xs font-bold text-[#424656] hover:text-[#0050cb] transition-all">
-                    <span class="material-symbols-outlined text-[20px]">local_shipping</span> Pesanan
+                    <span class="material-symbols-outlined text-[20px]">local_shipping</span> Orders
                   </RouterLink>
                 </div>
 
                 <!-- Muncul jika role user adalah admin atau super_admin -->
                 <RouterLink v-if="authStore.isAdmin" @click="closeMobileMenu" to="/admin/dashboard" class="w-full flex items-center justify-center gap-2 mb-4 px-4 py-4 bg-indigo-50 hover:bg-indigo-100 rounded-xl text-xs font-bold text-indigo-700 transition-all uppercase tracking-widest">
-                  <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Dashboard Admin
+                  <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin Dashboard
                 </RouterLink>
 
                 <button @click="handleLogout(); closeMobileMenu()" class="w-full flex items-center justify-center gap-2 px-4 py-4 bg-red-50 hover:bg-red-100 rounded-xl text-xs font-bold text-[#ba1a1a] transition-all uppercase tracking-widest">
-                  <span class="material-symbols-outlined text-[18px]">logout</span> Keluar Akun
+                  <span class="material-symbols-outlined text-[18px]">logout</span> Logout
                 </button>
               </template>
 

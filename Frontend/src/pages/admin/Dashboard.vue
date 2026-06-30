@@ -136,7 +136,7 @@ const fetchDashboardData = async () => {
         renderChart(chart.labels, chart.data);
       }
     } else {
-      throw new Error(result.message || 'Gagal memuat data dashboard');
+      throw new Error(result.message || 'Failed to load dashboard data');
     }
   } catch (err) {
     console.error(err);
