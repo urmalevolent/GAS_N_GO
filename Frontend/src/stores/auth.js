@@ -176,6 +176,40 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Lupa Password (Kirim Email Reset)
+  async function resetPassword(email) {
+    loading.value = true
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      console.error('Gagal mengirim link reset password:', error.message)
+      return { data: null, error }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Update Password Baru (Setelah klik link email)
+  async function updatePassword(newPassword) {
+    loading.value = true
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      console.error('Gagal mengupdate password:', error.message)
+      return { data: null, error }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     user,
     session,
@@ -192,6 +226,8 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUserProfile,
     signIn,
     signUp,
-    signOut
+    signOut,
+    resetPassword,
+    updatePassword
   }
 })

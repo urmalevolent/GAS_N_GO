@@ -1,13 +1,13 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/lib/supabase'
 import Swal from 'sweetalert2'
 
 // Gambar Asset
 import logocars from '@/assets/images/racingcar.png'
-import EnvelopeIcon from '@/assets/images/icons/envelope.png'
-import defaultAvatar from '@/assets/images/user_profile/default-avatar.png' // Pastikan gambar ini ada
+import defaultAvatar from '@/assets/images/user_profile/default-avatar.png'
 
 const route = useRoute()
 
@@ -42,9 +42,38 @@ const toast = ref({
 const navLinks = [
   { name: 'Cars', path: '/cars' },
   { name: 'Category', path: '/category' },
-  { name: 'Service', path: '/services' },
+  { name: 'Services', path: '/services' },
   { name: 'About', path: '/about' },
 ]
+
+// State Order Notification
+const hasActiveOrders = ref(false)
+
+const checkActiveOrders = async () => {
+  if (!authStore.user) {
+    hasActiveOrders.value = false
+    return
+  }
+  try {
+    const { count, error } = await supabase
+      .from('rentals')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', authStore.user.id)
+      .in('status', ['pending_dp', 'dp_paid', 'active'])
+
+    if (!error && count > 0) {
+      hasActiveOrders.value = true
+    } else {
+      hasActiveOrders.value = false
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+watch(() => authStore.user, () => {
+  checkActiveOrders()
+}, { immediate: true })
 
 // --- FUNGSI ---
 const handleScroll = () => {
@@ -108,6 +137,7 @@ const triggerToast = (msg, type = 'success') => {
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   window.addEventListener('click', closeOnClickOutside)
+  checkActiveOrders()
 })
 
 onUnmounted(() => {
@@ -156,21 +186,22 @@ onUnmounted(() => {
             </RouterLink>
           </div>
 
-          <!-- Kanan: Icon Amplop & PROFIL USER -->
+          <!-- Kanan: Icon Pesanan & PROFIL USER -->
           <div class="flex items-center space-x-4 md:space-x-6">
 
-            <!-- Icon User Orders (Envelope) -->
+            <!-- Icon User Orders -->
             <RouterLink
+              v-if="isAuthenticated"
               to="/user/orders"
-              class="relative p-2 rounded-full text-[#424656] hover:text-[#0050cb] hover:bg-[#f2f4f6] transition-all duration-300 focus:outline-none group"
+              class="relative p-2 rounded-full text-[#424656] hover:text-[#0050cb] hover:bg-[#f2f4f6] transition-all duration-300 focus:outline-none group flex items-center justify-center"
               title="My Orders"
             >
-              <img :src="EnvelopeIcon" class="h-8 w-8 opacity-80 group-hover:opacity-100 transition-opacity" />
+              <span class="material-symbols-outlined text-[28px] opacity-80 group-hover:opacity-100 transition-opacity">receipt_long</span>
               <!-- Titik Notifikasi Merah/Biru -->
-              <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#ba1a1a] rounded-full border-2 border-white"></span>
+              <span v-if="hasActiveOrders" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#ba1a1a] rounded-full border-2 border-white"></span>
             </RouterLink>
 
-            <!-- ================= BAGIAN PROFIL USER (Menggantikan Reserve Now) ================= -->
+            <!-- ================= BAGIAN PROFIL USER ================= -->
             <div class="hidden sm:block relative user-dropdown-container">
 
               <!-- Jika Sudah Login (Tampil Profil) -->
@@ -279,8 +310,12 @@ onUnmounted(() => {
                   <RouterLink @click="closeMobileMenu" to="/user/profile" class="flex flex-col items-center justify-center gap-1.5 px-4 py-3.5 bg-gray-50 hover:bg-blue-50 rounded-xl text-xs font-bold text-[#424656] hover:text-[#0050cb] transition-all">
                     <span class="material-symbols-outlined text-[20px]">person</span> Profile
                   </RouterLink>
-                  <RouterLink @click="closeMobileMenu" to="/user/orders" class="flex flex-col items-center justify-center gap-1.5 px-4 py-3.5 bg-gray-50 hover:bg-blue-50 rounded-xl text-xs font-bold text-[#424656] hover:text-[#0050cb] transition-all">
-                    <span class="material-symbols-outlined text-[20px]">local_shipping</span> Orders
+                  <RouterLink @click="closeMobileMenu" to="/user/orders" class="relative flex flex-col items-center justify-center gap-1.5 px-4 py-3.5 bg-gray-50 hover:bg-blue-50 rounded-xl text-xs font-bold text-[#424656] hover:text-[#0050cb] transition-all">
+                    <div class="relative">
+                      <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                      <span v-if="hasActiveOrders" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#ba1a1a] rounded-full border-2 border-white"></span>
+                    </div>
+                    Orders
                   </RouterLink>
                 </div>
 

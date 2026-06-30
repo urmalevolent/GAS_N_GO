@@ -67,9 +67,9 @@ export const getRetryPaymentToken = async (req, res, next) => {
       },
       item_details: [{
         id: rental.cars?.id || rental.car_id,
-        price: payment.dp_amount,
+        price: Math.round(payment.dp_amount),
         quantity: 1,
-        name: `${rental.cars?.brand || ''} ${rental.cars?.name || ''} (${totalDays} Hari) [Retry]`
+        name: `${rental.cars?.brand || ''} ${rental.cars?.name || ''} (${totalDays} Hari)`.substring(0, 50)
       }],
       customer_details: {
         first_name: req.user.user_metadata?.full_name || req.user.email.split('@')[0],
@@ -171,7 +171,7 @@ export const confirmPayment = async (req, res, next) => {
     if (transaction_status === 'capture' || transaction_status === 'settlement') {
       if (fraud_status === 'challenge') {
         newPaymentStatus = 'challenge';
-      } else if (fraud_status === 'accept') {
+      } else {
         newPaymentStatus = 'settlement';
         newRentalStatus = 'dp_paid'; // Pembayaran berhasil (DP / Lunas)
       }
@@ -246,7 +246,7 @@ export const handleNotification = async (req, res, next) => {
     if (transaction_status === 'capture' || transaction_status === 'settlement') {
       if (fraud_status === 'challenge') {
         newPaymentStatus = 'challenge';
-      } else if (fraud_status === 'accept') {
+      } else {
         newPaymentStatus = 'settlement';
         newRentalStatus = 'dp_paid';
       }

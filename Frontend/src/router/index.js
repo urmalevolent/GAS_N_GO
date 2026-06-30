@@ -18,6 +18,7 @@ import BookingPage from '@/pages/customer/Booking.vue'
 import ProfilePage from '@/pages/customer/profile/Profile.vue'
 import ReviewPage from '@/pages/customer/profile/Review.vue'
 import MyOrdersPage from '@/pages/customer/profile/MyOrders.vue'
+import ResetPassword from '@/pages/customer/ResetPassword.vue'
 
 // ================= PAGES ADMIN =================
 import Dashboard from '@/pages/admin/Dashboard.vue'
@@ -51,6 +52,7 @@ const router = createRouter({
         { path: 'car/:id', name: 'car-detail', component: CarDetailPage },
         { path: 'booking', name: 'booking', component: BookingPage },
         { path: 'services', name: 'services', component: () => import('@/pages/customer/Services.vue') },
+        { path: 'reset-password', name: 'reset-password', component: ResetPassword },
 
         // 1.B RUTE USER PROFILE
         {
