@@ -184,6 +184,22 @@ const verifyUser = async (status) => {
               </div>
             </div>
 
+            <div v-else-if="user.account_status === 'unverified'" class="bg-yellow-50 border border-yellow-200 p-3 rounded-2xl flex items-center gap-3 text-yellow-800">
+              <span class="material-symbols-outlined text-xl">warning</span>
+              <div>
+                <h4 class="font-bold text-sm">Unverified Account</h4>
+                <p class="text-xs">This user has not uploaded their KTP yet.</p>
+              </div>
+            </div>
+            
+            <div v-else-if="user.account_status === 'rejected'" class="bg-red-50 border border-red-200 p-3 rounded-2xl flex items-center gap-3 text-red-800">
+              <span class="material-symbols-outlined text-xl">gpp_bad</span>
+              <div>
+                <h4 class="font-bold text-sm">Verification Rejected</h4>
+                <p class="text-xs">This user's KTP submission was rejected.</p>
+              </div>
+            </div>
+
             <!-- KTP Details (If any) -->
             <div v-if="user.nik" class="bg-white rounded-2xl border border-[#c2c6d8]/40 p-6">
               <h3 class="text-lg font-bold text-[#191c1e] mb-4 border-b border-[#f2f4f6] pb-2">KTP Information</h3>

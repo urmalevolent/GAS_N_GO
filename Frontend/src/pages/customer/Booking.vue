@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { supabase } from '@/lib/supabase';
+import Swal from 'sweetalert2';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -77,15 +78,29 @@ const close = () => {
 const processPayment = async () => {
   if (totalDays.value <= 0) return;
   if (!bookingForm.value.address.trim()) {
-    alert('Please enter the vehicle delivery/pickup address first.');
+    Swal.fire({ icon: 'warning', title: 'Address Required', text: 'Please enter the vehicle delivery/pickup address first.' });
     return;
   }
 
   // 1. Pastikan pengguna sudah terautentikasi
   if (!authStore.isAuthenticated) {
-    alert('Please log in first to continue with your booking.');
-    close();
-    authStore.openAuthModal();
+    Swal.fire({ icon: 'info', title: 'Please Log In', text: 'Please log in first to continue with your booking.', confirmButtonColor: '#0050cb' }).then(() => { close(); authStore.openAuthModal(); });
+    return;
+  }
+
+  // 2. Pastikan akun sudah terverifikasi
+  if (authStore.user?.account_status === 'unverified') {
+    Swal.fire({ icon: 'warning', title: 'Verification Required', text: 'You must verify your ID card (KTP) before you can book a rental. Please go to your Profile page.', confirmButtonColor: '#0050cb' }).then(() => { close(); router.push('/profile'); });
+    return;
+  }
+
+  if (authStore.user?.account_status === 'rejected') {
+    Swal.fire({ icon: 'error', title: 'Verification Rejected', text: 'Your previous KTP verification was rejected. Please re-upload your KTP in your profile.', confirmButtonColor: '#0050cb' }).then(() => { close(); router.push('/profile'); });
+    return;
+  }
+
+  if (authStore.user?.account_status === 'pending') {
+    Swal.fire({ icon: 'info', title: 'Verification Pending', text: 'Your KTP verification is still pending. Please wait for admin approval.', confirmButtonColor: '#0050cb' }).then(() => { close(); });
     return;
   }
 
@@ -146,7 +161,7 @@ const processPayment = async () => {
 
   } catch (error) {
     console.error('Booking Error:', error);
-    alert(error.message || 'A system error occurred while contacting the backend.');
+    Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'A system error occurred while contacting the backend.' });
     isProcessing.value = false;
   }
 };

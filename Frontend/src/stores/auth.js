@@ -94,7 +94,7 @@ export const useAuthStore = defineStore('auth', () => {
               status_perkawinan: userMetadata?.status_perkawinan || null,
               pekerjaan: userMetadata?.pekerjaan || null,
               kewarganegaraan: userMetadata?.kewarganegaraan || null,
-              account_status: 'pending'
+              account_status: 'unverified'
             })
             .select()
             .single()
@@ -133,6 +133,25 @@ export const useAuthStore = defineStore('auth', () => {
       return { data, error: null }
     } catch (error) {
       console.error('Gagal login:', error.message)
+      return { data: null, error }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function signInWithGoogle() {
+    loading.value = true
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      })
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      console.error('Gagal login Google:', error.message)
       return { data: null, error }
     } finally {
       loading.value = false
@@ -193,6 +212,65 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('Gagal mendaftar:', error.message)
       return { data: null, error }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Verifikasi KTP untuk pengguna yang sudah ada
+  async function submitKtpVerification(ktpData, ktpFile) {
+    loading.value = true
+    try {
+      if (!user.value) throw new Error("User not logged in");
+
+      let ktpPhotoUrl = null;
+
+      // 1. Upload KTP file
+      if (ktpFile) {
+        const fileExt = ktpFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('ktp_documents')
+          .upload(filePath, ktpFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('ktp_documents')
+          .getPublicUrl(filePath);
+
+        ktpPhotoUrl = publicUrlData.publicUrl;
+      }
+
+      // 2. Update profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          ktp_photo_url: ktpPhotoUrl,
+          account_status: 'pending',
+          ...ktpData
+        })
+        .eq('id', user.value.id);
+
+      if (profileError) throw profileError;
+
+      // 3. Update Auth Metadata
+      await supabase.auth.updateUser({
+        data: {
+          ktp_photo_url: ktpPhotoUrl,
+          ...ktpData
+        }
+      });
+
+      // 4. Refresh local user state
+      await fetchUserProfile(user.value.id, user.value.email);
+
+      return { error: null }
+    } catch (error) {
+      console.error('Failed to submit KTP verification:', error.message)
+      return { error }
     } finally {
       loading.value = false
     }
@@ -264,7 +342,9 @@ export const useAuthStore = defineStore('auth', () => {
     initialize,
     fetchUserProfile,
     signIn,
+    signInWithGoogle,
     signUp,
+    submitKtpVerification,
     signOut,
     resetPassword,
     updatePassword

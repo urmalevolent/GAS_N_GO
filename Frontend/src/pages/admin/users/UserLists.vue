@@ -61,6 +61,44 @@ const filteredUsers = computed(() => {
   });
 });
 
+// Verifikasi Paksa (Force Verify) Khusus Super Admin
+const forceVerifyUser = (user) => {
+  if (!isSuperAdmin.value) return;
+
+  Swal.fire({
+    title: 'Verifikasi User?',
+    text: `Apakah Anda yakin ingin memverifikasi KTP pengguna ${user.full_name || user.email} secara langsung?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#16a34a',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, Verifikasi!',
+    cancelButtonText: 'Batal'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const token = authStore.session?.access_token;
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${user.id}/verify`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ account_status: 'verified' })
+        });
+        
+        const resData = await response.json();
+        if (!response.ok) throw new Error(resData.message || 'Gagal memverifikasi user');
+        
+        user.account_status = 'verified';
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'User berhasil diverifikasi.', timer: 1500, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+      }
+    }
+  });
+};
+
 // Ubah Role (Admin <=> Customer) Khusus Super Admin
 const toggleUserRole = (user) => {
   if (!isSuperAdmin.value) {
@@ -253,6 +291,9 @@ const toggleUserStatus = (user) => {
                 <span v-else-if="user.account_status === 'rejected'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-red-100 text-red-700 border-red-200">
                   REJECTED
                 </span>
+                <span v-else-if="user.account_status === 'unverified'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-yellow-100 text-yellow-700 border-yellow-200">
+                  UNVERIFIED
+                </span>
                 <span v-else class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-gray-100 text-gray-700 border-gray-200">
                   -
                 </span>
@@ -271,6 +312,11 @@ const toggleUserStatus = (user) => {
                     <!-- Tombol Ubah Role (Kuning) hanya untuk Super Admin -->
                     <button v-if="isSuperAdmin" @click="toggleUserRole(user)" class="w-8 h-8 rounded bg-[#eab308] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Ubah Peran">
                       <Edit class="size-6 text-white" />
+                    </button>
+
+                    <!-- Tombol Manual Verify (Hijau) hanya untuk Super Admin jika user berstatus pending -->
+                    <button v-if="isSuperAdmin && user.account_status === 'pending'" @click="forceVerifyUser(user)" class="w-8 h-8 rounded bg-[#16a34a] text-white flex items-center justify-center hover:opacity-80 transition-opacity" title="Verifikasi Akun">
+                      <span class="material-symbols-outlined text-[18px]">verified_user</span>
                     </button>
 
                     <!-- Tombol Nonaktifkan (Merah) -->

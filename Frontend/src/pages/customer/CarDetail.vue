@@ -2,8 +2,13 @@
 // 1. IMPORT KOMPONEN BOOKING (Dari folder pages)
 import Booking from '@/pages/customer/Booking.vue';
 import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 
 const isBookingModalOpen = ref(false);
+const authStore = useAuthStore();
+const router = useRouter();
 
 // 2. Menerima props dari komponen induk (Cars.vue)
 const props = defineProps({
@@ -24,6 +29,60 @@ const emit = defineEmits(['close', 'book'])
 // 4. Fungsi Aksi
 const close = () => {
   emit('close')
+}
+
+const handleReservation = () => {
+  if (!authStore.isAuthenticated) {
+    authStore.openAuthModal()
+    return
+  }
+  
+  if (authStore.user?.account_status === 'unverified') {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Verification Required',
+      text: 'You must verify your ID card (KTP) before you can book a rental.',
+      confirmButtonText: 'Go to Profile',
+      confirmButtonColor: '#0050cb',
+      showCancelButton: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        close()
+        router.push('/profile')
+      }
+    })
+    return
+  }
+
+  if (authStore.user?.account_status === 'rejected') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Verification Rejected',
+      text: 'Your previous KTP verification was rejected. Please re-upload your KTP in your profile.',
+      confirmButtonText: 'Go to Profile',
+      confirmButtonColor: '#ba1a1a',
+      showCancelButton: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        close()
+        router.push('/profile')
+      }
+    })
+    return
+  }
+
+  if (authStore.user?.account_status === 'pending') {
+    Swal.fire({
+      icon: 'info',
+      title: 'Verification Pending',
+      text: 'Your KTP verification is currently being reviewed by our admin. Please try again later.',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#0050cb'
+    })
+    return
+  }
+
+  isBookingModalOpen.value = true
 }
 
 // 5. Helper: Format Dolar
@@ -173,7 +232,7 @@ const formatPrice = (price) => {
 
             <!-- TOMBOL MENGAKTIFKAN MODAL PRE-PAYMENT (Booking) -->
             <button
-              @click="isBookingModalOpen = true"
+              @click="handleReservation"
               class="w-full sm:w-auto signature-gradient text-white px-8 py-3.5 md:py-4 rounded-xl transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-[#0050cb]/30 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 group"
             >
               Continue Reservation
