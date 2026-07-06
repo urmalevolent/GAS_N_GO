@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireAuth, requireAdmin, requireSuperAdmin } from '../../middleware/auth.js';
-import { getAllUsers, updateRole, updateStatus, getUserDetails } from '../../controllers/admin/userController.js';
+import { getAllUsers, updateRole, updateStatus, getUserDetails, verifyAccount } from '../../controllers/admin/userController.js';
 
 const router = express.Router();
 
@@ -15,6 +15,9 @@ router.get('/:id/details', getUserDetails);
 
 // Mengubah status aktif/nonaktif
 router.patch('/:id/status', updateStatus);
+
+// Memverifikasi KTP Akun
+router.patch('/:id/verify', verifyAccount);
 
 // Mengubah role khusus Super Admin
 router.patch('/:id/role', requireSuperAdmin, updateRole);

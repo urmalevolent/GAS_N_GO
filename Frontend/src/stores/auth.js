@@ -81,7 +81,20 @@ export const useAuthStore = defineStore('auth', () => {
               id: userId,
               full_name: userMetadata?.full_name || email.split('@')[0],
               phone_number: userMetadata?.phone_number || '',
-              role: userMetadata?.role || 'customer'
+              role: userMetadata?.role || 'customer',
+              ktp_photo_url: userMetadata?.ktp_photo_url || null,
+              nik: userMetadata?.nik || null,
+              tempat_lahir: userMetadata?.tempat_lahir || null,
+              tanggal_lahir: userMetadata?.tanggal_lahir || null,
+              jenis_kelamin: userMetadata?.jenis_kelamin || null,
+              alamat: userMetadata?.alamat || null,
+              rt_rw: userMetadata?.rt_rw || null,
+              kecamatan: userMetadata?.kecamatan || null,
+              agama: userMetadata?.agama || null,
+              status_perkawinan: userMetadata?.status_perkawinan || null,
+              pekerjaan: userMetadata?.pekerjaan || null,
+              kewarganegaraan: userMetadata?.kewarganegaraan || null,
+              account_status: 'pending'
             })
             .select()
             .single()
@@ -127,9 +140,31 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Daftar (Sign Up)
-  async function signUp(email, password, fullName, phone) {
+  async function signUp(email, password, fullName, phone, ktpData = {}, ktpFile = null) {
     loading.value = true
     try {
+      let ktpPhotoUrl = null;
+
+      // 1. Upload file KTP ke Supabase Storage (bucket: ktp_documents)
+      if (ktpFile) {
+        const fileExt = ktpFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('ktp_documents')
+          .upload(filePath, ktpFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('ktp_documents')
+          .getPublicUrl(filePath);
+
+        ktpPhotoUrl = publicUrlData.publicUrl;
+      }
+
+      // 2. Sign up di Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -137,7 +172,9 @@ export const useAuthStore = defineStore('auth', () => {
           data: {
             full_name: fullName,
             phone_number: phone,
-            role: 'customer'
+            role: 'customer',
+            ktp_photo_url: ktpPhotoUrl,
+            ...ktpData
           }
         }
       })
@@ -147,7 +184,9 @@ export const useAuthStore = defineStore('auth', () => {
         await fetchUserProfile(data.user.id, data.user.email, {
           full_name: fullName,
           phone_number: phone,
-          role: 'customer'
+          role: 'customer',
+          ktp_photo_url: ktpPhotoUrl,
+          ...ktpData
         })
       }
       return { data, error: null }

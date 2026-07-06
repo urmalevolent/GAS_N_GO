@@ -146,3 +146,25 @@ export const getUserDetails = async (req, res, next) => {
     next(error);
   }
 };
+
+export const verifyAccount = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { account_status } = req.body; // e.g. 'verified', 'rejected'
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ success: false, message: 'Fitur membutuhkan Service Role Key.' });
+    }
+
+    if (!['pending', 'verified', 'rejected'].includes(account_status)) {
+      return res.status(400).json({ success: false, message: 'Status verifikasi tidak valid.' });
+    }
+
+    const { error: dbError } = await supabaseAdmin.from('profiles').update({ account_status }).eq('id', id);
+    if (dbError) throw dbError;
+
+    res.status(200).json({ success: true, message: `Status verifikasi akun berhasil diubah menjadi ${account_status}.` });
+  } catch (error) {
+    next(error);
+  }
+};

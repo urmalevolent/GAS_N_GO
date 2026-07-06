@@ -52,6 +52,48 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', options);
 };
 
+import Swal from 'sweetalert2';
+
+const verifyUser = async (status) => {
+  if (!props.user?.id) return;
+  
+  const actionText = status === 'verified' ? 'Verify' : 'Reject';
+  const color = status === 'verified' ? '#16a34a' : '#d33';
+  
+  const result = await Swal.fire({
+    title: `${actionText} User?`,
+    text: `Are you sure you want to ${actionText.toLowerCase()} this user's KTP?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: color,
+    cancelButtonColor: '#0050cb',
+    confirmButtonText: `Yes, ${actionText}!`,
+    cancelButtonText: 'Cancel'
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const token = authStore.session?.access_token;
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${props.user.id}/verify`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ account_status: status })
+      });
+      
+      const resData = await response.json();
+      if (!response.ok) throw new Error(resData.message || 'Failed to verify user');
+      
+      props.user.account_status = status;
+      Swal.fire({ icon: 'success', title: 'Success', text: resData.message, timer: 1500, showConfirmButton: false });
+      emit('updated');
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Failed', text: err.message });
+    }
+  }
+};
 </script>
 
 <template>
@@ -120,9 +162,86 @@ const formatDate = (dateString) => {
               </div>
             </div>
 
+            <!-- Verification Banner -->
+            <div v-if="user.account_status === 'pending'" class="bg-orange-50 border border-orange-200 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-3 text-orange-800">
+                <span class="material-symbols-outlined text-2xl">pending_actions</span>
+                <div>
+                  <h4 class="font-bold">Pending Verification</h4>
+                  <p class="text-xs">This user uploaded their KTP and is waiting for approval.</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button @click="verifyUser('rejected')" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-xl text-xs font-bold transition-colors">Reject</button>
+                <button @click="verifyUser('verified')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors">Verify User</button>
+              </div>
+            </div>
+
+            <div v-else-if="user.account_status === 'verified'" class="bg-green-50 border border-green-200 p-3 rounded-2xl flex items-center gap-3 text-green-800">
+              <span class="material-symbols-outlined text-xl">verified</span>
+              <div>
+                <h4 class="font-bold text-sm">Verified Account</h4>
+              </div>
+            </div>
+
+            <!-- KTP Details (If any) -->
+            <div v-if="user.nik" class="bg-white rounded-2xl border border-[#c2c6d8]/40 p-6">
+              <h3 class="text-lg font-bold text-[#191c1e] mb-4 border-b border-[#f2f4f6] pb-2">KTP Information</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- KTP Photo -->
+                <div class="col-span-1">
+                  <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">KTP Photo</label>
+                  <div class="bg-slate-100 rounded-xl overflow-hidden aspect-[1.6/1] border border-slate-200 flex items-center justify-center">
+                    <img v-if="user.ktp_photo_url" :src="user.ktp_photo_url" alt="KTP" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform" @click="window.open(user.ktp_photo_url, '_blank')" />
+                    <span v-else class="material-symbols-outlined text-4xl text-slate-400">no_photography</span>
+                  </div>
+                </div>
+                
+                <!-- Data -->
+                <div class="col-span-1 md:col-span-2 grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">NIK</label>
+                    <p class="text-[#191c1e] font-extrabold text-sm">{{ user.nik || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Name (KTP)</label>
+                    <p class="text-[#191c1e] font-extrabold text-sm">{{ user.full_name || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Tempat, Tgl Lahir</label>
+                    <p class="text-[#191c1e] font-bold text-sm">{{ user.tempat_lahir || '-' }}, {{ formatDate(user.tanggal_lahir) }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Jenis Kelamin</label>
+                    <p class="text-[#191c1e] font-bold text-sm">{{ user.jenis_kelamin || '-' }}</p>
+                  </div>
+                  <div class="col-span-2">
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Alamat Lengkap</label>
+                    <p class="text-[#191c1e] font-bold text-sm">{{ user.alamat || '-' }} RT/RW {{ user.rt_rw || '-' }} Kec. {{ user.kecamatan || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Agama</label>
+                    <p class="text-[#191c1e] font-bold text-sm">{{ user.agama || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Status Perkawinan</label>
+                    <p class="text-[#191c1e] font-bold text-sm">{{ user.status_perkawinan || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Pekerjaan</label>
+                    <p class="text-[#191c1e] font-bold text-sm">{{ user.pekerjaan || '-' }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Kewarganegaraan</label>
+                    <p class="text-[#191c1e] font-bold text-sm">{{ user.kewarganegaraan || '-' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Profile Details -->
             <div class="bg-white rounded-2xl border border-[#c2c6d8]/40 p-6">
-              <h3 class="text-lg font-bold text-[#191c1e] mb-4 border-b border-[#f2f4f6] pb-2">Profile Information</h3>
+              <h3 class="text-lg font-bold text-[#191c1e] mb-4 border-b border-[#f2f4f6] pb-2">Contact Information</h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 <div>
                   <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1.5">Full Name</label>

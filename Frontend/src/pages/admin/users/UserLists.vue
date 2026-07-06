@@ -186,7 +186,8 @@ const toggleUserStatus = (user) => {
               <th class="px-6 py-4">EMAIL</th>
               <th class="px-6 py-4">PHONE NO.</th>
               <th class="px-6 py-4">ROLE</th>
-              <th class="px-6 py-4 text-center">STATUS</th>
+              <th class="px-6 py-4 text-center">ACCOUNT STATUS</th>
+              <th class="px-6 py-4 text-center">VERIF STATUS</th>
               <th class="px-6 py-4 text-center">ACTIONS</th>
             </tr>
           </thead>
@@ -238,6 +239,22 @@ const toggleUserStatus = (user) => {
                 <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
                       :class="user.is_active !== false ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'">
                   {{ user.is_active !== false ? 'ACTIVE' : 'INACTIVE' }}
+                </span>
+              </td>
+
+              <!-- Verif Status -->
+              <td class="px-6 py-5 text-center">
+                <span v-if="user.account_status === 'pending'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-orange-100 text-orange-700 border-orange-200">
+                  PENDING
+                </span>
+                <span v-else-if="user.account_status === 'verified'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-blue-100 text-blue-700 border-blue-200">
+                  VERIFIED
+                </span>
+                <span v-else-if="user.account_status === 'rejected'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-red-100 text-red-700 border-red-200">
+                  REJECTED
+                </span>
+                <span v-else class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border bg-gray-100 text-gray-700 border-gray-200">
+                  -
                 </span>
               </td>
 
@@ -301,6 +318,7 @@ const toggleUserStatus = (user) => {
       :show="isDetailsModalOpen" 
       :user="selectedUser" 
       @close="isDetailsModalOpen = false" 
+      @updated="fetchUsers"
     />
   </div>
 </template>
