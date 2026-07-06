@@ -414,7 +414,7 @@ const handleForgotPassword = async () => {
               <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Phone Number *</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-[18px]">phone</span>
-                <input v-model="registerForm.phone" type="tel" placeholder="08123456789" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
+                <input v-model="registerForm.phone" type="tel" placeholder="081234567890" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
               </div>
             </div>
 
