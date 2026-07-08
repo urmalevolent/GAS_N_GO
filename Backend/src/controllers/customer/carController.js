@@ -6,7 +6,7 @@ import { supabase } from '../../config/supabase.js';
 export const getCars = async (req, res, next) => {
   try {
     const { category, brand, max_price } = req.query;
-    let query = supabase.from('cars').select('*');
+    let query = supabase.from('cars').select('*, reviews(*)');
 
     // Pelanggan hanya bisa melihat mobil yang aktif / available
     query = query.eq('status', 'available');
@@ -24,9 +24,26 @@ export const getCars = async (req, res, next) => {
     const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;
 
+    // Calculate average rating for each car
+    const carsWithRating = data.map(car => {
+      let avg_rating = 0;
+      let review_count = 0;
+      if (car.reviews && car.reviews.length > 0) {
+        review_count = car.reviews.length;
+        const total = car.reviews.reduce((sum, r) => sum + r.rating, 0);
+        avg_rating = Number((total / review_count).toFixed(1));
+      }
+      const { reviews, ...carData } = car; // Hide raw reviews array from listing
+      return {
+        ...carData,
+        avg_rating,
+        review_count
+      };
+    });
+
     res.status(200).json({
       success: true,
-      data
+      data: carsWithRating
     });
   } catch (error) {
     next(error);
@@ -41,7 +58,7 @@ export const getCarById = async (req, res, next) => {
     const { id } = req.params;
     const { data, error } = await supabase
       .from('cars')
-      .select('*')
+      .select('*, reviews(*)')
       .eq('id', id)
       .single();
 
@@ -52,9 +69,22 @@ export const getCarById = async (req, res, next) => {
       });
     }
 
+    let avg_rating = 0;
+    let review_count = 0;
+    if (data.reviews && data.reviews.length > 0) {
+      review_count = data.reviews.length;
+      const total = data.reviews.reduce((sum, r) => sum + r.rating, 0);
+      avg_rating = Number((total / review_count).toFixed(1));
+    }
+    const { reviews, ...carData } = data;
+
     res.status(200).json({
       success: true,
-      data
+      data: {
+        ...carData,
+        avg_rating,
+        review_count
+      }
     });
   } catch (error) {
     next(error);

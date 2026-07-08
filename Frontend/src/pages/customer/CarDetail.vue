@@ -1,12 +1,19 @@
 <script setup>
 // 1. IMPORT KOMPONEN BOOKING (Dari folder pages)
 import Booking from '@/pages/customer/Booking.vue';
-import { ref } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 
 const isBookingModalOpen = ref(false);
+const showReviewForm = ref(false);
+const ratingValue = ref(0);
+const reviewComment = ref('');
+const isSubmittingRating = ref(false);
+const reviews = ref([]);
+const isLoadingReviews = ref(false);
+
 const authStore = useAuthStore();
 const router = useRouter();
 
@@ -84,6 +91,93 @@ const handleReservation = () => {
 
   isBookingModalOpen.value = true
 }
+
+const openRatingModal = () => {
+  if (!authStore.isAuthenticated) {
+    authStore.openAuthModal();
+    return;
+  }
+  showReviewForm.value = !showReviewForm.value;
+};
+
+const submitRating = async () => {
+  if (ratingValue.value === 0) {
+    alert('Silakan berikan rating (bintang) terlebih dahulu.');
+    return;
+  }
+  if (!reviewComment.value.trim()) {
+    alert('Ulasan teks (review) wajib diisi.');
+    return;
+  }
+
+  isSubmittingRating.value = true;
+  
+  try {
+    const token = authStore.session?.access_token;
+    const response = await fetch(`http://localhost:5000/api/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        car_id: props.carDetail?.id,
+        rating: ratingValue.value,
+        comment: reviewComment.value
+      })
+    });
+
+    const resData = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(resData.message || 'Failed to submit review');
+    }
+
+    showReviewForm.value = false;
+    ratingValue.value = 0;
+    reviewComment.value = '';
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: 'Thank you for reviewing this car.',
+      confirmButtonColor: '#0050cb'
+    });
+    fetchReviews(); // Refresh reviews
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: error.message || 'An error occurred.',
+      confirmButtonColor: '#0050cb'
+    });
+  } finally {
+    isSubmittingRating.value = false;
+  }
+};
+
+const fetchReviews = async () => {
+  if (!props.carDetail?.id) return;
+  isLoadingReviews.value = true;
+  try {
+    const res = await fetch(`http://localhost:5000/api/reviews/car/${props.carDetail.id}`);
+    const data = await res.json();
+    if (data.success) {
+      reviews.value = data.data || [];
+    }
+  } catch (err) {
+    console.error('Error fetching reviews:', err);
+  } finally {
+    isLoadingReviews.value = false;
+  }
+};
+
+watch(() => props.show, (newVal) => {
+  if (newVal && props.carDetail?.id) {
+    fetchReviews();
+  }
+});
 
 // 5. Helper: Format Dolar
 const formatPrice = (price) => {
@@ -210,6 +304,102 @@ const formatPrice = (price) => {
               </div>
             </div>
 
+            <!-- ================= USER REVIEWS SECTION ================= -->
+            <div class="mt-12 pt-8 border-t border-[#c2c6d8]/40">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-extrabold text-[#191c1e] flex items-center gap-2">
+                  <span class="material-symbols-outlined text-yellow-500" style="font-variation-settings: 'FILL' 1;">star</span>
+                  Customer Reviews
+                </h3>
+                <button 
+                  @click="openRatingModal"
+                  :class="showReviewForm ? 'bg-[#ba1a1a] hover:bg-red-700' : 'bg-[#0050cb] hover:bg-[#0066ff]'"
+                  class="text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-md active:scale-95"
+                >
+                  {{ showReviewForm ? 'Cancel Review' : 'Rate this Car' }}
+                </button>
+              </div>
+
+              <!-- Form Review Inline -->
+              <div v-if="showReviewForm" class="bg-[#f7f9fb] p-6 rounded-2xl border border-[#0050cb]/30 mb-8 shadow-sm">
+                <h4 class="text-sm font-extrabold text-[#191c1e] mb-4 uppercase tracking-widest">Write a Review</h4>
+                
+                <!-- Bintang -->
+                <div class="mb-5 flex flex-col gap-2">
+                  <label class="text-xs font-bold text-[#727687] uppercase tracking-widest">Select Rating <span class="text-red-500">*</span></label>
+                  <div class="flex gap-2 text-3xl text-yellow-400">
+                    <button 
+                      v-for="i in 5" 
+                      :key="i"
+                      @click="ratingValue = i"
+                      class="focus:outline-none transform hover:scale-110 transition-transform"
+                    >
+                      <span class="material-symbols-outlined text-[32px]" :style="i <= ratingValue ? 'font-variation-settings: \'FILL\' 1' : 'font-variation-settings: \'FILL\' 0'">star</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Textarea -->
+                <div class="mb-5">
+                  <label class="block text-xs font-bold text-[#727687] uppercase tracking-widest mb-2">Leave a Comment <span class="text-red-500">*</span></label>
+                  <textarea 
+                    v-model="reviewComment"
+                    rows="3"
+                    placeholder="Tell us what you loved or what could be better..."
+                    class="w-full bg-white border border-[#c2c6d8]/50 rounded-xl p-4 text-sm focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition-all resize-none text-[#191c1e]"
+                    :disabled="isSubmittingRating"
+                    required
+                  ></textarea>
+                </div>
+
+                <button 
+                  @click="submitRating"
+                  :disabled="isSubmittingRating || ratingValue === 0 || !reviewComment.trim()"
+                  class="bg-gradient-to-r from-[#0050cb] to-blue-600 hover:from-blue-600 hover:to-[#0050cb] text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md hover:shadow-lg hover:shadow-blue-600/20 active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                >
+                  <span v-if="isSubmittingRating" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
+                  <span v-else class="material-symbols-outlined text-[18px]">send</span>
+                  Submit Review
+                </button>
+              </div>
+
+              <!-- Loading State Reviews -->
+              <div v-if="isLoadingReviews" class="text-center py-8">
+                <span class="material-symbols-outlined animate-spin text-[#0050cb] text-3xl">sync</span>
+              </div>
+              
+              <!-- Empty Reviews -->
+              <div v-else-if="reviews.length === 0" class="text-center py-10 bg-[#f7f9fb] rounded-2xl border border-dashed border-[#c2c6d8]/50">
+                <span class="material-symbols-outlined text-[#c2c6d8] text-4xl mb-2">forum</span>
+                <p class="text-[#727687] text-sm font-bold">No reviews yet.</p>
+                <p class="text-[#727687] text-xs mt-1">Be the first to review this car after renting!</p>
+              </div>
+
+              <!-- Review List -->
+              <div v-else class="space-y-4">
+                <div v-for="review in reviews" :key="review.id" class="bg-[#f7f9fb] p-5 rounded-2xl border border-[#c2c6d8]/30">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
+                        <img v-if="review.profiles?.avatar_url" :src="review.profiles.avatar_url" class="w-full h-full object-cover" />
+                        <span v-else class="material-symbols-outlined text-slate-400 w-full h-full flex items-center justify-center">person</span>
+                      </div>
+                      <div>
+                        <p class="text-sm font-extrabold text-[#191c1e]">{{ review.profiles?.full_name || 'Verified User' }}</p>
+                        <p class="text-[10px] text-[#727687] uppercase tracking-widest font-bold">
+                          {{ new Date(review.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex gap-0.5 text-yellow-400">
+                      <span v-for="i in 5" :key="i" class="material-symbols-outlined text-[16px]" :style="i <= review.rating ? 'font-variation-settings: \'FILL\' 1' : 'font-variation-settings: \'FILL\' 0'">star</span>
+                    </div>
+                  </div>
+                  <p class="text-[#424656] text-sm mt-3 leading-relaxed">"{{ review.comment }}"</p>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- ================= BAGIAN BAWAH: HARGA & TOMBOL ================= -->
@@ -244,8 +434,7 @@ const formatPrice = (price) => {
       </div>
     </transition>
 
-    <!-- ================= PEMANGGILAN KOMPONEN MODAL BOOKING ================= -->
-    <!-- PERUBAHAN: Diletakkan di dalam <template> -->
+    <!-- KOMPONEN MODAL BOOKING -->
     <Booking
       :show="isBookingModalOpen"
       @close="isBookingModalOpen = false"

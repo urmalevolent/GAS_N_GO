@@ -1,48 +1,54 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import Swal from 'sweetalert2'
-import Show from '@/components/icons/Show.vue' // Komponen untuk menampilkan data detail transaksi (opsional)
-import Trash from '@/components/icons/TrashCan.vue' // Komponen untuk menghapus data transaksi (opsional)
+import Show from '@/components/icons/Show.vue' 
+import Trash from '@/components/icons/TrashCan.vue' 
 
-// --- MOCKUP STATE (Tanpa Backend) ---
+const authStore = useAuthStore()
 const searchQuery = ref("")
 const isLoading = ref(false)
+const reviews = ref([])
 
-// Dummy Data Ulasan Pelanggan GASNGO
-const reviews = ref([
-  {
-    id: 1,
-    username: 'Daniel Pratama',
-    avatar: null,
-    comment: 'Layanan yang luar biasa. Porsche Taycan yang saya sewa dalam kondisi sempurna dan sangat bersih. Layanan antar-jemputnya sangat tepat waktu.',
-    rating: 5,
-    createdAt: '2024-05-10'
-  },
-  {
-    id: 2,
-    username: 'Elena Rostova',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    comment: 'Mobilnya fantastis, tapi proses serah terima dokumen memakan waktu sedikit lebih lama dari perkiraan. Selebihnya sangat memuaskan.',
-    rating: 4,
-    createdAt: '2024-05-08'
-  },
-  {
-    id: 3,
-    username: 'Ahmad Wijaya',
-    avatar: null,
-    comment: 'Pengalaman mobilitas premium yang tak terlupakan. Sangat merekomendasikan GASNGO untuk tamu VIP.',
-    rating: 5,
-    createdAt: '2024-05-05'
-  },
-  {
-    id: 4,
-    username: 'Clara Michelle',
-    avatar: 'https://i.pravatar.cc/150?img=9',
-    comment: 'Harga sepadan dengan kualitas. Fitur pemesanan tanpa lag benar-benar terbukti.',
-    rating: 5,
-    createdAt: '2024-05-01'
+const fetchReviews = async () => {
+  isLoading.value = true
+  try {
+    const token = authStore.session?.access_token
+    const response = await fetch('http://localhost:5000/api/reviews', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    const resData = await response.json()
+    if (!response.ok || !resData.success) {
+      throw new Error(resData.message || 'Failed to fetch reviews data.')
+    }
+
+    reviews.value = (resData.data || []).map(r => ({
+      id: r.id,
+      username: r.rental?.profile?.full_name || 'Customer',
+      avatar: null,
+      comment: r.comment || '',
+      rating: r.rating || 0,
+      carName: r.rental?.car ? `${r.rental.car.brand} ${r.rental.car.name}` : 'Unknown Car',
+      createdAt: new Date(r.created_at).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    }))
+  } catch (err) {
+    console.error('Error fetching reviews:', err)
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load reviews data.' })
+  } finally {
+    isLoading.value = false
   }
-])
+}
+
+onMounted(() => {
+  fetchReviews()
+})
 
 // --- MOCKUP FUNCTIONS ---
 
@@ -79,6 +85,10 @@ const openDetail = (item) => {
           <p class="text-xl">${stars}</p>
         </div>
         <div>
+          <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1">Car Reviewed</p>
+          <p class="text-sm font-extrabold text-[#0050cb] mb-4">${item.carName}</p>
+        </div>
+        <div>
           <p class="text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-1">Comment</p>
           <p class="text-[#424656] text-sm bg-[#f2f4f6] p-4 rounded-xl border border-[#c2c6d8]/40 italic leading-relaxed">
             "${item.comment}"
@@ -99,23 +109,44 @@ const openDetail = (item) => {
 const deleteReview = (id) => {
   Swal.fire({
     title: 'Delete Review?',
-    text: "This review will be permanently removed from the system.",
+    text: "This review will be permanently removed from the database.",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#0050cb',
     confirmButtonText: 'Yes, Delete!',
     cancelButtonText: 'Cancel'
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      reviews.value = reviews.value.filter(r => r.id !== id)
-      Swal.fire({
-        icon: 'success',
-        title: 'Deleted!',
-        text: 'Review has been deleted.',
-        timer: 1500,
-        showConfirmButton: false
-      })
+      try {
+        const token = authStore.session?.access_token
+        const response = await fetch(`http://localhost:5000/api/reviews/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        const resData = await response.json()
+        if (!response.ok || !resData.success) {
+          throw new Error(resData.message || 'Failed to delete review.')
+        }
+
+        reviews.value = reviews.value.filter(r => r.id !== id)
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Review has been deleted.',
+          timer: 1500,
+          showConfirmButton: false
+        })
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Delete Failed',
+          text: err.message
+        })
+      }
     }
   })
 }
@@ -155,7 +186,7 @@ const deleteReview = (id) => {
           <thead class="bg-[#003161] text-white text-[11px] font-bold uppercase tracking-wider">
             <tr>
               <th class="px-6 py-4 w-12 text-center">NO</th>
-              <th class="px-6 py-4 w-64">CUSTOMER</th>
+              <th class="px-6 py-4 w-64">CUSTOMER & CAR</th>
               <th class="px-6 py-4">REVIEW SNIPPET</th>
               <th class="px-6 py-4 w-32 text-center">RATING</th>
               <th class="px-6 py-4 w-28 text-center">ACTIONS</th>
@@ -181,7 +212,7 @@ const deleteReview = (id) => {
               <!-- 1. Nomor -->
               <td class="px-6 py-5 text-center text-[#727687] font-bold text-sm">{{ index + 1 }}</td>
 
-              <!-- 2. Info Pelanggan -->
+              <!-- 2. Info Pelanggan & Mobil -->
               <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-full bg-[#e6eeff] flex items-center justify-center text-[#0050cb] font-black uppercase border border-[#b3c5ff]/50 overflow-hidden shrink-0">
@@ -189,11 +220,13 @@ const deleteReview = (id) => {
                       v-if="item.avatar"
                       :src="item.avatar"
                       class="w-full h-full object-cover"
+                      referrerpolicy="no-referrer"
                     />
                     <span v-else class="text-xs">{{ item.username.substring(0,2) }}</span>
                   </div>
                   <div class="flex flex-col">
                     <span class="font-extrabold text-[#191c1e] text-sm">{{ item.username }}</span>
+                    <span class="text-[10px] font-bold text-[#0050cb]">{{ item.carName }}</span>
                     <span class="text-[9px] font-bold uppercase tracking-widest text-[#727687] mt-0.5">{{ item.createdAt }}</span>
                   </div>
                 </div>

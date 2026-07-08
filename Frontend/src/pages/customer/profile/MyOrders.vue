@@ -2,6 +2,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
+import RatingModal from '@/components/customer/RatingModal.vue';
+import Swal from 'sweetalert2';
 
 const authStore = useAuthStore();
 
@@ -9,6 +11,10 @@ const authStore = useAuthStore();
 const loading = ref(false);
 const isProcessing = ref(false);
 const rentals = ref([]);
+const hasPromptedRating = ref(false);
+const isRatingModalOpen = ref(false);
+const selectedRentalForRating = ref(null);
+const isSubmittingRating = ref(false);
 
 // Fetch data pesanan real dari Supabase
 const fetchOrders = async () => {
@@ -17,7 +23,7 @@ const fetchOrders = async () => {
   try {
     const { data, error } = await supabase
       .from('rentals')
-      .select('*, car:cars(*), rental_details(*), rental_payments(*)')
+      .select('*, car:cars(*), rental_details(*), rental_payments(*), reviews(*)')
       .eq('user_id', authStore.user.id)
       .order('created_at', { ascending: false });
 
@@ -37,10 +43,12 @@ const fetchOrders = async () => {
 
       return {
         id: r.id,
+        car_id: r.car_id,
         car: {
           name: r.car?.name || 'Car',
           brand: r.car?.brand || 'Fleet',
-          image_url: r.car?.image_url || ''
+          image_url: r.car?.image_url || '',
+          id: r.car?.id
         },
         start_date: r.start_date,
         end_date: r.end_date,
@@ -52,9 +60,19 @@ const fetchOrders = async () => {
         address: details.address || '',
         phone_number: details.phone_number || '',
         midtrans_order_id: payment.midtrans_order_id || '',
-        payment_status: payment.payment_status || 'pending'
+        payment_status: payment.payment_status || 'pending',
+        has_reviewed: r.reviews ? (Array.isArray(r.reviews) ? r.reviews.length > 0 : true) : false
       };
     });
+
+    // Auto-popup logic for unrated completed orders
+    const unratedCompleted = rentals.value.find(r => getMappedStatus(r) === 'completed' && !r.has_reviewed);
+    if (unratedCompleted && !hasPromptedRating.value) {
+      setTimeout(() => {
+        openRatingModal(unratedCompleted);
+        hasPromptedRating.value = true;
+      }, 1000);
+    }
   } catch (err) {
     console.error('Error fetching orders:', err);
   } finally {
@@ -191,6 +209,65 @@ const retryPayment = async (rental) => {
     alert(err.message || 'An error occurred while contacting the payment server.');
   } finally {
     isProcessing.value = false;
+  }
+};
+
+const openRatingModal = (rental) => {
+  selectedRentalForRating.value = rental;
+  isRatingModalOpen.value = true;
+};
+
+const submitRating = async (payload) => {
+  if (!selectedRentalForRating.value) return;
+  isSubmittingRating.value = true;
+  
+  try {
+    const token = authStore.session?.access_token;
+    const response = await fetch(`http://localhost:5000/api/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        rental_id: selectedRentalForRating.value.id,
+        car_id: selectedRentalForRating.value.car?.id || selectedRentalForRating.value.car_id, // ensure we pass car_id
+        rating: payload.rating,
+        comment: payload.comment
+      })
+    });
+
+    const resData = await response.json();
+    
+    // We also accept 400 with 'sudah memberikan ulasan' as success basically because they can't rate anyway.
+    if (!response.ok && resData.message !== 'Anda sudah memberikan ulasan untuk penyewaan ini.') {
+      throw new Error(resData.message || 'Failed to submit review');
+    }
+
+    // Mark locally as reviewed
+    const idx = rentals.value.findIndex(r => r.id === selectedRentalForRating.value.id);
+    if (idx !== -1) {
+      rentals.value[idx].has_reviewed = true;
+    }
+    
+    isRatingModalOpen.value = false;
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: 'Thank you for your review!',
+      confirmButtonColor: '#0050cb'
+    });
+    debouncedFetchOrders();
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: error.message,
+      confirmButtonColor: '#0050cb'
+    });
+  } finally {
+    isSubmittingRating.value = false;
   }
 };
 
@@ -482,11 +559,26 @@ const currentTabRentals = computed(() => {
 
           <!-- Alert Khusus: Selesai -->
           <div v-if="getMappedStatus(rental) === 'completed'"
-               class="mt-8 bg-green-50 border border-green-100 rounded-xl p-4 flex items-start gap-3">
-            <span class="material-symbols-outlined text-green-600 text-2xl">task_alt</span>
-            <div>
-              <p class="font-bold text-green-800 text-sm">Rental Completed!</p>
-              <p class="text-green-700 text-xs mt-1">Thank you for choosing GASNGO. We hope your trip was satisfying.</p>
+               class="mt-8 bg-green-50 border border-green-100 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-start gap-3">
+              <span class="material-symbols-outlined text-green-600 text-2xl">task_alt</span>
+              <div>
+                <p class="font-bold text-green-800 text-sm">Rental Completed!</p>
+                <p class="text-green-700 text-xs mt-1">Thank you for choosing GASNGO. We hope your trip was satisfying.</p>
+              </div>
+            </div>
+            
+            <div class="shrink-0">
+              <button 
+                v-if="!rental.has_reviewed"
+                @click="openRatingModal(rental)"
+                class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span class="material-symbols-outlined text-[16px]">star_rate</span> Rate Now
+              </button>
+              <div v-else class="flex items-center gap-1.5 text-green-700 bg-green-100 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border border-green-200">
+                <span class="material-symbols-outlined text-[16px] fill-current" style="font-variation-settings: 'FILL' 1;">star</span> Rated
+              </div>
             </div>
           </div>
 
@@ -519,6 +611,15 @@ const currentTabRentals = computed(() => {
         </div>
       </div>
     </div>
+    
+    <!-- Rating Modal -->
+    <RatingModal 
+      :isOpen="isRatingModalOpen"
+      :rental="selectedRentalForRating"
+      :isSubmitting="isSubmittingRating"
+      @close="isRatingModalOpen = false"
+      @submit="submitRating"
+    />
   </div>
 </template>
 

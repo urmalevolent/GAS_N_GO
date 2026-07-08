@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import BookingModal from '@/pages/customer/Booking.vue'
+import CarDetailModal from '@/pages/customer/CarDetail.vue'
 
 // --- VISUAL DETAILS MAP FOR CATEGORIES ---
 const categoryDetailsMap = {
@@ -55,6 +56,10 @@ const carsInCategory = ref([])
 const isBookingOpen = ref(false)
 const selectedCarForBooking = ref(null)
 
+// State untuk Modal Detail
+const isDetailOpen = ref(false)
+const selectedCarForDetail = ref(null)
+
 // --- FUNCTIONS ---
 const formatPrice = (price) => {
   return new Intl.NumberFormat('id-ID', {
@@ -75,13 +80,27 @@ const openCategory = (cat) => {
 const openBooking = (car) => {
   selectedCategory.value = null // Tutup modal kategori
   selectedCarForBooking.value = {
-    id: car.id,
-    name: car.name,
+    ...car,
     brand_name: car.brand,
     price: car.price_per_day,
     image: car.image_url
   }
   isBookingOpen.value = true
+}
+
+const openDetail = (car) => {
+  selectedCarForDetail.value = {
+    ...car,
+    brand_name: car.brand,
+    price: car.price_per_day,
+    image: car.image_url
+  }
+  isDetailOpen.value = true
+}
+
+const goToCheckout = (car) => {
+  isDetailOpen.value = false
+  setTimeout(() => openBooking(car), 300)
 }
 
 // Fetch data dari database via API backend
@@ -269,14 +288,19 @@ onMounted(() => {
                       </div>
                     </div>
 
-                    <button
-                      @click="openBooking(car)"
-                      :disabled="car.status !== 'available'"
-                      class="signature-gradient text-white hover:shadow-lg hover:shadow-[#0050cb]/30 font-bold text-xs uppercase tracking-widest px-4 py-3.5 rounded-xl transition-all duration-300 w-full active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                    >
-                      <span class="material-symbols-outlined text-[16px]">{{ car.status === 'available' ? 'lock' : 'lock_open' }}</span>
-                      {{ car.status === 'available' ? 'Rent Now' : 'Fully Booked' }}
-                    </button>
+                    <div class="flex gap-3">
+                      <button @click="openDetail(car)" class="flex-1 bg-[#f2f4f6] hover:bg-[#e0e3e5] text-[#191c1e] font-bold text-xs uppercase tracking-widest py-3 sm:py-3.5 rounded-xl transition-colors border border-transparent text-center flex items-center justify-center">
+                        Detail
+                      </button>
+                      <button
+                        @click="openBooking(car)"
+                        :disabled="car.status !== 'available'"
+                        class="flex-1 signature-gradient text-white hover:shadow-lg hover:shadow-[#0050cb]/30 font-bold text-xs uppercase tracking-widest py-3 sm:py-3.5 rounded-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                      >
+                        <span class="material-symbols-outlined text-[16px]">{{ car.status === 'available' ? 'lock' : 'lock_open' }}</span>
+                        {{ car.status === 'available' ? 'Rent Now' : 'Fully Booked' }}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -292,6 +316,14 @@ onMounted(() => {
       :show="isBookingOpen"
       @close="isBookingOpen = false"
       :carData="selectedCarForBooking"
+    />
+
+    <!-- KOMPONEN MODAL DETAIL MOBIL -->
+    <CarDetailModal
+      :show="isDetailOpen"
+      :carDetail="selectedCarForDetail"
+      @close="isDetailOpen = false"
+      @book="goToCheckout"
     />
 
   </div>

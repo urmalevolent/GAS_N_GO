@@ -63,7 +63,9 @@ const popularCars = ref([
     speed: '2.8s',
     engine: '750 HP',
     description: 'Uncompromising electric power meets artisanal luxury. The automotive masterpiece of the future.',
-    image: Taycan // Sesuaikan key 'image' agar terbaca oleh modal
+    image: Taycan, // Sesuaikan key 'image' agar terbaca oleh modal
+    avg_rating: 4.8,
+    review_count: 12
   },
   {
     id: 2,
@@ -78,7 +80,9 @@ const popularCars = ref([
     speed: '3.0s',
     engine: '617 HP',
     description: 'The perfect blend of sport performance and luxury sedan comfort for your business or vacation trips.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE'
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_jVTIWNSaDewjSAufpsFJsaOQyxLkSYGZxzZmvLAmd7rb2aB8I8HDODy2WLv4xZDiJjfmnCu5m6wk1tBydiotdjSPz8dGV6qiJs0l2SD9xXK8knrmHqZuizk0MSigRJ7YIXqwCwNsA6J0mPTNr0v_SgwiEWDF1bj1K3cnNC5015_G3tIFpctGTp9TLOUlmEEBZPVHG82U6MJ6WWeS9ARdJPEo7oHi2mcOB9HcTq2UKMUKUya8HszSvH1kyWHwQsRn0_YVwMdHKafE',
+    avg_rating: 4.5,
+    review_count: 8
   },
   {
     id: 3,
@@ -93,7 +97,9 @@ const popularCars = ref([
     speed: '2.9s',
     engine: '710 HP',
     description: 'The most powerful V8 engine in history. Experience thrilling driving sensation with unlimited performance.',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp'
+    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3Yg-HFikLc4fIGMo9LhR3Dlcrv2E2E7kK7G8iXkf6ondHJctGaQrghKTSRmRyWqctizXdge_WSSg582vCKVOfH-d6CVLLK0oz6KhN-EdHRQ-qYfu4DEL548SX0vllYAEwqbtlaYgwJYFdRTZbdWG_zfsDNR7FM_udGDsOWf7IVkMk9vRzitHRuVQ99sOq8JsCJfNdF1swj4Ms7cO0zT4qs55rM3Dm49HyozAaCOoWQCNvf0a8RJGhqnjn1dZkncyIHLezvPx1BgBp',
+    avg_rating: 5.0,
+    review_count: 5
   }
 ])
 </script>
@@ -183,6 +189,15 @@ const popularCars = ref([
                 </div>
                 <div class="bg-[#111827]/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-sm border border-white/10 uppercase tracking-widest w-max">
                   {{ car.category_name }}
+                </div>
+              </div>
+
+              <!-- Rating Badge (Top Right) -->
+              <div class="absolute top-6 right-6 z-20">
+                <div class="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-black px-3 py-2 rounded-2xl shadow-lg border border-white/50 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-yellow-400 text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                  <span>{{ car.avg_rating ? car.avg_rating.toFixed(1) : '0.0' }}</span>
+                  <span class="text-[10px] font-medium text-slate-500">({{ car.review_count || 0 }})</span>
                 </div>
               </div>
             </div>

@@ -398,7 +398,7 @@ const handleForgotPassword = async () => {
               <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Full Name *</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-[18px]">person</span>
-                <input v-model="registerForm.fullName" type="text" placeholder="John Doe" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
+                <input v-model="registerForm.fullName" type="text" name="name" autocomplete="name" placeholder="John Doe" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
               </div>
             </div>
             
@@ -406,7 +406,7 @@ const handleForgotPassword = async () => {
               <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Email Address *</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-[18px]">mail</span>
-                <input v-model="registerForm.email" type="email" placeholder="nama@email.com" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
+                <input v-model="registerForm.email" type="email" name="email" autocomplete="email" placeholder="nama@email.com" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
               </div>
             </div>
             
@@ -414,7 +414,7 @@ const handleForgotPassword = async () => {
               <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Phone Number *</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-[18px]">phone</span>
-                <input v-model="registerForm.phone" type="tel" placeholder="081234567890" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
+                <input v-model="registerForm.phone" type="tel" name="phone" autocomplete="tel" placeholder="081234567890" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
               </div>
             </div>
 
@@ -422,7 +422,7 @@ const handleForgotPassword = async () => {
               <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Password *</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-[18px]">lock</span>
-                <input v-model="registerForm.password" :type="showPassword ? 'text' : 'password'" placeholder="Minimum 6 characters" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-11 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
+                <input v-model="registerForm.password" :type="showPassword ? 'text' : 'password'" name="new-password" autocomplete="new-password" placeholder="Minimum 6 characters" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-11 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
                 <button @click="togglePassword" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none">
                   <span class="material-symbols-outlined text-[18px]">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
                 </button>
@@ -433,7 +433,7 @@ const handleForgotPassword = async () => {
               <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Confirm Password *</label>
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-[18px]">lock</span>
-                <input v-model="registerForm.confirmPassword" :type="showPassword ? 'text' : 'password'" placeholder="Repeat password" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-11 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
+                <input v-model="registerForm.confirmPassword" :type="showPassword ? 'text' : 'password'" name="new-password" autocomplete="new-password" placeholder="Repeat password" class="w-full bg-slate-950 border border-slate-800 focus:border-[#0050cb] text-white pl-11 pr-11 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0050cb] transition-all text-xs" />
               </div>
             </div>
 

@@ -8,6 +8,7 @@ import categoryRoutes from './routes/customer/category.js';
 import carAdminRoutes from './routes/admin/car.js';
 import userAdminRoutes from './routes/admin/user.js';
 import dashboardAdminRoutes from './routes/admin/dashboard.js';
+import reviewRoutes from './routes/customer/review.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin/cars', carAdminRoutes);
 app.use('/api/admin/users', userAdminRoutes);
 app.use('/api/admin/dashboard', dashboardAdminRoutes);

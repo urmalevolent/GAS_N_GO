@@ -189,22 +189,7 @@ const formatPrice = (price) => {
       <!-- ================= SIDEBAR FILTER ================= -->
       <aside class="w-full lg:w-72 flex-shrink-0 space-y-8 md:space-y-10 lg:border-r lg:border-[#c2c6d8]/40 lg:pr-10 pb-8 lg:pb-0 border-b border-[#c2c6d8]/40 lg:border-b-0 sticky top-28">
 
-        <!-- Category Filter -->
-        <section>
-          <h3 class="text-xs md:text-sm font-bold tracking-widest text-[#191c1e] mb-4 md:mb-6 uppercase">Category</h3>
-          <div v-if="categories.length === 0" class="text-xs text-[#727687]">Loading categories...</div>
-          <div v-else class="space-y-3 md:space-y-4">
-            <label v-for="cat in categories" :key="cat.id" class="flex items-center cursor-pointer group">
-              <input 
-                type="checkbox" 
-                :value="cat.name" 
-                v-model="selectedCategories"
-                class="w-5 h-5 rounded border-[#c2c6d8] text-[#0050cb] focus:ring-[#0066ff] bg-[#f2f4f6]"
-              />
-              <span class="ml-3 text-sm font-medium text-[#424656] group-hover:text-[#0050cb] transition-colors">{{ cat.name }}</span>
-            </label>
-          </div>
-        </section>
+
 
         <!-- Daily Rate Range -->
         <section>
@@ -294,6 +279,15 @@ const formatPrice = (price) => {
                   </div>
                   <div class="bg-[#191c1e]/80 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-sm border border-white/10 uppercase tracking-widest w-max">
                     {{ car.category_name }}
+                  </div>
+                </div>
+
+                <!-- Rating Badge (Top Right) -->
+                <div class="absolute top-6 right-6 z-20">
+                  <div class="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-black px-3 py-2 rounded-2xl shadow-lg border border-white/50 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-yellow-400 text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                    <span>{{ car.avg_rating ? car.avg_rating.toFixed(1) : '0.0' }}</span>
+                    <span class="text-[10px] font-medium text-slate-500">({{ car.review_count || 0 }})</span>
                   </div>
                 </div>
               </div>
