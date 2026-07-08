@@ -17,7 +17,8 @@ const form = reactive({
   transmission: '',
   seats: 4,
   price: '',
-  description: ''
+  description: '',
+  fuel: 'Gasoline'
 });
 
 const files = reactive({ image_1: null });
@@ -58,6 +59,7 @@ const fetchCarDetails = async () => {
     form.seats = data.seats;
     form.price = data.price_per_day;
     form.description = data.description || '';
+    form.fuel = data.fuel || 'Gasoline';
     
     previews.image_1 = data.image_url;
   } catch (err) {
@@ -126,7 +128,8 @@ const updateCar = async () => {
         seats: parseInt(form.seats) || 4,
         price_per_day: parseInt(form.price),
         description: form.description || '',
-        image_url: mainImageUrl
+        image_url: mainImageUrl,
+        fuel: form.fuel
       })
     });
 
@@ -233,8 +236,8 @@ const goBack = () => {
                   </div>
                 </div>
 
-                <!-- Transmisi & Kapasitas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Transmisi, Kapasitas & Fuel -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Transmission <span class="text-[#ba1a1a]">*</span></label>
                     <div class="relative">
@@ -252,6 +255,20 @@ const goBack = () => {
                   <div>
                     <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Seat Capacity <span class="text-[#ba1a1a]">*</span></label>
                     <input v-model="form.seats" type="number" required class="w-full px-5 py-4 bg-[#f7f9fb] border border-[#c2c6d8]/60 rounded-xl focus:bg-white focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-sm font-bold text-[#191c1e]">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-[#727687] uppercase tracking-widest mb-2">Fuel Type <span class="text-[#ba1a1a]">*</span></label>
+                    <div class="relative">
+                      <select v-model="form.fuel" required class="w-full px-5 py-4 bg-[#f7f9fb] border border-[#c2c6d8]/60 rounded-xl appearance-none cursor-pointer focus:bg-white focus:outline-none focus:border-[#0050cb] focus:ring-2 focus:ring-[#0050cb]/20 transition duration-300 text-sm font-bold text-[#191c1e]">
+                        <option value="Gasoline">Gasoline</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Electric">Electric</option>
+                        <option value="Hybrid">Hybrid</option>
+                      </select>
+                      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#727687]">
+                        <span class="material-symbols-outlined text-xl">expand_more</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

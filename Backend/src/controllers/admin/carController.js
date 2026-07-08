@@ -1,12 +1,14 @@
-import { supabase, getSupabaseClient } from '../../config/supabase.js';
+import { supabaseAdmin, supabase } from '../../config/supabase.js';
+
+// Fallback jika tidak ada Service Role Key (meski sangat disarankan)
+const db = supabaseAdmin || supabase;
 
 /**
  * Mengambil semua daftar mobil (baik yang aktif maupun nonaktif) untuk keperluan admin
  */
 export const adminGetCars = async (req, res, next) => {
   try {
-    const userSupabase = getSupabaseClient(req);
-    const { data, error } = await userSupabase
+    const { data, error } = await db
       .from('cars')
       .select('*')
       .order('created_at', { ascending: false });
@@ -26,7 +28,7 @@ export const adminGetCars = async (req, res, next) => {
  */
 export const adminCreateCar = async (req, res, next) => {
   try {
-    const { name, brand, category, transmission, seats, price_per_day, description, image_url } = req.body;
+    const { name, brand, category, transmission, seats, price_per_day, description, image_url, fuel } = req.body;
 
     if (!name || !brand || !category || !price_per_day || !image_url) {
       return res.status(400).json({
@@ -35,8 +37,7 @@ export const adminCreateCar = async (req, res, next) => {
       });
     }
 
-    const userSupabase = getSupabaseClient(req);
-    const { data, error } = await userSupabase
+    const { data, error } = await db
       .from('cars')
       .insert({
         name,
@@ -49,7 +50,7 @@ export const adminCreateCar = async (req, res, next) => {
         image_url,
         status: 'available', // Status default saat dibuat
         year: new Date().getFullYear(),
-        fuel: 'Gasoline'
+        fuel: fuel || 'Gasoline'
       })
       .select()
       .single();
@@ -72,10 +73,9 @@ export const adminCreateCar = async (req, res, next) => {
 export const adminUpdateCar = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, brand, category, transmission, seats, price_per_day, description, image_url } = req.body;
+    const { name, brand, category, transmission, seats, price_per_day, description, image_url, fuel } = req.body;
 
-    const userSupabase = getSupabaseClient(req);
-    const { data, error } = await userSupabase
+    const { data, error } = await db
       .from('cars')
       .update({
         name,
@@ -85,7 +85,8 @@ export const adminUpdateCar = async (req, res, next) => {
         seats: parseInt(seats) || 4,
         price_per_day: parseInt(price_per_day),
         description: description || '',
-        image_url
+        image_url,
+        fuel: fuel || 'Gasoline'
       })
       .eq('id', id)
       .select()
@@ -109,8 +110,7 @@ export const adminUpdateCar = async (req, res, next) => {
 export const adminDeleteCar = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userSupabase = getSupabaseClient(req);
-    const { data, error } = await userSupabase
+    const { data, error } = await db
       .from('cars')
       .update({ status: 'inactive' })
       .eq('id', id)
@@ -135,8 +135,7 @@ export const adminDeleteCar = async (req, res, next) => {
 export const adminRestoreCar = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userSupabase = getSupabaseClient(req);
-    const { data, error } = await userSupabase
+    const { data, error } = await db
       .from('cars')
       .update({ status: 'available' })
       .eq('id', id)

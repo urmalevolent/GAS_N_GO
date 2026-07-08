@@ -14,6 +14,7 @@ const form = reactive({
   category: '',
   type: '', // Misalnya: Manual / Matic / Electric
   seats: '', // Jumlah kursi
+  fuel: 'Gasoline',
   price: '',
   description: ''
 })
@@ -109,6 +110,7 @@ const createCar = async () => {
         category: form.category,
         transmission: form.type,
         seats: parseInt(form.seats) || 4,
+        fuel: form.fuel,
         price_per_day: parseInt(form.price),
         description: form.description || '',
         image_url: mainImageUrl
@@ -189,7 +191,7 @@ const createCar = async () => {
                   <input v-model="form.name" type="text" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="e.g. Porsche 911 Carrera">
                 </div>
 
-                <!-- Branddan Kategori -->
+                <!-- Brand dan Kategori -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-bold text-[#191c1e] mb-2">Brand <span class="text-[#ba1a1a]">*</span></label>
@@ -209,8 +211,8 @@ const createCar = async () => {
                     </div>
                 </div>
 
-                <!-- Tipe Mesin & Kapasitas Penumpang -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Tipe Mesin, Kapasitas & Fuel -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <label class="block text-sm font-bold text-[#191c1e] mb-2">Tipe Penggerak / Transmisi <span class="text-[#ba1a1a]">*</span></label>
                       <div class="relative">
@@ -229,6 +231,20 @@ const createCar = async () => {
                     <div>
                       <label class="block text-sm font-bold text-[#191c1e] mb-2">Number of Seats <span class="text-[#ba1a1a]">*</span></label>
                       <input v-model="form.seats" type="number" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 text-sm" placeholder="e.g. 2 or 4">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-bold text-[#191c1e] mb-2">Fuel Type <span class="text-[#ba1a1a]">*</span></label>
+                      <div class="relative">
+                          <select v-model="form.fuel" class="w-full px-4 py-3.5 border border-[#c2c6d8]/60 rounded-xl bg-white focus:outline-none focus:border-[#0050cb] focus:ring-1 focus:ring-[#0050cb] transition duration-200 appearance-none cursor-pointer text-sm font-medium">
+                              <option value="Gasoline">Gasoline</option>
+                              <option value="Diesel">Diesel</option>
+                              <option value="Electric">Electric</option>
+                              <option value="Hybrid">Hybrid</option>
+                          </select>
+                          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#727687]">
+                            <span class="material-symbols-outlined text-xl">expand_more</span>
+                          </div>
+                      </div>
                     </div>
                 </div>
 
