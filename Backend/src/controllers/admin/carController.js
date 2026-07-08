@@ -1,11 +1,12 @@
-import { supabase } from '../../config/supabase.js';
+import { supabase, getSupabaseClient } from '../../config/supabase.js';
 
 /**
  * Mengambil semua daftar mobil (baik yang aktif maupun nonaktif) untuk keperluan admin
  */
 export const adminGetCars = async (req, res, next) => {
   try {
-    const { data, error } = await supabase
+    const userSupabase = getSupabaseClient(req);
+    const { data, error } = await userSupabase
       .from('cars')
       .select('*')
       .order('created_at', { ascending: false });
@@ -34,7 +35,8 @@ export const adminCreateCar = async (req, res, next) => {
       });
     }
 
-    const { data, error } = await supabase
+    const userSupabase = getSupabaseClient(req);
+    const { data, error } = await userSupabase
       .from('cars')
       .insert({
         name,
@@ -72,7 +74,8 @@ export const adminUpdateCar = async (req, res, next) => {
     const { id } = req.params;
     const { name, brand, category, transmission, seats, price_per_day, description, image_url } = req.body;
 
-    const { data, error } = await supabase
+    const userSupabase = getSupabaseClient(req);
+    const { data, error } = await userSupabase
       .from('cars')
       .update({
         name,
@@ -106,7 +109,8 @@ export const adminUpdateCar = async (req, res, next) => {
 export const adminDeleteCar = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabase
+    const userSupabase = getSupabaseClient(req);
+    const { data, error } = await userSupabase
       .from('cars')
       .update({ status: 'inactive' })
       .eq('id', id)
@@ -131,7 +135,8 @@ export const adminDeleteCar = async (req, res, next) => {
 export const adminRestoreCar = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabase
+    const userSupabase = getSupabaseClient(req);
+    const { data, error } = await userSupabase
       .from('cars')
       .update({ status: 'available' })
       .eq('id', id)
