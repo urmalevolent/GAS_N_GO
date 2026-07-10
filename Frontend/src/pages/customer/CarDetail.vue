@@ -55,7 +55,7 @@ const handleReservation = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         close()
-        router.push('/profile')
+        router.push('/user/profile')
       }
     })
     return
@@ -72,7 +72,7 @@ const handleReservation = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         close()
-        router.push('/profile')
+        router.push('/user/profile')
       }
     })
     return

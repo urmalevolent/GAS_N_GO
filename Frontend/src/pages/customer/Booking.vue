@@ -90,12 +90,12 @@ const processPayment = async () => {
 
   // 2. Pastikan akun sudah terverifikasi
   if (authStore.user?.account_status === 'unverified') {
-    Swal.fire({ icon: 'warning', title: 'Verification Required', text: 'You must verify your ID card (KTP) before you can book a rental. Please go to your Profile page.', confirmButtonColor: '#0050cb' }).then(() => { close(); router.push('/profile'); });
+    Swal.fire({ icon: 'warning', title: 'Verification Required', text: 'You must verify your ID card (KTP) before you can book a rental. Please go to your Profile page.', confirmButtonColor: '#0050cb' }).then(() => { close(); router.push('/user/profile'); });
     return;
   }
 
   if (authStore.user?.account_status === 'rejected') {
-    Swal.fire({ icon: 'error', title: 'Verification Rejected', text: 'Your previous KTP verification was rejected. Please re-upload your KTP in your profile.', confirmButtonColor: '#0050cb' }).then(() => { close(); router.push('/profile'); });
+    Swal.fire({ icon: 'error', title: 'Verification Rejected', text: 'Your previous KTP verification was rejected. Please re-upload your KTP in your profile.', confirmButtonColor: '#0050cb' }).then(() => { close(); router.push('/user/profile'); });
     return;
   }
 
