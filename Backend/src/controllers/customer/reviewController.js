@@ -30,7 +30,7 @@ export const createReview = async (req, res, next) => {
     if (!rental_id) {
       const { data: pastRentals, error: pastRentalsError } = await userSupabase
         .from('rentals')
-        .select('id, reviews(id)')
+        .select('id, status, reviews(id)')
         .eq('user_id', req.user.id)
         .eq('car_id', car_id)
         .order('created_at', { ascending: false });
@@ -38,9 +38,8 @@ export const createReview = async (req, res, next) => {
       if (pastRentalsError) throw pastRentalsError;
 
       // Cari rental yang belum ada review-nya (reviews.length === 0)
-      // Karena jika filter dari status completed sulit jika status aslinya berbeda, kita biarkan cek semua yang belum direview,
-      // asalkan user pernah sewa. Idealnya dicek status = completed.
-      const unratedRental = pastRentals?.find(r => !r.reviews || r.reviews.length === 0);
+      // Pastikan status = completed
+      const unratedRental = pastRentals?.find(r => (!r.reviews || r.reviews.length === 0) && r.status === 'completed');
 
       if (!unratedRental) {
          return res.status(403).json({
@@ -68,6 +67,13 @@ export const createReview = async (req, res, next) => {
         return res.status(403).json({
           success: false,
           message: 'Akses ditolak.'
+        });
+      }
+
+      if (rental.status !== 'completed') {
+        return res.status(403).json({
+          success: false,
+          message: 'Anda hanya dapat memberikan ulasan untuk penyewaan yang sudah selesai.'
         });
       }
     }
