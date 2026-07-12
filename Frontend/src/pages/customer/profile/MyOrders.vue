@@ -178,6 +178,7 @@ const retryPayment = async (rental) => {
             console.error('Auto confirm error:', e);
           }
           await fetchOrders();
+          isProcessing.value = false;
         },
         onPending: async function(result) {
           console.log('Retry Pending:', result);
@@ -190,25 +191,28 @@ const retryPayment = async (rental) => {
             console.error('Auto confirm error:', e);
           }
           await fetchOrders();
+          isProcessing.value = false;
         },
         onError: function(result) {
           console.error('Retry Error:', result);
           alert('Payment failed, please try again.');
+          isProcessing.value = false;
         },
         onClose: function() {
           console.log('Retry popup closed');
           fetchOrders();
+          isProcessing.value = false;
         }
       });
     } else {
+      isProcessing.value = false;
       throw new Error('Midtrans Snap SDK is not loaded.');
     }
 
   } catch (err) {
+    isProcessing.value = false;
     console.error('Retry payment error:', err);
     alert(err.message || 'An error occurred while contacting the payment server.');
-  } finally {
-    isProcessing.value = false;
   }
 };
 
