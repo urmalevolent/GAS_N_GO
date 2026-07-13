@@ -1,49 +1,40 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 
 const isOpen = ref(false)
 const currentStep = ref(0)
+let autoNextTimeout = null
 
 const guideSteps = [
   {
-    title: '1. Eksplorasi Armada Premium',
+    title: '1. Explore Premium Fleet',
     icon: 'directions_car',
-    description: 'Jelajahi koleksi mobil mewah kami. Gunakan filter untuk menemukan mobil impian Anda berdasarkan kategori, merek, maupun spesifikasi.',
+    description: 'Explore our luxury car collection. Use filters to find your dream car by category, brand, or specifications.',
     media: '/images/guide/Step1N.png',
     type: 'image'
   },
   {
-    title: '2. Login & Pemesanan',
+    title: '2. Login & Booking',
     icon: 'how_to_reg',
-    description: 'Masuk ke akun Anda atau daftar jika belum memiliki akun. Pilih tanggal sewa yang Anda inginkan pada kalender pintar kami.',
+    description: "Log into your account or register if you don't have one. Select your desired rental dates on our smart calendar.",
     media: '/images/guide/step2.mp4',
     type: 'video'
   },
   {
-    title: '3. Pembayaran DP',
+    title: '3. Down Payment',
     icon: 'credit_card',
-    description: 'Amankan pesanan Anda dengan membayar DP (Down Payment) sebesar 15% dari total harga melalui metode pembayaran instan.',
+    description: 'Secure your booking by paying a 15% Down Payment (DP) of the total price via instant payment methods.',
     media: '/images/guide/step3.mp4',
     type: 'video'
   },
   {
-    title: '4. Konfirmasi & Nikmati',
+    title: '4. Confirm & Enjoy',
     icon: 'task_alt',
-    description: 'Setelah pembayaran terkonfirmasi, pesanan Anda diproses. Serah terima kendaraan akan dilakukan sesuai jadwal pilihan Anda.',
+    description: 'Once your payment is confirmed, your order is processed. Vehicle handover will be done according to your selected schedule.',
     media: '/images/guide/step4.mp4',
     type: 'video'
   }
 ]
-
-onMounted(() => {
-  // Inject Spline Viewer script if it doesn't exist
-  if (!document.querySelector('script[src="https://unpkg.com/@splinetool/viewer@1.9.32/build/spline-viewer.js"]')) {
-    const script = document.createElement('script')
-    script.type = 'module'
-    script.src = 'https://unpkg.com/@splinetool/viewer@1.9.32/build/spline-viewer.js'
-    document.head.appendChild(script)
-  }
-})
 
 const openModal = () => {
   currentStep.value = 0
@@ -52,6 +43,7 @@ const openModal = () => {
 
 const closeModal = () => {
   isOpen.value = false
+  clearTimeout(autoNextTimeout)
 }
 
 const nextStep = () => {
@@ -67,6 +59,96 @@ const prevStep = () => {
     currentStep.value--
   }
 }
+
+const handleMediaAutoNext = () => {
+  clearTimeout(autoNextTimeout)
+  if (!isOpen.value || isDragging.value) return
+
+  const currentMedia = guideSteps[currentStep.value]
+  if (currentMedia && currentMedia.type === 'image') {
+    autoNextTimeout = setTimeout(() => {
+      nextStep()
+    }, 3000)
+  }
+}
+
+watch([currentStep, isOpen], () => {
+  handleMediaAutoNext()
+})
+
+onUnmounted(() => {
+  clearTimeout(autoNextTimeout)
+})
+
+// Swipe logic
+const isDragging = ref(false)
+const touchStartX = ref(0)
+const touchEndX = ref(0)
+const swipeOffset = ref(0)
+
+const onTouchStart = (e) => {
+  isDragging.value = true
+  clearTimeout(autoNextTimeout)
+  touchStartX.value = e.type.includes('mouse') ? e.screenX : e.changedTouches[0].screenX
+  touchEndX.value = touchStartX.value
+}
+
+const onTouchMove = (e) => {
+  if (!isDragging.value) return
+  touchEndX.value = e.type.includes('mouse') ? e.screenX : e.changedTouches[0].screenX
+  swipeOffset.value = touchEndX.value - touchStartX.value
+}
+
+const onTouchEnd = () => {
+  if (!isDragging.value) return
+  isDragging.value = false
+  
+  if (swipeOffset.value < -70) {
+    nextStep()
+  } else if (swipeOffset.value > 70) {
+    prevStep()
+  }
+  
+  swipeOffset.value = 0
+  handleMediaAutoNext() // Restart timer for images if needed
+}
+
+// Menghitung posisi deck animasi seperti kartu remi
+const getMediaCardStyle = (index) => {
+  const N = guideSteps.length
+  // pos = 0 (aktif), pos = 1 (belakang 1), pos = N-1 (belakang paling ujung)
+  const pos = (index - currentStep.value + N) % N
+  
+  if (pos === 0) {
+    // Current card (active)
+    let transformStr = `translateY(0px) scale(1) rotate(0deg)`
+    if (swipeOffset.value !== 0) {
+      transformStr = `translateX(${swipeOffset.value}px) rotate(${swipeOffset.value * 0.05}deg)`
+    }
+    return {
+      zIndex: 20,
+      opacity: 1,
+      transform: transformStr,
+      transition: isDragging.value ? 'none' : 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)'
+    }
+  } else {
+    // Stacked behind
+    return {
+      zIndex: 20 - pos,
+      opacity: 1 - (pos * 0.2), // fading slightly as it goes back
+      transform: `translateY(${pos * 20}px) scale(${1 - pos * 0.05})`,
+      transition: 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
+      pointerEvents: 'none'
+    }
+  }
+}
+
+// Helper untuk load video dengan aman (hanya load video yang aktif atau di belakangnya)
+const shouldRenderVideo = (index) => {
+  const N = guideSteps.length
+  const pos = (index - currentStep.value + N) % N
+  return pos === 0 || pos === 1
+}
 </script>
 
 <template>
@@ -74,112 +156,119 @@ const prevStep = () => {
     <!-- Floating Action Button -->
     <button 
       @click="openModal"
-      class="fixed bottom-6 right-6 z-[90] flex items-center gap-2 px-5 py-4 bg-gradient-to-r from-[#0050cb] to-blue-500 text-white rounded-full shadow-2xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all duration-300 font-bold group animate-bounce-slow"
+      class="fixed bottom-6 right-6 z-[90] flex items-center gap-2 px-5 py-4 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-full shadow-[0_10px_30px_rgba(37,99,235,0.4)] hover:shadow-[0_10px_40px_rgba(37,99,235,0.6)] hover:scale-105 active:scale-95 transition-all duration-300 font-bold group animate-bounce-slow"
     >
-      <span class="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">help</span>
-      <span class="text-sm tracking-wide hidden sm:block">How to Order?</span>
+      <span class="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">style</span>
+      <span class="text-sm tracking-wide hidden sm:block">Guide</span>
     </button>
 
-    <!-- Modal Overlay Layar Penuh -->
+    <!-- Modal Overlay -->
     <transition name="fade">
-      <div v-if="isOpen" class="fixed inset-0 z-[100] bg-slate-950 font-['Manrope'] overflow-hidden flex items-center justify-center">
+      <div v-if="isOpen" class="fixed inset-0 z-[100] font-['Manrope'] overflow-hidden flex flex-col items-center justify-center bg-[#060b19]">
         
-        <!-- 3D Spline Background -->
-        <div class="absolute inset-0 z-0 pointer-events-none opacity-80 mix-blend-screen">
-          <spline-viewer 
-            url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" 
-            class="w-full h-full"
-          ></spline-viewer>
+        <!-- Dark Blue Rich Background -->
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px]"></div>
+          <div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-indigo-900/40 rounded-full blur-[150px]"></div>
+          <div class="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-blue-400/10 rounded-full blur-[100px]"></div>
         </div>
 
-        <!-- Gradien Penutup agar teks terbaca -->
-        <div class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950/70 via-blue-950/40 to-slate-950/80 pointer-events-none"></div>
+        <!-- Header Modal -->
+        <div class="absolute top-0 inset-x-0 p-6 sm:p-8 flex items-center justify-between z-50">
+          <div class="flex flex-col">
+            <h2 class="text-white text-2xl font-black tracking-tight">How it Works</h2>
+            <p class="text-blue-300/70 text-sm font-medium mt-1">Practical car rental guide</p>
+          </div>
+          <button 
+            @click="closeModal"
+            class="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white backdrop-blur-md transition-all border border-white/5"
+          >
+            <span class="material-symbols-outlined text-2xl">close</span>
+          </button>
+        </div>
 
-        <!-- Tombol Close (Pojok Kanan Atas) -->
-        <button 
-          @click="closeModal"
-          class="absolute top-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors"
-        >
-          <span class="material-symbols-outlined text-2xl">close</span>
-        </button>
-
-        <!-- Konten Tengah (Glass Card) -->
-        <div class="relative z-10 w-full max-w-5xl px-4 sm:px-6">
-          <!-- Step Indicator Bars -->
-          <div class="flex gap-2 mb-6 max-w-lg mx-auto">
+        <!-- Main Content Area: Deck (Left) + Text (Right) -->
+        <div class="relative z-10 w-full max-w-5xl px-6 mt-6 sm:mt-10 flex flex-col md:flex-row items-center justify-center gap-10 md:gap-16" style="height: 65vh; min-height: 480px; max-height: 650px;">
+          
+          <!-- LEFT: Deck of Cards (Media) -->
+          <div class="relative w-full md:w-1/2 h-[50%] md:h-[90%] perspective-1000"
+               @touchstart.passive="onTouchStart" @touchmove.prevent="onTouchMove" @touchend="onTouchEnd"
+               @mousedown="onTouchStart" @mousemove="onTouchMove" @mouseup="onTouchEnd" @mouseleave="onTouchEnd">
+            
             <div 
-              v-for="(_, index) in guideSteps" 
-              :key="'dot-'+index"
-              class="h-1.5 rounded-full flex-1 transition-all duration-500"
-              :class="index <= currentStep ? 'bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]' : 'bg-white/20'"
-            ></div>
+              v-for="(step, index) in guideSteps" 
+              :key="'media-'+index"
+              class="absolute inset-0 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-black overflow-hidden cursor-grab active:cursor-grabbing border border-white/10"
+              :style="getMediaCardStyle(index)"
+            >
+              <template v-if="step.type === 'video'">
+                <!-- Play video only when active -->
+                <video 
+                  v-if="shouldRenderVideo(index)"
+                  :src="step.media" 
+                  class="w-full h-full object-cover" 
+                  autoplay
+                  muted playsinline
+                  @ended="currentStep === index ? nextStep() : null"
+                ></video>
+              </template>
+              <template v-else>
+                <img :src="step.media" :alt="step.title" class="w-full h-full object-cover pointer-events-none" />
+              </template>
+              
+              <div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-tr from-blue-900/50 via-transparent to-transparent pointer-events-none"></div>
+              
+              <div class="absolute top-5 left-5 bg-blue-600/90 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-md border border-blue-400/30">
+                Step {{ index + 1 }} of {{ guideSteps.length }}
+              </div>
+            </div>
           </div>
 
-          <!-- Slide Content (Transisi Halus) -->
-          <transition name="slide-up" mode="out-in">
-            <div :key="currentStep" class="relative bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-3xl shadow-2xl overflow-hidden group flex flex-col md:flex-row items-center gap-8 md:gap-12">
-              
-              <!-- Efek Cahaya Glow di background -->
-              <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-              <!-- KIRI: Gambar / Video Screenshot -->
-              <div class="w-full md:w-1/2 relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group-hover:border-blue-400/30 transition-colors duration-500 bg-slate-900 h-60 md:h-80 flex items-center justify-center">
-                
-                <template v-if="guideSteps[currentStep].type === 'video'">
-                  <video 
-                    :src="guideSteps[currentStep].media" 
-                    class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
-                    autoplay loop muted playsinline
-                  ></video>
-                </template>
-                <template v-else>
-                  <img 
-                    :src="guideSteps[currentStep].media" 
-                    :alt="guideSteps[currentStep].title" 
-                    class="w-full h-full object-cover object-top hover:object-bottom transition-all duration-[3s] ease-in-out cursor-ns-resize" 
-                  />
-                </template>
-
-                <!-- Gradien bayangan halus di atas media -->
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent pointer-events-none"></div>
-              </div>
-
-              <!-- KANAN: Teks & Navigasi -->
-              <div class="relative z-10 w-full md:w-1/2 text-left flex flex-col justify-center">
-                
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 flex items-center justify-center mb-6 text-blue-400 shadow-inner">
-                  <span class="material-symbols-outlined text-3xl">{{ guideSteps[currentStep].icon }}</span>
+          <!-- RIGHT: Text Tutorial (Pop up, No Card Background) -->
+          <div class="w-full md:w-1/2 h-[45%] md:h-auto flex flex-col justify-center relative">
+            <transition name="fade-slide-up" mode="out-in">
+              <div :key="currentStep" class="flex flex-col text-left py-6">
+                <div class="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6 text-blue-400 shadow-inner">
+                  <span class="material-symbols-outlined text-4xl">{{ guideSteps[currentStep].icon }}</span>
                 </div>
                 
-                <h3 class="text-2xl sm:text-3xl font-black text-white mb-4 tracking-wide leading-tight">{{ guideSteps[currentStep].title }}</h3>
-                
-                <p class="text-slate-300 leading-relaxed font-medium text-sm sm:text-base mb-8">
+                <h3 class="text-3xl sm:text-4xl font-black text-white mb-4 leading-tight drop-shadow-md">{{ guideSteps[currentStep].title }}</h3>
+                <p class="text-slate-300 leading-relaxed font-medium text-base sm:text-lg mb-10 drop-shadow">
                   {{ guideSteps[currentStep].description }}
                 </p>
 
-                <!-- Tombol Navigasi Bawah -->
-                <div class="flex items-center gap-4 mt-auto">
+                <!-- Navigation Buttons -->
+                <div class="flex items-center gap-4">
                   <button 
                     v-if="currentStep > 0"
                     @click="prevStep"
-                    class="px-6 py-3.5 rounded-full border border-white/20 text-white hover:bg-white/10 transition-colors font-bold text-sm tracking-wide"
+                    class="w-14 h-14 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white/10 transition-colors shadow-sm shrink-0"
                   >
-                    Back
+                    <span class="material-symbols-outlined">arrow_back</span>
                   </button>
-                  <div v-else class="flex-1"></div>
-
                   <button 
                     @click="nextStep"
-                    class="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#0050cb] hover:bg-blue-600 text-white transition-all font-bold text-sm uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 active:scale-95"
+                    class="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-all font-bold uppercase tracking-wide shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 max-w-[200px]"
                   >
-                    {{ currentStep === guideSteps.length - 1 ? 'Selesai' : 'Next Step' }}
-                    <span class="material-symbols-outlined text-[18px]">{{ currentStep === guideSteps.length - 1 ? 'check' : 'arrow_forward' }}</span>
+                    {{ currentStep === guideSteps.length - 1 ? 'Finish' : 'Next' }}
+                    <span class="material-symbols-outlined text-[20px]">{{ currentStep === guideSteps.length - 1 ? 'check_circle' : 'arrow_forward' }}</span>
                   </button>
                 </div>
-
               </div>
-            </div>
-          </transition>
+            </transition>
+          </div>
+
+        </div>
+
+        <!-- Pagination Dots -->
+        <div class="absolute bottom-8 z-50 flex items-center gap-3">
+          <div 
+            v-for="(_, index) in guideSteps" 
+            :key="'dot-'+index"
+            class="h-2 rounded-full transition-all duration-500 cursor-pointer"
+            :class="index === currentStep ? 'w-8 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]' : 'w-2 bg-white/20 hover:bg-white/40'"
+            @click.stop="currentStep = index"
+          ></div>
         </div>
         
       </div>
@@ -192,7 +281,6 @@ const prevStep = () => {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-/* Transisi Modal Penuh */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s ease;
@@ -202,21 +290,20 @@ const prevStep = () => {
   opacity: 0;
 }
 
-/* Transisi Ganti Kartu */
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+/* Transisi fade-slide-up untuk Text (Pop up ke atas) */
+.fade-slide-up-enter-active,
+.fade-slide-up-leave-active {
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
-.slide-up-enter-from {
+.fade-slide-up-enter-from {
   opacity: 0;
-  transform: translateY(20px) scale(0.95);
+  transform: translateY(40px);
 }
-.slide-up-leave-to {
+.fade-slide-up-leave-to {
   opacity: 0;
-  transform: translateY(-20px) scale(0.95);
+  transform: translateY(-40px);
 }
 
-/* Animasi Floating Button Default */
 @keyframes bounce-slow {
   0%, 100% {
     transform: translateY(-5%);
