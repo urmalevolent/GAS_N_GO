@@ -48,7 +48,7 @@ Daftar seluruh transaksi pemesanan mobil beserta status pembayaran dan aksi yang
 
 ### 4. Detail Kendaraan & Ulasan
 Pop-up detail yang menampilkan spesifikasi lengkap kendaraan (Tahun, Transmisi, Kapasitas, Bahan Bakar) serta ulasan dari pelanggan sebelumnya.
-![Detail Kendaraan](image/Detail13.png)
+![Detail Kendaraan](image/Detail3.png)
 
 ### 5. Lacak Pesanan Pengguna (My Orders)
 Halaman sisi pelanggan untuk melacak *timeline* pemesanan kendaraan, tagihan, serta status pembayaran DP/Lunas.
@@ -56,13 +56,42 @@ Halaman sisi pelanggan untuk melacak *timeline* pemesanan kendaraan, tagihan, se
 
 ---
 
-## 🚀 Frontend Project Setup
+## 🚀 Persiapan & Instalasi Proyek (Project Setup)
 
-This template should help get you started developing with Vue 3 in Vite.
+Ikuti langkah-langkah di bawah ini untuk menginstal dan menjalankan proyek secara lokal.
+
+### 1. Clone Repository
+Buka terminal dan jalankan perintah berikut untuk mengunduh proyek:
+```sh
+git clone https://github.com/urmalevolent/GAS_N_GO.git
+```
+
+### 2. Setup Frontend
+Masuk ke folder `frontend`, lalu instal seluruh *dependency* dan *library* tambahan (`aos`):
+```sh
+cd GAS_N_GO/frontend
+npm install
+npm install aos
+```
+
+### 3. Setup Backend
+Buka terminal baru (atau tab baru), masuk ke folder `backend`, lalu instal *dependency*-nya:
+```sh
+cd GAS_N_GO/backend
+npm install
+```
+
+### 4. Menjalankan Aplikasi
+Setelah proses instalasi di kedua folder selesai, jalankan *server development* di masing-masing terminal (satu untuk frontend, satu untuk backend) dengan perintah:
+```sh
+npm run dev
+```
+
+---
 
 ### Recommended IDE Setup
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
 
 ### Recommended Browser Setup
 
@@ -76,8 +105,3 @@ This template should help get you started developing with Vue 3 in Vite.
 ### Customize configuration
 
 See [Vite Configuration Reference](https://vite.dev/config/).
-
-### Project Setup
-
-```sh
-npm install
